@@ -1,70 +1,72 @@
-    <aside
-      :class="sidebarToggle ? 'translate-x-0 lg:w-[90px]' : '-translate-x-full'"
-      class="sidebar fixed left-0 top-0 z-9999 flex h-screen w-[290px] flex-col overflow-y-hidden border-r border-gray-200 bg-white px-5 duration-300 ease-linear lg:static lg:translate-x-0"
-      @click.outside="sidebarToggle = false"
-    >
-      <div
-        :class="sidebarToggle ? 'justify-center' : 'justify-between'"
-        class="sidebar-header flex items-center gap-2 pb-7 pt-8"
-      >
-        <a href="index.html">
-          <span class="logo" :class="sidebarToggle ? 'hidden' : ''">
-            <img class="" src="{{asset('assets/images/logo/logo.svg')}}" alt="Logo" />
-            <img
-              class="hidden"
-              src="{{asset('assets/images/logo/logo-dark.svg')}}"
-              alt="Logo"
-            />
-          </span>
+    <aside :class="sidebarToggle ? 'translate-x-0 lg:w-[90px]' : '-translate-x-full'"
+        class="sidebar fixed left-0 top-0 z-9999 flex h-screen w-[290px] flex-col overflow-y-hidden border-r border-gray-200 bg-white px-5 duration-300 ease-linear lg:static lg:translate-x-0"
+        @click.outside="sidebarToggle = false">
+        <div :class="sidebarToggle ? 'justify-center' : 'justify-between'"
+            class="sidebar-header flex items-center gap-2 pb-7 pt-8">
+            <a href="index.html">
+                <span class="logo" :class="sidebarToggle ? 'hidden' : ''">
+                    <img class="" src="{{ asset('assets/images/logo/logo.svg') }}" alt="Logo" />
+                    <img class="hidden" src="{{ asset('assets/images/logo/logo-dark.svg') }}" alt="Logo" />
+                </span>
 
-          <img
-            class="logo-icon"
-            :class="sidebarToggle ? 'lg:block' : 'hidden'"
-            src="{{asset('assets/images/logo/logo-icon.svg')}}"
-            alt="Logo"
-          />
-        </a>
-      </div>
-      <div
-        class="no-scrollbar flex flex-col overflow-y-auto duration-300 ease-linear"
-      >
-        <nav x-data="{selected: $persist('Dashboard')}">
-          <div>
-            <h3 class="mb-4 text-xs uppercase leading-[20px] text-gray-400">
-              <span
-                class="menu-group-title"
-                :class="sidebarToggle ? 'lg:hidden' : ''"
-              >
-                MENU
-              </span>
+                <img class="logo-icon" :class="sidebarToggle ? 'lg:block' : 'hidden'"
+                    src="{{ asset('assets/images/logo/logo-icon.svg') }}" alt="Logo" />
+            </a>
+        </div>
+        <div class="no-scrollbar flex flex-col overflow-y-auto duration-300 ease-linear">
+            <nav x-data="{ selected: $persist('Dashboard') }">
+                <div>
+                    <h3 class="mb-4 text-xs uppercase leading-[20px] text-gray-400">
+                        <span class="menu-group-title" :class="sidebarToggle ? 'lg:hidden' : ''">
+                            MENU
+                        </span>
 
-              <i
-                :class="sidebarToggle ? 'lg:block hidden' : 'hidden'"
-                class="menu-group-icon mx-auto bx bx-dots-horizontal-rounded"
-              ></i>
-            </h3>
+                        <i :class="sidebarToggle ? 'lg:block hidden' : 'hidden'"
+                            class="menu-group-icon mx-auto bx bx-dots-horizontal-rounded"></i>
+                    </h3>
 
-            <ul class="mb-6 flex flex-col gap-4">
+                    <ul class="mb-6 flex flex-col">
 
-              <li>
-                <a
-                  href="tables.html"
-                  class="menu-item group menu-item-active"
-                  
-                >
-                  <i
-                    class="menu-item-icon-active bx bxs-grid-alt"
-                  ></i>
+                        <li>
+                            <a href="tables.html" class="menu-item group text-gray-500 hover:menu-item-active">
+                                <i class="menu-item-icon-active bx bxs-grid-alt"></i>
 
-                  <span
-                    class="menu-item-text"
-                    :class="sidebarToggle ? 'lg:hidden' : ''"
-                  >
-                    Tables
-                  </span>
-                </a>
-              </li>
-                {{-- <li>
+                                <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
+                                    Product
+                                </span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="tables.html" class="menu-item group text-gray-500 hover:menu-item-active">
+                                <i class=" bx bxs-grid-alt"></i>
+
+                                <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
+                                    Category
+                                </span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="tables.html" class="menu-item group text-gray-500 hover:menu-item-active">
+                                <i class=" bx bxs-grid-alt"></i>
+
+                                <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
+                                    Category
+                                </span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="tables.html" class="menu-item group text-gray-500 hover:menu-item-active">
+                                <i class=" bx bxs-grid-alt"></i>
+
+                                <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
+                                    Category
+                                </span>
+                            </a>
+                        </li>
+                        {{-- <li>
                   <a
                     href="#"
                     @click.prevent="selected = (selected === 'Pages' ? '':'Pages')"
@@ -270,8 +272,8 @@
                     </ul>
                   </div>
                 </li> --}}
-              </ul>
-          </div>
-        </nav>
+                    </ul>
+                </div>
+            </nav>
         </div>
     </aside>

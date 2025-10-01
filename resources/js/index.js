@@ -7,6 +7,7 @@ import Alpine from "alpinejs";
 import persist from "@alpinejs/persist";
 import flatpickr from "flatpickr";
 import Dropzone from "dropzone";
+import "flowbite";
 
 Alpine.plugin(persist);
 window.Alpine = Alpine;

@@ -19,6 +19,7 @@
         "alpinejs": "^3.15.0",
         "dropzone": "^6.0.0-beta.2",
         "flatpickr": "^4.6.13",
+        "flowbite": "^3.1.2",
         "jsvectormap": "^1.7.0"
     }
 }

@@ -89,6 +89,12 @@
                         </div>
                     </div>
 
+                    <button
+                        class="text-sm border border-gray-500 text-gray-500 px-3 py-1 rounded-lg hover:bg-blue-200 hover:text-blue-700 hover:border-none transition-colors">
+                        <i class="fill-gray-500 group-hover:fill-gray-700 bx bx-user"></i>
+                        Edit Profile
+                    </button>
+
                     <div class="relative" x-data="{ dropdownOpen: false }" @click.outside="dropdownOpen = false">
                         <a class="flex items-center text-gray-700" href="#"
                             @click.prevent="dropdownOpen = ! dropdownOpen">
@@ -112,7 +118,7 @@
                                 </span>
                             </div>
 
-                            <ul class="flex flex-col gap-1 border-b border-gray-200 pt-4 pb-3">
+                            {{-- <ul class="flex flex-col gap-1 border-b border-gray-200 pt-4 pb-3">
                                 <li>
                                     <a href="profile.html"
                                         class="group text-theme-sm flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700">
@@ -120,21 +126,7 @@
                                         Edit profile
                                     </a>
                                 </li>
-                                <li>
-                                    <a href="messages.html"
-                                        class="group text-theme-sm flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700">
-                                        <i class="fill-gray-500 group-hover:fill-gray-700 bx bx-cog"></i>
-                                        Account settings
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="settings.html"
-                                        class="group text-theme-sm flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700">
-                                        <i class="fill-gray-500 group-hover:fill-gray-700 bx bx-help-circle"></i>
-                                        Support
-                                    </a>
-                                </li>
-                            </ul>
+                            </ul> --}}
                             <button
                                 class="group text-theme-sm mt-3 flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700">
                                 <i class="fill-gray-500 group-hover:fill-gray-700 bx bx-log-out"></i>
@@ -143,6 +135,7 @@
                             </button>
                         </div>
                     </div>
+
                 </div>
             </div>
         </header>
