@@ -89,11 +89,20 @@
                         </div>
                     </div>
 
+                    <a href="" class="text-sm px-3 py-1 rounded-lg bg-indigo-900 text-white shadow-lg">
+                        <i class="bx bx-cart"></i>
+                        Kasir (POS)
+                    </a>
+
+
                     <button
                         class="text-sm border border-gray-500 text-gray-500 px-3 py-1 rounded-lg hover:bg-blue-200 hover:text-blue-700 hover:border-none transition-colors">
                         <i class="fill-gray-500 group-hover:fill-gray-700 bx bx-user"></i>
                         Edit Profile
                     </button>
+
+
+
 
                     <div class="relative" x-data="{ dropdownOpen: false }" @click.outside="dropdownOpen = false">
                         <a class="flex items-center text-gray-700" href="#"

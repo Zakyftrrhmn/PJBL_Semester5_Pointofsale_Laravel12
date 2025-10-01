@@ -34,7 +34,7 @@
                                       <li>
                                           <a class="inline-flex items-center gap-1.5 text-sm text-gray-500"
                                               href="index.html">
-                                              Home
+                                              Dashboard
                                               <i class="stroke-current bx bx-chevron-right"></i>
                                           </a>
                                       </li>

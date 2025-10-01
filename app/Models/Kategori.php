@@ -6,9 +6,9 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Category extends Model
+class Kategori extends Model
 {
     use HasFactory, HasUuids;
 
-    protected $fillable = ['category_name'];
+    protected $fillable = ['nama_kategori'];
 }
