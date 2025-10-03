@@ -58,6 +58,11 @@ class PelangganController extends Controller
     }
 
     /**
+     * Display the specified resource.
+     */
+    public function show(string $id) {}
+
+    /**
      * Form edit pelanggan
      */
     public function edit(Pelanggan $pelanggan)

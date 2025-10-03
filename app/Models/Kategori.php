@@ -10,5 +10,10 @@ class Kategori extends Model
 {
     use HasFactory, HasUuids;
 
+
+    public $incrementing = false;   // biar Laravel tahu ini bukan auto increment
+    protected $keyType = 'string';  // UUID berupa string
+
+
     protected $fillable = ['nama_kategori'];
 }

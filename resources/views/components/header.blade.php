@@ -108,7 +108,7 @@
                         <a class="flex items-center text-gray-700" href="#"
                             @click.prevent="dropdownOpen = ! dropdownOpen">
                             <span class="mr-3 h-9 w-9 overflow-hidden rounded-full">
-                                <img src="{{ asset('assets/images/user/owner.jpg') }}" alt="User" />
+                                <img src="{{ asset('assets/images/user/default-pelanggan.png') }}" alt="User" />
                             </span>
 
                             <span class="text-theme-sm mr-1 block font-medium"> Musharof </span>

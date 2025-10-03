@@ -16,7 +16,7 @@
     <div class="no-scrollbar flex flex-col overflow-y-auto duration-300 ease-linear">
         <nav x-data="{ selected: $persist('Dashboard') }">
             <div>
-                <hr class="w-full mb-2 opacity-70">
+                <hr class="w-full mb-2 bg-indigo-900 opacity-70">
 
                 <!-- MAIN -->
                 <h3 class="mb-2 text-xs  text-indigo-900 flex items-center justify-between">
@@ -26,9 +26,9 @@
                     <i :class="sidebarToggle ? 'opacity-100 visible lg:block ' : 'opacity-0 invisible'"
                         class="transition duration-300 menu-group-icon mx-auto bx bx-dots-horizontal-rounded !text-center"></i>
                 </h3>
-                <ul class="mb-6 flex flex-col">
+                <ul class="mb-6 flex flex-col gap-y-0.5">
                     <li>
-                        <a href="#" class="menu-item group text-gray-500 hover:menu-item-active">
+                        <a href="#" class="menu-item group text-gray-800 hover:menu-item-active">
                             <i class="bx bxs-dashboard"></i>
                             <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Dashboard</span>
                         </a>
@@ -36,7 +36,7 @@
                 </ul>
 
                 <!-- INVENTORY -->
-                <hr class="w-full mb-2 opacity-70">
+                <hr class="w-full mb-2 bg-indigo-900 opacity-70">
 
                 <h3 class="mb-2 text-xs  text-indigo-900 flex items-center justify-between text-lg font-medium">
                     <span class="menu-group-title" class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
@@ -45,76 +45,26 @@
                     <i :class="sidebarToggle ? 'opacity-100 visible lg:block ' : 'opacity-0 invisible'"
                         class="transition duration-300 menu-group-icon mx-auto bx bx-dots-horizontal-rounded !text-center"></i>
                 </h3>
-                <ul class="mb-6 flex flex-col">
+                <ul class="mb-6 flex flex-col gap-y-0.5">
                     <li>
                         <a href=""
-                            class="menu-item group hover:menu-item-active {{ request()->is('admin/product*') ? 'menu-item-active' : 'text-gray-500' }}">
+                            class="menu-item group hover:menu-item-active {{ request()->is('admin/product*') ? 'menu-item-active' : 'text-gray-800' }}">
                             <i class="bx bxs-box"></i>
                             <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Products</span>
                         </a>
                     </li>
                     <li>
                         <a href="{{ route('kategori.index') }}"
-                            class="menu-item group hover:menu-item-active {{ request()->is('admin/kategori*') ? 'menu-item-active' : 'text-gray-500' }}">
-                            <i class="bx bxs-category"></i>
+                            class="menu-item group hover:menu-item-active {{ request()->is('admin/kategori*') ? 'menu-item-active' : 'text-gray-800' }} flex items-center gap-2">
+                            <i class="bx bxs-category text-xl flex-shrink-0 text-center"></i>
                             <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Kategori</span>
                         </a>
                     </li>
-                    <li>
-                        <a href="{{ route('pelanggan.index') }}"
-                            class="menu-item group hover:menu-item-active  {{ request()->is('admin/pelanggan*') ? 'menu-item-active' : 'text-gray-500' }}">
-                            <i class="bx bx-group"></i>
-                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Pelanggan</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="menu-item group text-gray-500 hover:menu-item-active">
-                            <i class="bx bx-package"></i>
-                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Stock
-                                Management</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="menu-item group text-gray-500 hover:menu-item-active">
-                            <i class="bx bx-transfer"></i>
-                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Suppliers</span>
-                        </a>
-                    </li>
                 </ul>
 
-                <!-- SALES -->
-                <hr class="w-full mb-2 opacity-70">
-                <h3 class="mb-2 text-xs  text-indigo-900 flex items-center justify-between text-lg font-medium">
-                    <span class="menu-group-title" class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
-                        Sales
-                    </span>
-                    <i :class="sidebarToggle ? 'opacity-100 visible lg:block ' : 'opacity-0 invisible'"
-                        class="transition duration-300 menu-group-icon mx-auto bx bx-dots-horizontal-rounded !text-center"></i>
-                </h3>
-                <ul class="mb-6 flex flex-col">
-                    <li>
-                        <a href="#" class="menu-item group text-gray-500 hover:menu-item-active">
-                            <i class="bx bx-cart"></i>
-                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">POS
-                                (Transaction)</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="menu-item group text-gray-500 hover:menu-item-active">
-                            <i class="bx bx-receipt"></i>
-                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Sales History</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="menu-item group text-gray-500 hover:menu-item-active">
-                            <i class="bx bx-bar-chart"></i>
-                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Reports</span>
-                        </a>
-                    </li>
-                </ul>
 
                 <!-- USER MANAGEMENT -->
-                <hr class="w-full mb-2 opacity-70">
+                <hr class="w-full mb-2 bg-indigo-900 opacity-70">
                 <h3 class="mb-2 text-xs  text-indigo-900 flex items-center justify-between text-lg font-medium">
                     <span class="menu-group-title" class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
                         User Management
@@ -122,15 +72,15 @@
                     <i :class="sidebarToggle ? 'opacity-100 visible lg:block ' : 'opacity-0 invisible'"
                         class="transition duration-300 menu-group-icon mx-auto bx bx-dots-horizontal-rounded !text-center"></i>
                 </h3>
-                <ul class="mb-6 flex flex-col">
+                <ul class="mb-6 flex flex-col gap-y-0.5">
                     <li>
-                        <a href="#" class="menu-item group text-gray-500 hover:menu-item-active">
+                        <a href="#" class="menu-item group text-gray-800 hover:menu-item-active">
                             <i class="bx bx-user"></i>
                             <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Users</span>
                         </a>
                     </li>
                     <li>
-                        <a href="#" class="menu-item group text-gray-500 hover:menu-item-active">
+                        <a href="#" class="menu-item group text-gray-800 hover:menu-item-active">
                             <i class="bx bx-shield"></i>
                             <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Roles &
                                 Permissions</span>
@@ -138,8 +88,43 @@
                     </li>
                 </ul>
 
+
+                <!-- PEMBELIAN -->
+                <hr class="w-full mb-2 bg-indigo-900 opacity-70">
+                <h3 class="mb-2 text-xs text-indigo-900 flex items-center justify-between text-lg font-medium">
+                    <span class="menu-group-title" class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
+                        Pembelian
+                    </span>
+                    <i :class="sidebarToggle ? 'opacity-100 visible lg:block ' : 'opacity-0 invisible'"
+                        class="transition duration-300 menu-group-icon mx-auto bx bx-dots-horizontal-rounded !text-center"></i>
+                </h3>
+                <ul class="mb-6 flex flex-col gap-y-0.5">
+                    <li>
+                        <a href="#" class="menu-item group text-gray-800 hover:menu-item-active">
+                            <i class="bx bx-cart"></i>
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Pembelian</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="menu-item group text-gray-800 hover:menu-item-active">
+                            <i class="bx bx-receipt"></i>
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Pesanan
+                                Pembelian</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="menu-item group text-gray-800 hover:menu-item-active">
+                            <i class="bx bx-undo"></i>
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Retur
+                                Pembelian</span>
+                        </a>
+                    </li>
+                </ul>
+
+
+
                 <!-- PEOPLES -->
-                <hr class="w-full mb-2 opacity-70">
+                <hr class="w-full mb-2 bg-indigo-900 opacity-70">
                 <h3 class="mb-2 text-xs  text-indigo-900 flex items-center justify-between text-lg font-medium">
                     <span class="menu-group-title" class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
                         Peoples
@@ -147,14 +132,24 @@
                     <i :class="sidebarToggle ? 'opacity-100 visible lg:block ' : 'opacity-0 invisible'"
                         class="transition duration-300 menu-group-icon mx-auto bx bx-dots-horizontal-rounded !text-center"></i>
                 </h3>
-                <ul class="mb-6 flex flex-col">
-
+                <ul class="mb-6 flex flex-col gap-y-0.5">
                     <li>
-                        <a href="#" class="menu-item group text-gray-500 hover:menu-item-active">
-                            <i class="bx bx-user-check"></i>
-                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Cashiers</span>
+                        <a href="{{ route('pelanggan.index') }}"
+                            class="menu-item group hover:menu-item-active  {{ request()->is('admin/pelanggan*') ? 'menu-item-active' : 'text-gray-800' }} flex items-center gap-2">
+                            <i class="bx bx-group text-xl flex-shrink-0 text-center"></i>
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Pelanggan</span>
                         </a>
                     </li>
+                    <li>
+                        <a href="{{ route('pemasok.index') }}"
+                            class="menu-item group hover:menu-item-active {{ request()->is('admin/pemasok*') ? 'menu-item-active' : 'text-gray-800' }} flex items-center gap-2">
+
+                            <i class='bx bxs-business text-xl flex-shrink-0 text-center'></i>
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Pemasok</span>
+                        </a>
+                    </li>
+
+
                 </ul>
             </div>
         </nav>

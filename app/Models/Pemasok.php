@@ -6,17 +6,18 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Pelanggan extends Model
+class Pemasok extends Model
 {
     use HasFactory, HasUuids;
 
-    public $incrementing = false;  
+    public $incrementing = false; 
     protected $keyType = 'string'; 
 
     protected $fillable = [
-        'nama_pelanggan',
+        'nama_pemasok',
         'telp',
         'email',
-        'photo_pelanggan',
+        'alamat',
+        'photo_pemasok',
     ];
 }

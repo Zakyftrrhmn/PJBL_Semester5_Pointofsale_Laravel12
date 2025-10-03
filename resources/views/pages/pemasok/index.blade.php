@@ -1,6 +1,6 @@
 @extends('layouts.layout')
-@section('title', 'Pelanggan')
-@section('subtitle', 'Kelola pelanggan Anda')
+@section('title', 'Pemasok')
+@section('subtitle', 'Kelola pemasok anda')
 @section('content')
 
     <div class="space-y-6" x-data="{ search: '' }">
@@ -36,20 +36,20 @@
 
                 <!-- Pencarian & Refresh -->
                 <div class="flex items-center gap-2">
-                    <form action="{{ route('pelanggan.index') }}" method="GET" class="flex items-center">
+                    <form action="{{ route('pemasok.index') }}" method="GET" class="flex items-center">
                         <div class="relative w-64 sm:w-72">
                             <span class="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400">
                                 <i class="bx bx-search text-lg"></i>
                             </span>
                             <input type="text" name="search" value="{{ request('search') }}"
-                                placeholder="Cari pelanggan..."
+                                placeholder="Cari pemasok..."
                                 class="h-10 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-3 text-sm text-gray-700 placeholder-gray-400 shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
                         </div>
                     </form>
 
                     <div class="relative group">
                         <!-- Tombol Refresh -->
-                        <a href="{{ route('pelanggan.index') }}"
+                        <a href="{{ route('pemasok.index') }}"
                             class="flex items-center justify-center h-10 w-10 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shadow-sm">
                             <i class="bx bx-refresh text-xl"></i>
                         </a>
@@ -70,7 +70,7 @@
                 <!-- Action Buttons -->
                 <div class="flex items-center gap-3">
                     <div class="relative group">
-                        <a href="{{ route('pelanggan.export.pdf') }}"
+                        <a href="{{ route('pemasok.export.pdf') }}"
                             class="flex items-center justify-center w-8 h-8 rounded-sm border border-gray-200 bg-gray-50 shadow hover:bg-gray-100">
                             <i class='bx bxs-file-pdf text-2xl text-red-600'></i>
                         </a>
@@ -87,7 +87,7 @@
 
                     <!-- Excel -->
                     <div class="relative group">
-                        <a href="{{ route('pelanggan.export.excel') }}"
+                        <a href="{{ route('pemasok.export.excel') }}"
                             class="flex items-center justify-center w-8 h-8 rounded-sm border border-gray-200 bg-gray-50 shadow hover:bg-gray-100">
                             <i class='bx bxs-file-export text-2xl text-green-600'></i>
                         </a>
@@ -103,9 +103,9 @@
                     </div>
 
                     <!-- Add Button -->
-                    <a href="{{ route('pelanggan.create') }}"
+                    <a href="{{ route('pemasok.create') }}"
                         class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-200">
-                        <i class='bx bx-plus-circle'></i> Add Pelanggan
+                        <i class='bx bx-plus-circle'></i> Add Pemasok
                     </a>
                 </div>
             </div>
@@ -118,48 +118,48 @@
                             <thead class="bg-gray-50">
                                 <tr class="border-b border-gray-100">
                                     <th class="px-5 py-3 text-left font-medium">No</th>
-                                    <th class="px-5 py-3 text-left font-medium">Pelanggan</th>
+                                    <th class="px-5 py-3 text-left font-medium">Pemasok</th>
                                     <th class="px-5 py-3 text-left font-medium">Telepon</th>
                                     <th class="px-5 py-3 text-left font-medium">Email</th>
                                     <th class="px-5 py-3 text-center font-medium">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
-                                @forelse ($pelanggans as $pelanggan)
+                                @forelse ($pemasoks as $pemasok)
                                     <tr class="hover:bg-gray-50 transition">
                                         <td class="px-5 py-4 text-gray-700">
-                                            {{ $loop->iteration + ($pelanggans->firstItem() - 1) }}
+                                            {{ $loop->iteration + ($pemasoks->firstItem() - 1) }}
                                         </td>
                                         <td class="px-5 py-4 text-gray-700">
                                             <div class="flex items-center gap-3">
                                                 <!-- Foto -->
                                                 <div class="w-10 h-10 rounded-md overflow-hidden bg-gray-100">
-                                                    @if ($pelanggan->photo_pelanggan)
-                                                        <img src="{{ asset('storage/' . $pelanggan->photo_pelanggan) }}"
+                                                    @if ($pemasok->photo_pemasok)
+                                                        <img src="{{ asset('storage/' . $pemasok->photo_pemasok) }}"
                                                             alt="Foto" class="w-full h-full object-cover">
                                                     @else
-                                                        <img src="{{ asset('assets/images/user/default-pelanggan.png') }}"
+                                                        <img src="{{ asset('assets/images/pemasok/default-pemasok.png') }}"
                                                             alt="Foto" class="w-full h-full object-cover">
                                                     @endif
                                                 </div>
                                                 <!-- Nama -->
-                                                <span
-                                                    class="font-medium text-gray-700">{{ $pelanggan->nama_pelanggan }}</span>
+                                                <span class="font-medium text-gray-700">{{ $pemasok->nama_pemasok }}</span>
                                             </div>
                                         </td>
-                                        <td class="px-5 py-4 text-gray-700">{{ $pelanggan->telp }}</td>
-                                        <td class="px-5 py-4 text-gray-700">{{ $pelanggan->email }}</td>
+                                        <td class="px-5 py-4 text-gray-700">{{ $pemasok->telp }}</td>
+                                        <td class="px-5 py-4 text-gray-700">{{ $pemasok->email }}</td>
+                                        <td class="px-5 py-4 text-gray-700">{{ $pemasok->alamat }}</td>
 
                                         <td class="px-5 py-4 flex justify-center gap-2">
                                             <!-- Edit -->
-                                            <a href="{{ route('pelanggan.edit', $pelanggan->id) }}"
+                                            <a href="{{ route('pemasok.edit', $pemasok->id) }}"
                                                 class="inline-flex items-center justify-center rounded-lg p-2 border text-xs shadow-sm text-gray-700 border-gray-200">
                                                 <i class="bx bx-edit text-base"></i>
                                             </a>
 
                                             <!-- Hapus -->
                                             <button
-                                                @click="showModal = true; deleteUrl = '{{ route('pelanggan.destroy', $pelanggan->id) }}'"
+                                                @click="showModal = true; deleteUrl = '{{ route('pemasok.destroy', $pemasok->id) }}'"
                                                 class="inline-flex items-center justify-center rounded-lg p-2 border text-xs shadow-sm text-gray-700 border-gray-200">
                                                 <i class="bx bx-trash text-base"></i>
                                             </button>
@@ -168,7 +168,7 @@
                                 @empty
                                     <tr>
                                         <td colspan="6" class="px-5 py-6 text-center text-gray-400 text-sm">
-                                            Tidak ada data pelanggan.
+                                            Tidak ada data pemasok.
                                         </td>
                                     </tr>
                                 @endforelse
@@ -179,7 +179,7 @@
 
                 <!-- Pagination -->
                 <div class="mt-4">
-                    {{ $pelanggans->links('vendor.pagination.tailwind') }}
+                    {{ $pemasoks->links('vendor.pagination.tailwind') }}
                 </div>
             </div>
         </div>

@@ -47,10 +47,10 @@
                     </div>
 
                     <div>
-                        <label for="photo_pelanggan" class=" text-sm font-medium text-gray-700 flex gap-x-3">
+                        <label for="photo_pelanggan" class=" mb-2 text-sm font-medium text-gray-700 flex gap-x-3">
                             Foto
-                            <span class="text-xs text-green-800 bg-green-200 px-2 py-1 rounded-full shadow-sm">Rekomandasi
-                                Photo
+                            <span class="text-xs text-green-800 bg-green-200 px-2 py-1 rounded-full shadow-sm">
+                                Opsional & Rekomandasi Photo
                                 ukuran 1:1</span>
                         </label>
                         <input type="file" id="photo_pelanggan" name="photo_pelanggan"
