@@ -1,5 +1,5 @@
 @extends('layouts.layout')
-@section('title', 'Edit Kategori')
+@section('title', 'Edit Kategori Produk')
 @section('subtitle', 'Perbarui detail kategori di bawah ini.')
 @section('content')
 

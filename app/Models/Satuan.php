@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Merek extends Model
+class Satuan extends Model
 {
     use HasFactory, HasUuids;
 
@@ -15,9 +15,8 @@ class Merek extends Model
     protected $keyType = 'string';  // UUID berupa string
 
 
-    protected $fillable = ['nama_merek'];
+    protected $fillable = ['nama_satuan'];
 
-    // Relasi ke Produk
     public function produks()
     {
         return $this->hasMany(Produk::class);

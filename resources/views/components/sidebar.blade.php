@@ -46,13 +46,15 @@
                         class="transition duration-300 menu-group-icon mx-auto bx bx-dots-horizontal-rounded !text-center"></i>
                 </h3>
                 <ul class="mb-6 flex flex-col gap-y-0.5">
+
                     <li>
-                        <a href=""
-                            class="menu-item group hover:menu-item-active {{ request()->is('admin/product*') ? 'menu-item-active' : 'text-gray-800' }}">
+                        <a href="{{ route('produk.index') }}"
+                            class="menu-item group hover:menu-item-active {{ request()->is('admin/produk*') ? 'menu-item-active' : 'text-gray-800' }} flex items-center gap-2">
                             <i class="bx bx-basket text-xl flex-shrink-0 text-center"></i>
-                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Products</span>
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Produk</span>
                         </a>
                     </li>
+
                     <li>
                         <a href="{{ route('kategori.index') }}"
                             class="menu-item group hover:menu-item-active {{ request()->is('admin/kategori*') ? 'menu-item-active' : 'text-gray-800' }} flex items-center gap-2">
@@ -66,6 +68,14 @@
                             class="menu-item group hover:menu-item-active {{ request()->is('admin/merek*') ? 'menu-item-active' : 'text-gray-800' }} flex items-center gap-2">
                             <i class="bx bx-badge-check text-xl flex-shrink-0 text-center"></i>
                             <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Merek</span>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ route('satuan.index') }}"
+                            class="menu-item group hover:menu-item-active {{ request()->is('admin/satuan*') ? 'menu-item-active' : 'text-gray-800' }} flex items-center gap-2">
+                            <i class="bx bx-box text-xl flex-shrink-0 text-center"></i>
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Satuan</span>
                         </a>
                     </li>
                 </ul>

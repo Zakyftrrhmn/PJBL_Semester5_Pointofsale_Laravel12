@@ -1,6 +1,6 @@
 @extends('layouts.layout')
-@section('title', 'Kategori Produk')
-@section('subtitle', 'Kelola kategori produk Anda')
+@section('title', 'Satuan Produk')
+@section('subtitle', 'Kelola Satuan Produk Anda')
 @section('content')
 
     <div class="space-y-6" x-data="{ search: '' }">
@@ -36,20 +36,20 @@
 
                 <!-- Pencarian & Refresh -->
                 <div class="flex items-center gap-2">
-                    <form action="{{ route('kategori.index') }}" method="GET" class="flex items-center">
+                    <form action="{{ route('satuan.index') }}" method="GET" class="flex items-center">
                         <div class="relative w-64 sm:w-72">
                             <span class="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400">
                                 <i class="bx bx-search text-lg"></i>
                             </span>
                             <input type="text" name="search" value="{{ request('search') }}"
-                                placeholder="Cari berdasarkan nama kategori..."
+                                placeholder="Cari berdasarkan nama satuan..."
                                 class="h-10 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-3 text-sm text-gray-700 placeholder-gray-400 shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
                         </div>
                     </form>
 
                     <div class="relative group">
                         <!-- Tombol Refresh -->
-                        <a href="{{ route('kategori.index') }}"
+                        <a href="{{ route('satuan.index') }}"
                             class="flex items-center justify-center h-10 w-10 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shadow-sm">
                             <i class="bx bx-refresh text-xl"></i>
                         </a>
@@ -66,9 +66,9 @@
                 </div>
 
                 <!-- Tombol Tambah -->
-                <a href="{{ route('kategori.create') }}"
+                <a href="{{ route('satuan.create') }}"
                     class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-200">
-                    <i class='bx bx-plus-circle'></i> Tambah Kategori
+                    <i class='bx bx-plus-circle'></i> Tambah Satuan
                 </a>
             </div>
 
@@ -80,21 +80,21 @@
                             <thead class="bg-gray-50">
                                 <tr class="border-b border-gray-100">
                                     <th class="px-5 py-3 text-left font-medium">No</th>
-                                    <th class="px-5 py-3 text-left font-medium">Nama Kategori</th>
+                                    <th class="px-5 py-3 text-left font-medium">Nama Satuan</th>
                                     <th class="px-5 py-3 text-left font-medium !text-center">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
-                                @forelse ($kategoris as $kategori)
+                                @forelse ($satuans as $satuan)
                                     <tr class="hover:bg-gray-50 transition">
                                         <td class="px-5 py-4 text-gray-700">
-                                            {{ $loop->iteration + ($kategoris->firstItem() - 1) }}
+                                            {{ $loop->iteration + ($satuans->firstItem() - 1) }}
                                         </td>
-                                        <td class="px-5 py-4 text-gray-700">{{ $kategori->nama_kategori }}</td>
+                                        <td class="px-5 py-4 text-gray-700">{{ $satuan->nama_satuan }}</td>
                                         <td class="px-5 py-4">
                                             <div class="flex items-center gap-2 justify-center">
                                                 <!-- Edit -->
-                                                <a href="{{ route('kategori.edit', $kategori->id) }}"
+                                                <a href="{{ route('satuan.edit', $satuan->id) }}"
                                                     class="relative inline-flex items-center justify-center rounded-lg p-2 text-xs shadow-sm text-gray-700 border border-gray-200">
                                                     <i class="bx bx-edit text-base"></i>
                                                     <span class="sr-only">Edit</span>
@@ -102,7 +102,7 @@
 
                                                 <!-- Hapus -->
                                                 <button
-                                                    @click="showModal = true; deleteUrl = '{{ route('kategori.destroy', $kategori->id) }}'"
+                                                    @click="showModal = true; deleteUrl = '{{ route('satuan.destroy', $satuan->id) }}'"
                                                     class="relative inline-flex items-center justify-center rounded-lg p-2 text-xs shadow-sm text-gray-700 border border-gray-200">
                                                     <i class="bx bx-trash text-base"></i>
                                                     <span class="sr-only">Hapus</span>
@@ -113,7 +113,7 @@
                                 @empty
                                     <tr>
                                         <td colspan="3" class="px-5 py-6 text-center text-gray-400 text-sm">
-                                            Tidak ada data kategori.
+                                            Tidak ada data satuan.
                                         </td>
                                     </tr>
                                 @endforelse
@@ -124,7 +124,7 @@
 
                 <!-- Pagination -->
                 <div class="mt-4">
-                    {{ $kategoris->links('vendor.pagination.tailwind') }}
+                    {{ $satuans->links('vendor.pagination.tailwind') }}
                 </div>
             </div>
         </div>

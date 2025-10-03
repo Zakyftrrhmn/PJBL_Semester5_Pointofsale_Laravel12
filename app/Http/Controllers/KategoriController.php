@@ -35,6 +35,13 @@ class KategoriController extends Controller
         return redirect()->route('kategori.index')->with('success', 'Kategori berhasil ditambahkan!');
     }
 
+
+    public function show(string $id)
+    {
+        return view('404');
+    }
+
+
     public function edit(Kategori $kategori)
     {
         return view('pages.kategori.edit', compact('kategori'));
