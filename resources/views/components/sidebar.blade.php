@@ -49,15 +49,23 @@
                     <li>
                         <a href=""
                             class="menu-item group hover:menu-item-active {{ request()->is('admin/product*') ? 'menu-item-active' : 'text-gray-800' }}">
-                            <i class="bx bxs-box"></i>
+                            <i class="bx bx-basket text-xl flex-shrink-0 text-center"></i>
                             <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Products</span>
                         </a>
                     </li>
                     <li>
                         <a href="{{ route('kategori.index') }}"
                             class="menu-item group hover:menu-item-active {{ request()->is('admin/kategori*') ? 'menu-item-active' : 'text-gray-800' }} flex items-center gap-2">
-                            <i class="bx bxs-category text-xl flex-shrink-0 text-center"></i>
+                            <i class="bx bx-list-ul text-xl flex-shrink-0 text-center"></i>
                             <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Kategori</span>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ route('merek.index') }}"
+                            class="menu-item group hover:menu-item-active {{ request()->is('admin/merek*') ? 'menu-item-active' : 'text-gray-800' }} flex items-center gap-2">
+                            <i class="bx bx-badge-check text-xl flex-shrink-0 text-center"></i>
+                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Merek</span>
                         </a>
                     </li>
                 </ul>

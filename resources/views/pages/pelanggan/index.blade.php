@@ -144,11 +144,11 @@
                                                 </div>
                                                 <!-- Nama -->
                                                 <span
-                                                    class="font-medium text-gray-700">{{ $pelanggan->nama_pelanggan }}</span>
+                                                    class="font-medium text-gray-700 whitespace-nowrap">{{ $pelanggan->nama_pelanggan }}</span>
                                             </div>
                                         </td>
-                                        <td class="px-5 py-4 text-gray-700">{{ $pelanggan->telp }}</td>
-                                        <td class="px-5 py-4 text-gray-700">{{ $pelanggan->email }}</td>
+                                        <td class="px-5 py-4 text-gray-700 whitespace-nowrap">{{ $pelanggan->telp }}</td>
+                                        <td class="px-5 py-4 text-gray-700 whitespace-nowrap">{{ $pelanggan->email }}</td>
 
                                         <td class="px-5 py-4 flex justify-center gap-2">
                                             <!-- Edit -->

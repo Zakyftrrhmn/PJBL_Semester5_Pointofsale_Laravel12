@@ -120,7 +120,7 @@
                                     <th class="px-5 py-3 text-left font-medium">No</th>
                                     <th class="px-5 py-3 text-left font-medium">Pemasok</th>
                                     <th class="px-5 py-3 text-left font-medium">Telepon</th>
-                                    <th class="px-5 py-3 text-left font-medium">Email</th>
+                                    <th class="px-5 py-3 text-left font-medium">Alamat</th>
                                     <th class="px-5 py-3 text-center font-medium">Aksi</th>
                                 </tr>
                             </thead>
@@ -143,13 +143,17 @@
                                                     @endif
                                                 </div>
                                                 <!-- Nama -->
-                                                <span class="font-medium text-gray-700">{{ $pemasok->nama_pemasok }}</span>
+                                                <div class="flex flex-col items-start gap-y-1">
+                                                    <span
+                                                        class="font-medium text-black whitespace-nowrap">{{ $pemasok->nama_pemasok }}
+                                                    </span>
+                                                    <span
+                                                        class="text-gray-600 whitespace-nowrap">{{ $pemasok->email }}</span>
+                                                </div>
                                             </div>
                                         </td>
-                                        <td class="px-5 py-4 text-gray-700">{{ $pemasok->telp }}</td>
-                                        <td class="px-5 py-4 text-gray-700">{{ $pemasok->email }}</td>
-                                        <td class="px-5 py-4 text-gray-700">{{ $pemasok->alamat }}</td>
-
+                                        <td class="px-5 py-4 text-gray-700 whitespace-nowrap">{{ $pemasok->telp }}</td>
+                                        <td class="px-5 py-4 text-gray-700 whitespace-nowrap">{{ $pemasok->alamat }}</td>
                                         <td class="px-5 py-4 flex justify-center gap-2">
                                             <!-- Edit -->
                                             <a href="{{ route('pemasok.edit', $pemasok->id) }}"

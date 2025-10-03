@@ -1,12 +1,16 @@
 <?php
 
 use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\MerekController;
 use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\PemasokController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')->group(function () {
+    // Kategori
     Route::resource('kategori', KategoriController::class);
+    // Merek
+    Route::resource('merek', MerekController::class);
 
     // pelanggan
     Route::resource('pelanggan', PelangganController::class);
