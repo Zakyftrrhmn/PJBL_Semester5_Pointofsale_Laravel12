@@ -7,6 +7,10 @@ use App\Http\Controllers\PemasokController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\SatuanController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PembelianController;
+use App\Http\Controllers\PesananPembelianController;
+use App\Http\Controllers\ReturPembelianController;
+
 
 Route::prefix('admin')->group(function () {
     // Kategori
@@ -34,4 +38,16 @@ Route::prefix('admin')->group(function () {
     Route::resource('pemasok', PemasokController::class);
     Route::get('pemasok-export-excel', [PemasokController::class, 'exportExcel'])->name('pemasok.export.excel');
     Route::get('pemasok-export-pdf', [PemasokController::class, 'exportPDF'])->name('pemasok.export.pdf');
+
+    // Pembelian (Pembelian Baru / Form Transaksi)
+    Route::get('pembelian/create', [PembelianController::class, 'create'])->name('pembelian.create');
+    Route::post('pembelian/store', [PembelianController::class, 'store'])->name('pembelian.store');
+
+    // Pesanan Pembelian (Daftar Transaksi)
+    Route::resource('pesanan-pembelian', PesananPembelianController::class)->only(['index', 'show']);
+    Route::get('pesanan-pembelian-pdf/{pembelian}', [PesananPembelianController::class, 'exportPDF'])->name('pesanan-pembelian.export.pdf');
+
+    // Retur Pembelian
+    Route::resource('retur-pembelian', ReturPembelianController::class)->except(['edit', 'update', 'show', 'destroy']);
+    Route::get('retur-pembelian/get-produk/{pembelianId}', [ReturPembelianController::class, 'getProdukByPembelian'])->name('retur-pembelian.get-produk');
 });

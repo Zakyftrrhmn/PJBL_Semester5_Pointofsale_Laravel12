@@ -1,16 +1,17 @@
 <aside :class="sidebarToggle ? 'translate-x-0 lg:w-[90px]' : '-translate-x-full'"
     class="sidebar fixed left-0 top-0 z-9999 flex h-screen w-[290px] flex-col overflow-y-hidden border-r border-gray-200 bg-white px-5 duration-300 ease-linear lg:static lg:translate-x-0"
     @click.outside="sidebarToggle = false">
-    <div :class="sidebarToggle ? 'justify-center' : 'justify-between'"
-        class="sidebar-header flex items-center gap-2 pb-7 pt-8">
+    <div :class="sidebarToggle ? 'justify-center' : 'justify-center'"
+        class="sidebar-header flex items-center gap-2 pb-3 pt-3">
+
         <a href="index.html">
             <span class="logo" :class="sidebarToggle ? 'hidden' : ''">
-                <img class="" src="{{ asset('assets/images/logo/logo.svg') }}" alt="Logo" />
-                <img class="hidden" src="{{ asset('assets/images/logo/logo-dark.svg') }}" alt="Logo" />
+                <img class="h-18 w-auto object-contain" src="{{ asset('assets/images/logo/logo-sidebar.png') }}"
+                    alt="Logo" />
             </span>
 
-            <img class="logo-icon" :class="sidebarToggle ? 'lg:block' : 'hidden'"
-                src="{{ asset('assets/images/logo/logo-icon.svg') }}" alt="Logo" />
+            <img class="logo-icon h-18 w-auto object-contain" :class="sidebarToggle ? 'lg:block' : 'hidden'"
+                src="{{ asset('assets/images/logo/logo-sidebar2.png') }}" alt="Logo" />
         </a>
     </div>
     <div class="no-scrollbar flex flex-col overflow-y-auto duration-300 ease-linear">
@@ -107,7 +108,6 @@
                 </ul>
 
 
-                <!-- PEMBELIAN -->
                 <hr class="w-full mb-2 bg-indigo-900 opacity-70">
                 <h3 class="mb-2 text-xs text-indigo-900 flex items-center justify-between text-lg font-medium">
                     <span class="menu-group-title" class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">
@@ -117,22 +117,28 @@
                         class="transition duration-300 menu-group-icon mx-auto bx bx-dots-horizontal-rounded !text-center"></i>
                 </h3>
                 <ul class="mb-6 flex flex-col gap-y-0.5">
+                    {{-- Menu Pembelian Baru --}}
                     <li>
-                        <a href="#" class="menu-item group text-gray-800 hover:menu-item-active">
-                            <i class="bx bx-cart"></i>
+                        <a href="{{ route('pembelian.create') }}"
+                            class="menu-item group hover:menu-item-active {{ request()->is('admin/pembelian/create') ? 'menu-item-active' : 'text-gray-800' }} flex items-center gap-2">
+                            <i class="bx bx-cart text-xl flex-shrink-0 text-center"></i>
                             <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Pembelian</span>
                         </a>
                     </li>
+                    {{-- Menu Pesanan Pembelian --}}
                     <li>
-                        <a href="#" class="menu-item group text-gray-800 hover:menu-item-active">
-                            <i class="bx bx-receipt"></i>
+                        <a href="{{ route('pesanan-pembelian.index') }}"
+                            class="menu-item group hover:menu-item-active {{ request()->is('admin/pesanan-pembelian*') ? 'menu-item-active' : 'text-gray-800' }} flex items-center gap-2">
+                            <i class="bx bx-receipt text-xl flex-shrink-0 text-center"></i>
                             <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Pesanan
                                 Pembelian</span>
                         </a>
                     </li>
+                    {{-- Menu Retur Pembelian --}}
                     <li>
-                        <a href="#" class="menu-item group text-gray-800 hover:menu-item-active">
-                            <i class="bx bx-undo"></i>
+                        <a href="{{ route('retur-pembelian.index') }}"
+                            class="menu-item group hover:menu-item-active {{ request()->is('admin/retur-pembelian*') ? 'menu-item-active' : 'text-gray-800' }} flex items-center gap-2">
+                            <i class="bx bx-undo text-xl flex-shrink-0 text-center"></i>
                             <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Retur
                                 Pembelian</span>
                         </a>

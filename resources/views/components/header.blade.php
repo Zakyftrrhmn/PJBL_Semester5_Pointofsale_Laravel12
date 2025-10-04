@@ -12,12 +12,10 @@
                         <i x-show="sidebarToggle" class="bx bx-chevrons-right"></i>
                     </button>
 
-
                     <a href="index.html" class="lg:hidden">
-                        <img class="" src="{{ asset('assets/images/logo/logo.svg') }}" alt="Logo" />
-                        <img class="hidden" src="{{ asset('assets/images/logo/logo-dark.svg') }}" alt="Logo" />
+                        <img class="h-14 w-auto object-contain" src="{{ asset('assets/images/logo/logo-sidebar.png') }}"
+                            alt="Logo" />
                     </a>
-
                     <button
                         class="z-99999 flex h-10 w-10 items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100 lg:hidden"
                         :class="menuToggle ? 'bg-gray-100' : ''" @click.stop="menuToggle = !menuToggle">

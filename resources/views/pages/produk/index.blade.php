@@ -101,12 +101,12 @@
                                     <th class="px-5 py-3 text-left font-medium  whitespace-nowrap">No</th>
                                     <th class="px-5 py-3 text-left font-medium  whitespace-nowrap">Kode Produk</th>
                                     <th class="px-5 py-3 text-left font-medium  whitespace-nowrap">Produk</th>
+                                    <th class="px-5 py-3 text-left font-medium  whitespace-nowrap">Status</th>
                                     <th class="px-5 py-3 text-left font-medium  whitespace-nowrap">Kategori</th>
                                     <th class="px-5 py-3 text-left font-medium  whitespace-nowrap">Merek</th>
                                     <th class="px-5 py-3 text-left font-medium  whitespace-nowrap">Satuan</th>
                                     <th class="px-5 py-3 text-left font-medium  whitespace-nowrap">Stok</th>
                                     <th class="px-5 py-3 text-left font-medium  whitespace-nowrap">Harga Jual</th>
-                                    <th class="px-5 py-3 text-left font-medium  whitespace-nowrap">Status</th>
                                     <th class="px-5 py-3 text-center font-medium">Aksi</th>
                                 </tr>
                             </thead>
@@ -134,26 +134,28 @@
                                                 </div>
                                             </div>
                                         </td>
+                                        <td class="px-5 py-4  whitespace-nowrap">
+                                            @if ($produk->is_active === 'active')
+                                                <span
+                                                    class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-green-800 bg-green-200 rounded-sm">
+                                                    <i class="bx bxs-circle text-[6px]"></i> Active
+                                                </span>
+                                            @else
+                                                <span
+                                                    class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-red-800 bg-red-200 rounded-sm">
+                                                    <i class="bx bxs-circle text-[6px]"></i> Non Active
+                                                </span>
+                                            @endif
+                                        </td>
                                         <td class="px-5 py-4  whitespace-nowrap">{{ $produk->kategori->nama_kategori }}
                                         </td>
                                         <td class="px-5 py-4  whitespace-nowrap">{{ $produk->merek->nama_merek }}</td>
                                         <td class="px-5 py-4  whitespace-nowrap">{{ $produk->satuan->nama_satuan }}</td>
                                         <td class="px-5 py-4  whitespace-nowrap">{{ $produk->stok_produk }}</td>
+
                                         <td class="px-5 py-4  whitespace-nowrap">Rp
                                             {{ number_format($produk->harga_jual, 0, ',', '.') }}</td>
-                                        <td class="px-5 py-4  whitespace-nowrap">
-                                            @if ($produk->is_active === 'active')
-                                                <span
-                                                    class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-green-800 bg-green-200 rounded-full">
-                                                    <i class="bx bxs-circle text-[6px]"></i> Active
-                                                </span>
-                                            @else
-                                                <span
-                                                    class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-red-800 bg-red-200 rounded-full">
-                                                    <i class="bx bxs-circle text-[6px]"></i> Non Active
-                                                </span>
-                                            @endif
-                                        </td>
+
                                         <td class="px-5 py-4 flex justify-center gap-2">
                                             <!-- View -->
                                             <a href="{{ route('produk.show', $produk->id) }}"
