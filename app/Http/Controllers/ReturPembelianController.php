@@ -10,6 +10,11 @@ use Illuminate\Support\Facades\DB;
 
 class ReturPembelianController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:retur-pembelian.index')->only('index');
+        $this->middleware('permission:retur-pembelian.create')->only(['create', 'store']);
+    }
     /**
      * Display a listing of the resource (Daftar Retur Pembelian).
      */

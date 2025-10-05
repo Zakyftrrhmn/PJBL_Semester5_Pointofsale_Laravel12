@@ -11,6 +11,17 @@ use Illuminate\Support\Facades\DB;
 
 class PembelianController extends Controller
 {
+
+    public function __construct()
+    {
+        // Membatasi akses dengan middleware permission
+        $this->middleware('permission:pembelian.index')->only('index');
+        $this->middleware('permission:pembelian.create')->only(['create', 'store']);
+        $this->middleware('permission:pembelian.show')->only('show');
+        $this->middleware('permission:pembelian.edit')->only(['edit', 'update']);
+        $this->middleware('permission:pembelian.destroy')->only('destroy');
+        $this->middleware('permission:pembelian.export')->only(['exportExcel', 'exportPDF']);
+    }
     /**
      * Show the form for creating a new resource (Pembelian Baru).
      */

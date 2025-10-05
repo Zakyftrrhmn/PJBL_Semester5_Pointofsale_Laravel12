@@ -66,28 +66,32 @@
 
                 <!-- Action Buttons -->
                 <div class="flex items-center gap-3">
-                    <div class="relative group">
-                        <a href="{{ route('produk.export.pdf') }}"
-                            class="flex items-center justify-center w-8 h-8 rounded-sm border border-gray-200 bg-gray-50 shadow hover:bg-gray-100">
-                            <i class='bx bxs-file-pdf text-2xl text-red-600'></i>
-                        </a>
-                        <span
-                            class="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 text-sm text-white bg-black rounded opacity-0 group-hover:opacity-100 transition-all duration-300">PDF</span>
-                    </div>
+                    @can('produk.export')
+                        <div class="relative group">
+                            <a href="{{ route('produk.export.pdf') }}"
+                                class="flex items-center justify-center w-8 h-8 rounded-sm border border-gray-200 bg-gray-50 shadow hover:bg-gray-100">
+                                <i class='bx bxs-file-pdf text-2xl text-red-600'></i>
+                            </a>
+                            <span
+                                class="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 text-sm text-white bg-black rounded opacity-0 group-hover:opacity-100 transition-all duration-300">PDF</span>
+                        </div>
 
-                    <div class="relative group">
-                        <a href="{{ route('produk.export.excel') }}"
-                            class="flex items-center justify-center w-8 h-8 rounded-sm border border-gray-200 bg-gray-50 shadow hover:bg-gray-100">
-                            <i class='bx bxs-file-export text-2xl text-green-600'></i>
-                        </a>
-                        <span
-                            class="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 text-sm text-white bg-black rounded opacity-0 group-hover:opacity-100 transition-all duration-300">Excel</span>
-                    </div>
+                        <div class="relative group">
+                            <a href="{{ route('produk.export.excel') }}"
+                                class="flex items-center justify-center w-8 h-8 rounded-sm border border-gray-200 bg-gray-50 shadow hover:bg-gray-100">
+                                <i class='bx bxs-file-export text-2xl text-green-600'></i>
+                            </a>
+                            <span
+                                class="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 text-sm text-white bg-black rounded opacity-0 group-hover:opacity-100 transition-all duration-300">Excel</span>
+                        </div>
+                    @endcan
 
-                    <a href="{{ route('produk.create') }}"
-                        class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700">
-                        <i class='bx bx-plus-circle'></i> Tambah Produk
-                    </a>
+                    @can('produk.create')
+                        <a href="{{ route('produk.create') }}"
+                            class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700">
+                            <i class='bx bx-plus-circle'></i> Tambah Produk
+                        </a>
+                    @endcan
                 </div>
             </div>
 
@@ -108,7 +112,9 @@
                                     <th class="px-5 py-3 text-left font-medium  whitespace-nowrap">Stok</th>
                                     <th class="px-5 py-3 text-left font-medium  whitespace-nowrap">Pengingat Stok</th>
                                     <th class="px-5 py-3 text-left font-medium  whitespace-nowrap">Harga Jual</th>
-                                    <th class="px-5 py-3 text-center font-medium">Aksi</th>
+                                    @canany(['produk.show', 'produk.edit', 'produk.destroy'])
+                                        <th class="px-5 py-3 text-center font-medium">Aksi</th>
+                                    @endcanany
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
@@ -161,26 +167,28 @@
                                             {{ number_format($produk->harga_jual, 0, ',', '.') }}</td>
 
                                         <td class="px-5 py-4 flex justify-center gap-2">
-                                            <!-- View -->
-                                            <a href="{{ route('produk.show', $produk->id) }}"
-                                                class="p-2 border rounded-lg shadow-sm text-gray-700 border-gray-200">
-                                                <i class="bx bx-show text-base"></i>
-                                            </a>
-                                            <!-- Edit -->
-                                            <a href="{{ route('produk.edit', $produk->id) }}"
-                                                class="p-2 border rounded-lg shadow-sm text-gray-700 border-gray-200">
-                                                <i class="bx bx-edit text-base"></i>
-                                            </a>
-                                            <!-- Delete -->
-                                            <form action="{{ route('produk.destroy', $produk->id) }}" method="POST"
-                                                onsubmit="return confirm('Yakin hapus produk ini?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit"
+                                            @can('produk.show')
+                                                <!-- View -->
+                                                <a href="{{ route('produk.show', $produk->id) }}"
                                                     class="p-2 border rounded-lg shadow-sm text-gray-700 border-gray-200">
+                                                    <i class="bx bx-show text-base"></i>
+                                                </a>
+                                            @endcan
+                                            @can('produk.edit')
+                                                <!-- Edit -->
+                                                <a href="{{ route('produk.edit', $produk->id) }}"
+                                                    class="p-2 border rounded-lg shadow-sm text-gray-700 border-gray-200">
+                                                    <i class="bx bx-edit text-base"></i>
+                                                </a>
+                                            @endcan
+                                            @can('produk.destroy')
+                                                <!-- Delete -->
+                                                <button
+                                                    @click="showModal = true; deleteUrl = '{{ route('produk.destroy', $produk->id) }}'"
+                                                    class="inline-flex items-center justify-center rounded-lg p-2 border text-xs shadow-sm text-gray-700 border-gray-200">
                                                     <i class="bx bx-trash text-base"></i>
                                                 </button>
-                                            </form>
+                                            @endcan
                                         </td>
                                     </tr>
                                 @empty

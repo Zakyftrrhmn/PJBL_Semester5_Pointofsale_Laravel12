@@ -8,6 +8,15 @@ use Illuminate\Http\Request;
 
 class PesananPembelianController extends Controller
 {
+
+    public function __construct()
+    {
+        // Middleware untuk mengatur hak akses berdasarkan permission
+        $this->middleware('permission:pesanan-pembelian.index')->only('index');
+        $this->middleware('permission:pesanan-pembelian.show')->only('show');
+        $this->middleware('permission:pesanan-pembelian.export')->only('exportPDF');
+    }
+    
     /**
      * Display a listing of the resource (Pesanan Pembelian).
      */

@@ -132,10 +132,14 @@
                         <a class="flex items-center text-gray-700" href="#"
                             @click.prevent="dropdownOpen = ! dropdownOpen">
                             <span class="mr-3 h-9 w-9 overflow-hidden rounded-full">
-                                <img src="{{ asset('assets/images/user/default-pelanggan.png') }}" alt="User" />
+                                @if (Auth::user()->photo_user)
+                                    <img src="{{ asset('storage/' . Auth::user()->photo_user) }}}" alt="User" />
+                                @else
+                                    <img src="{{ asset('assets/images/user/default-user.png') }}" alt="User" />
+                                @endif
                             </span>
 
-                            <span class="text-theme-sm mr-1 block font-medium"> Musharof </span>
+                            <span class="text-theme-sm mr-1 block font-medium"> {{ Auth::user()->name }} </span>
 
                             <i :class="dropdownOpen && 'rotate-180'" class="bx bx-chevron-down stroke-gray-500"></i>
                         </a>
@@ -144,10 +148,10 @@
                             class="shadow-theme-lg absolute right-0 mt-[17px] flex w-[260px] flex-col rounded-2xl border border-gray-200 bg-white p-3">
                             <div>
                                 <span class="text-theme-sm block font-medium text-gray-700">
-                                    Musharof Chowdhury
+                                    {{ Auth::user()->getRoleNames()->implode(', ') }}
                                 </span>
                                 <span class="text-theme-xs mt-0.5 block text-gray-500">
-                                    randomuser@pimjo.com
+                                    {{ Auth::user()->email }}
                                 </span>
                             </div>
 
@@ -160,12 +164,14 @@
                                     </a>
                                 </li>
                             </ul> --}}
-                            <button
-                                class="group text-theme-sm mt-3 flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700">
-                                <i class="fill-gray-500 group-hover:fill-gray-700 bx bx-log-out"></i>
-
-                                Sign out
-                            </button>
+                            <form method="POST" action="{{ route('logout') }}" class="mt-3">
+                                @csrf
+                                <button type="submit"
+                                    class="group text-theme-sm flex w-full items-center gap-3 rounded-lg px-3 py-2 font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700">
+                                    <i class="fill-gray-500 group-hover:fill-gray-700 bx bx-log-out"></i>
+                                    Sign out
+                                </button>
+                            </form>
                         </div>
                     </div>
 

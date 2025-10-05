@@ -11,6 +11,16 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class PelangganController extends Controller
 {
+    public function __construct()
+    {
+        // Menerapkan middleware untuk membatasi akses berdasarkan permission
+        $this->middleware('permission:pelanggan.index')->only('index');
+        $this->middleware('permission:pelanggan.create')->only(['create', 'store']);
+        $this->middleware('permission:pelanggan.edit')->only(['edit', 'update']);
+        $this->middleware('permission:pelanggan.destroy')->only('destroy');
+        $this->middleware('permission:pelanggan.export')->only(['exportExcel', 'exportPDF']);
+    }
+
     /**
      * Tampilkan daftar pelanggan
      */

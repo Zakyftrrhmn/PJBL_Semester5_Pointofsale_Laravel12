@@ -10,9 +10,28 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PembelianController;
 use App\Http\Controllers\PesananPembelianController;
 use App\Http\Controllers\ReturPembelianController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserController;
 
 
-Route::prefix('admin')->group(function () {
+
+Route::get('/', function () {
+    // Arahkan user yang sudah login ke dashboard (contoh: /admin/produk)
+    if (auth()->check()) {
+        return redirect()->route('produk.index');
+    }
+    return view('auth.login');
+})->name('login');
+
+
+// Proses Login
+Route::post('/login', [App\Http\Controllers\Auth\LoginController::class, 'login']);
+
+// Proses Logout
+Route::post('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
+
+
+Route::prefix('admin')->middleware(['auth'])->group(function () {
     // Kategori
     Route::resource('kategori', KategoriController::class);
 
@@ -50,4 +69,11 @@ Route::prefix('admin')->group(function () {
     // Retur Pembelian
     Route::resource('retur-pembelian', ReturPembelianController::class)->except(['edit', 'update', 'show', 'destroy']);
     Route::get('retur-pembelian/get-produk/{pembelianId}', [ReturPembelianController::class, 'getProdukByPembelian'])->name('retur-pembelian.get-produk');
+
+    // User Management
+    Route::resource('user', UserController::class)->except(['show']);
+
+    // Role & Permission Management
+    Route::resource('role', RoleController::class);
+    Route::put('role/{role}/permissions', [RoleController::class, 'updatePermissions'])->name('role.update.permissions');
 });

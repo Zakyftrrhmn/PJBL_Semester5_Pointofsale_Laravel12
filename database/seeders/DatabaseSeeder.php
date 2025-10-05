@@ -19,6 +19,8 @@ class DatabaseSeeder extends Seeder
             SatuanSeeder::class,
             ProdukSeeder::class,
             PemasokSeeder::class,
+            PermissionSeeder::class,
+            UserSeeder::class,
         ]);
     }
 }

@@ -69,44 +69,47 @@
 
                 <!-- Action Buttons -->
                 <div class="flex items-center gap-3">
-                    <div class="relative group">
-                        <a href="{{ route('pemasok.export.pdf') }}"
-                            class="flex items-center justify-center w-8 h-8 rounded-sm border border-gray-200 bg-gray-50 shadow hover:bg-gray-100">
-                            <i class='bx bxs-file-pdf text-2xl text-red-600'></i>
-                        </a>
-                        <!-- Tooltip -->
-                        <span
-                            class="absolute -top-10 left-1/2 -translate-x-1/2 
+                    @can('pemasok.export')
+                        <div class="relative group">
+                            <a href="{{ route('pemasok.export.pdf') }}"
+                                class="flex items-center justify-center w-8 h-8 rounded-sm border border-gray-200 bg-gray-50 shadow hover:bg-gray-100">
+                                <i class='bx bxs-file-pdf text-2xl text-red-600'></i>
+                            </a>
+                            <!-- Tooltip -->
+                            <span
+                                class="absolute -top-10 left-1/2 -translate-x-1/2 
                      px-2 py-1 text-sm text-white bg-black rounded 
                      opacity-0 group-hover:opacity-100 
                      scale-95 group-hover:scale-100 
                      transition-all duration-300">
-                            PDF
-                        </span>
-                    </div>
+                                PDF
+                            </span>
+                        </div>
 
-                    <!-- Excel -->
-                    <div class="relative group">
-                        <a href="{{ route('pemasok.export.excel') }}"
-                            class="flex items-center justify-center w-8 h-8 rounded-sm border border-gray-200 bg-gray-50 shadow hover:bg-gray-100">
-                            <i class='bx bxs-file-export text-2xl text-green-600'></i>
-                        </a>
-                        <!-- Tooltip -->
-                        <span
-                            class="absolute -top-10 left-1/2 -translate-x-1/2 
+                        <!-- Excel -->
+                        <div class="relative group">
+                            <a href="{{ route('pemasok.export.excel') }}"
+                                class="flex items-center justify-center w-8 h-8 rounded-sm border border-gray-200 bg-gray-50 shadow hover:bg-gray-100">
+                                <i class='bx bxs-file-export text-2xl text-green-600'></i>
+                            </a>
+                            <!-- Tooltip -->
+                            <span
+                                class="absolute -top-10 left-1/2 -translate-x-1/2 
                      px-2 py-1 text-sm text-white bg-black rounded 
                      opacity-0 group-hover:opacity-100 
                      scale-95 group-hover:scale-100 
                      transition-all duration-300">
-                            Excel
-                        </span>
-                    </div>
-
-                    <!-- Add Button -->
-                    <a href="{{ route('pemasok.create') }}"
-                        class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-200">
-                        <i class='bx bx-plus-circle'></i> Add Pemasok
-                    </a>
+                                Excel
+                            </span>
+                        </div>
+                    @endcan
+                    @can('pemasok.create')
+                        <!-- Add Button -->
+                        <a href="{{ route('pemasok.create') }}"
+                            class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-200">
+                            <i class='bx bx-plus-circle'></i> Add Pemasok
+                        </a>
+                    @endcan
                 </div>
             </div>
 
@@ -121,7 +124,9 @@
                                     <th class="px-5 py-3 text-left font-medium">Pemasok</th>
                                     <th class="px-5 py-3 text-left font-medium">Telepon</th>
                                     <th class="px-5 py-3 text-left font-medium">Alamat</th>
-                                    <th class="px-5 py-3 text-center font-medium">Aksi</th>
+                                    @canany(['pemasok.edit', 'pemasok.destroy'])
+                                        <th class="px-5 py-3 text-center font-medium">Aksi</th>
+                                    @endcan
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
@@ -155,18 +160,21 @@
                                         <td class="px-5 py-4 text-gray-700 whitespace-nowrap">{{ $pemasok->telp }}</td>
                                         <td class="px-5 py-4 text-gray-700 whitespace-nowrap">{{ $pemasok->alamat }}</td>
                                         <td class="px-5 py-4 flex justify-center gap-2">
-                                            <!-- Edit -->
-                                            <a href="{{ route('pemasok.edit', $pemasok->id) }}"
-                                                class="inline-flex items-center justify-center rounded-lg p-2 border text-xs shadow-sm text-gray-700 border-gray-200">
-                                                <i class="bx bx-edit text-base"></i>
-                                            </a>
-
-                                            <!-- Hapus -->
-                                            <button
-                                                @click="showModal = true; deleteUrl = '{{ route('pemasok.destroy', $pemasok->id) }}'"
-                                                class="inline-flex items-center justify-center rounded-lg p-2 border text-xs shadow-sm text-gray-700 border-gray-200">
-                                                <i class="bx bx-trash text-base"></i>
-                                            </button>
+                                            @can('pemasok.edit')
+                                                <!-- Edit -->
+                                                <a href="{{ route('pemasok.edit', $pemasok->id) }}"
+                                                    class="inline-flex items-center justify-center rounded-lg p-2 border text-xs shadow-sm text-gray-700 border-gray-200">
+                                                    <i class="bx bx-edit text-base"></i>
+                                                </a>
+                                            @endcan
+                                            @can('pemasok.destroy')
+                                                <!-- Hapus -->
+                                                <button
+                                                    @click="showModal = true; deleteUrl = '{{ route('pemasok.destroy', $pemasok->id) }}'"
+                                                    class="inline-flex items-center justify-center rounded-lg p-2 border text-xs shadow-sm text-gray-700 border-gray-200">
+                                                    <i class="bx bx-trash text-base"></i>
+                                                </button>
+                                            @endcan
                                         </td>
                                     </tr>
                                 @empty

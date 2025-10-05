@@ -65,11 +65,13 @@
                     </div>
                 </div>
 
-                <!-- Tombol Tambah -->
-                <a href="{{ route('satuan.create') }}"
-                    class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-200">
-                    <i class='bx bx-plus-circle'></i> Tambah Satuan
-                </a>
+                @can('satuan.create')
+                    <!-- Tombol Tambah -->
+                    <a href="{{ route('satuan.create') }}"
+                        class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-200">
+                        <i class='bx bx-plus-circle'></i> Tambah Satuan
+                    </a>
+                @endcan
             </div>
 
             <!-- Tabel -->
@@ -81,7 +83,9 @@
                                 <tr class="border-b border-gray-100">
                                     <th class="px-5 py-3 text-left font-medium">No</th>
                                     <th class="px-5 py-3 text-left font-medium">Nama Satuan</th>
-                                    <th class="px-5 py-3 text-left font-medium !text-center">Aksi</th>
+                                    @canany(['satuan.edit', 'satuan.destroy'])
+                                        <th class="px-5 py-3 text-left font-medium !text-center">Aksi</th>
+                                    @endcan
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
@@ -93,20 +97,24 @@
                                         <td class="px-5 py-4 text-gray-700">{{ $satuan->nama_satuan }}</td>
                                         <td class="px-5 py-4">
                                             <div class="flex items-center gap-2 justify-center">
-                                                <!-- Edit -->
-                                                <a href="{{ route('satuan.edit', $satuan->id) }}"
-                                                    class="relative inline-flex items-center justify-center rounded-lg p-2 text-xs shadow-sm text-gray-700 border border-gray-200">
-                                                    <i class="bx bx-edit text-base"></i>
-                                                    <span class="sr-only">Edit</span>
-                                                </a>
+                                                @can('satuan.edit')
+                                                    <!-- Edit -->
+                                                    <a href="{{ route('satuan.edit', $satuan->id) }}"
+                                                        class="relative inline-flex items-center justify-center rounded-lg p-2 text-xs shadow-sm text-gray-700 border border-gray-200">
+                                                        <i class="bx bx-edit text-base"></i>
+                                                        <span class="sr-only">Edit</span>
+                                                    </a>
+                                                @endcan
 
-                                                <!-- Hapus -->
-                                                <button
-                                                    @click="showModal = true; deleteUrl = '{{ route('satuan.destroy', $satuan->id) }}'"
-                                                    class="relative inline-flex items-center justify-center rounded-lg p-2 text-xs shadow-sm text-gray-700 border border-gray-200">
-                                                    <i class="bx bx-trash text-base"></i>
-                                                    <span class="sr-only">Hapus</span>
-                                                </button>
+                                                @can('satuan.destroy')
+                                                    <!-- Hapus -->
+                                                    <button
+                                                        @click="showModal = true; deleteUrl = '{{ route('satuan.destroy', $satuan->id) }}'"
+                                                        class="relative inline-flex items-center justify-center rounded-lg p-2 text-xs shadow-sm text-gray-700 border border-gray-200">
+                                                        <i class="bx bx-trash text-base"></i>
+                                                        <span class="sr-only">Hapus</span>
+                                                    </button>
+                                                @endcan
                                             </div>
                                         </td>
                                     </tr>

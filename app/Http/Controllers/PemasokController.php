@@ -11,6 +11,17 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class PemasokController extends Controller
 {
+
+    public function __construct()
+    {
+        // Menerapkan middleware untuk membatasi akses berdasarkan permission
+        $this->middleware('permission:pemasok.index')->only('index');
+        $this->middleware('permission:pemasok.create')->only(['create', 'store']);
+        $this->middleware('permission:pemasok.edit')->only(['edit', 'update']);
+        $this->middleware('permission:pemasok.destroy')->only('destroy');
+        $this->middleware('permission:pemasok.export')->only(['exportExcel', 'exportPDF']);
+    }
+
     /**
      * Display a listing of the resource.
      */

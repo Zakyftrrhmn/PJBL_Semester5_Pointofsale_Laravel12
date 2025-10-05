@@ -120,7 +120,7 @@
                                 <p class="text-xs text-red-500">{{ $message }}</p>
                             @enderror
                         </div>
-                        
+
                         <div>
                             <label for="pengingat_stok" class="block text-sm font-medium text-gray-700">Batas Pengingat Stok
                                 <span class="text-red-500">*</span></label>

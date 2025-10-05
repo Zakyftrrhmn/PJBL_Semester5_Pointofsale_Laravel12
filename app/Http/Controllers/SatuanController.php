@@ -7,6 +7,17 @@ use Illuminate\Http\Request;
 
 class SatuanController extends Controller
 {
+
+    public function __construct()
+    {
+        // Menerapkan middleware untuk membatasi akses berdasarkan permission
+        $this->middleware('permission:satuan.index')->only('index');
+        $this->middleware('permission:satuan.create')->only(['create', 'store']);
+        $this->middleware('permission:satuan.edit')->only(['edit', 'update']);
+        $this->middleware('permission:satuan.destroy')->only('destroy');
+    }
+
+
     /**
      * Display a listing of the resource.
      */

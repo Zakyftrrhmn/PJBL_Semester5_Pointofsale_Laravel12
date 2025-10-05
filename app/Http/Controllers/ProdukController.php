@@ -14,6 +14,19 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ProdukController extends Controller
 {
+
+    public function __construct()
+    {
+        // ✅ Hak akses berdasarkan permission
+        $this->middleware('permission:produk.index')->only('index', 'show');
+        $this->middleware('permission:produk.create')->only('create', 'store');
+        $this->middleware('permission:produk.edit')->only('edit', 'update');
+        $this->middleware('permission:produk.destroy')->only('destroy');
+        $this->middleware('permission:produk.export')->only('exportExcel', 'exportPDF');
+    }
+
+
+
     public function index(Request $request)
     {
         $kategoris = Kategori::orderBy('nama_kategori')->get();

@@ -7,6 +7,15 @@ use Illuminate\Http\Request;
 
 class MerekController extends Controller
 {
+    public function __construct()
+    {
+        // Menerapkan middleware untuk membatasi akses berdasarkan permission
+        $this->middleware('permission:merek.index')->only('index');
+        $this->middleware('permission:merek.create')->only(['create', 'store']);
+        $this->middleware('permission:merek.edit')->only(['edit', 'update']);
+        $this->middleware('permission:merek.destroy')->only('destroy');
+    }
+
     /**
      * Display a listing of the resource.
      */
