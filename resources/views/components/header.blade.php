@@ -26,8 +26,7 @@
                 <div :class="menuToggle ? 'flex' : 'hidden'"
                     class="shadow-theme-md w-full items-center justify-between gap-4 px-5 py-4 lg:flex lg:justify-end lg:px-0 lg:shadow-none">
                     <div class="2xsm:gap-3 flex items-center gap-2">
-
-                        <div class="relative" x-data="{ dropdownOpen: false, notifying: true }" @click.outside="dropdownOpen = false">
+                        <div class="relative" x-data="{ dropdownOpen: false, notifying: {{ $stokRendahProduks->count() > 0 ? 'true' : 'false' }} }" @click.outside="dropdownOpen = false">
                             <button
                                 class="hover:text-dark-900 relative flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
                                 @click.prevent="dropdownOpen = ! dropdownOpen; notifying = false">
@@ -37,13 +36,20 @@
                                         class="absolute -z-1 inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75"></span>
                                 </span>
                                 <i class="fill-current bx bxs-bell"></i>
+                                {{-- Tampilkan jumlah notifikasi jika ada --}}
+                                @if ($stokRendahProduks->count() > 0)
+                                    <span
+                                        class="absolute top-0 right-0 inline-flex items-center justify-center px-1 py-0.5 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
+                                        {{ $stokRendahProduks->count() }}
+                                    </span>
+                                @endif
                             </button>
 
                             <div x-show="dropdownOpen"
                                 class="shadow-theme-lg absolute -right-[240px] mt-[17px] flex h-[480px] w-[350px] flex-col rounded-2xl border border-gray-200 bg-white p-3 sm:w-[361px] lg:right-0">
                                 <div class="mb-3 flex items-center justify-between border-b border-gray-100 pb-3">
                                     <h5 class="text-lg font-semibold text-gray-800">
-                                        Notification
+                                        Notifikasi Stok Rendah ({{ $stokRendahProduks->count() }})
                                     </h5>
 
                                     <button @click="dropdownOpen = false" class="text-gray-500">
@@ -52,40 +58,60 @@
                                 </div>
 
                                 <ul class="custom-scrollbar flex h-auto flex-col overflow-y-auto">
-                                    <li>
-                                        <a class="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100"
-                                            href="#">
-                                            <span class="relative z-1 block h-10 w-full max-w-10 rounded-full">
-                                                <img src="{{ asset('assets/images/user/user-02.jpg') }}" alt="User"
-                                                    class="overflow-hidden rounded-full" />
+                                    {{-- Loop Produk Stok Rendah --}}
+                                    @forelse ($stokRendahProduks as $produk)
+                                        <li>
+                                            {{-- Anda dapat mengganti '#' dengan rute ke halaman detail/edit produk --}}
+                                            <a class="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100"
+                                                href="#">
+
+                                                {{-- Photo Produk --}}
                                                 <span
-                                                    class="bg-success-500 absolute right-0 bottom-0 z-10 h-2.5 w-full max-w-2.5 rounded-full border-[1.5px] border-white"></span>
-                                            </span>
+                                                    class="relative z-1 block h-10 w-full max-w-10 rounded-full overflow-hidden">
 
-                                            <span class="block">
-                                                <span class="text-theme-sm mb-1.5 block text-gray-500">
-                                                    <span class="font-medium text-gray-800">Terry Franci</span>
-                                                    requests permission to change
-                                                    <span class="font-medium text-gray-800">Project - Nganter App</span>
+                                                    <img src="{{ $produk->photo_produk ? asset('storage/' . $produk->photo_produk) : asset('assets/images/produk/default-produk.png') }}"
+                                                        alt="{{ $produk->nama_produk }}"
+                                                        class="object-cover w-full h-full" />
                                                 </span>
 
-                                                <span class="text-theme-xs flex items-center gap-2 text-gray-500">
-                                                    <span>Project</span>
-                                                    <span class="h-1 w-1 rounded-full bg-gray-400"></span>
-                                                    <span>5 min ago</span>
+                                                <span class="block">
+                                                    <span class="text-theme-sm mb-1.5 block text-gray-500">
+                                                        <span
+                                                            class="font-medium text-gray-800">{{ $produk->nama_produk }}
+                                                            ({{ $produk->kode_produk }})
+                                                        </span>
+                                                        stok tersisa:
+                                                        <span
+                                                            class="font-medium text-red-600">{{ $produk->stok_produk }}</span>
+                                                        unit, batas pengingat: {{ $produk->pengingat_stok }} unit.
+                                                    </span>
+
+                                                    <span class="text-theme-xs flex items-center gap-2 text-gray-500">
+                                                        <span>Stok Rendah</span>
+                                                        <span class="h-1 w-1 rounded-full bg-gray-400"></span>
+                                                        <span>{{ $produk->updated_at->diffForHumans() }}</span>
+                                                    </span>
                                                 </span>
-                                            </span>
-                                        </a>
-                                    </li>
+                                            </a>
+                                        </li>
+                                    @empty
+                                        <li>
+                                            <p class="p-3 text-center text-gray-500">Tidak ada notifikasi stok rendah
+                                                saat ini. ✨</p>
+                                        </li>
+                                    @endforelse
                                 </ul>
 
-                                <a href="#"
-                                    class="text-theme-sm shadow-theme-xs mt-3 flex justify-center rounded-lg border border-gray-300 bg-white p-3 font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-800">
-                                    View All Notification
-                                </a>
+                                @if ($stokRendahProduks->count() > 0)
+                                    <a href="#"
+                                        class="text-theme-sm shadow-theme-xs mt-3 flex justify-center rounded-lg border border-gray-300 bg-white p-3 font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-800">
+                                        Lihat Semua Produk Stok Rendah
+                                    </a>
+                                @endif
                             </div>
                         </div>
                     </div>
+
 
                     <a href="" class="text-sm px-3 py-1 rounded-lg bg-indigo-900 text-white shadow-lg">
                         <i class="bx bx-cart"></i>

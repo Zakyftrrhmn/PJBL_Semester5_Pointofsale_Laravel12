@@ -24,10 +24,16 @@
                                 <i class="bx bx-search text-lg"></i>
                             </span>
                         </div>
-                        <button type="submit"
-                            class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700">
-                            Cari
-                        </button>
+                        <div class="relative group">
+                            <a href="{{ route('pesanan-pembelian.index') }}"
+                                class="flex items-center justify-center h-10 w-10 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shadow-sm">
+                                <i class="bx bx-refresh text-xl"></i>
+                            </a>
+                            <span
+                                class="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 text-sm text-white bg-black rounded opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all duration-300">
+                                Reset
+                            </span>
+                        </div>
                     </form>
                 </div>
 

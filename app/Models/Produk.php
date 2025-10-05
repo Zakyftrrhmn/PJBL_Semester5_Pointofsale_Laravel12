@@ -20,6 +20,7 @@ class Produk extends Model
         'stok_produk',
         'harga_beli',
         'harga_jual',
+        'pengingat_stok',
         'photo_produk',
         'deskripsi_produk',
         'is_active',
@@ -37,24 +38,30 @@ class Produk extends Model
         parent::boot();
 
         static::creating(function ($produk) {
-            // generate UUID
+            // ... (Logika UUID dan Kode Produk)
             if (empty($produk->id)) {
                 $produk->id = (string) Str::uuid();
             }
-
-            // generate kode_produk otomatis
             if (empty($produk->kode_produk)) {
                 $latestProduk = static::where('kode_produk', 'like', 'PRD%')
                     ->orderBy('kode_produk', 'desc')
                     ->first();
 
-                if ($latestProduk) {
-                    $number = intval(substr($latestProduk->kode_produk, 3)) + 1;
-                } else {
-                    $number = 1;
-                }
-
+                $number = ($latestProduk) ? intval(substr($latestProduk->kode_produk, 3)) + 1 : 1;
                 $produk->kode_produk = 'PRD' . str_pad($number, 4, '0', STR_PAD_LEFT);
+            }
+        });
+
+        // =========================================================================
+        // PERBAIKAN: Menggunakan nilai string yang benar ('active', 'non_active')
+        // =========================================================================
+        static::saving(function ($produk) {
+            if ($produk->stok_produk <= 0) {
+                // Perbaiki nilai menjadi 'non_active' (sesuai ENUM di migrasi)
+                $produk->is_active = 'non_active';
+            } else {
+                // Pastikan nilai 'active' juga benar
+                $produk->is_active = 'active';
             }
         });
     }

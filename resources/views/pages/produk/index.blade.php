@@ -106,6 +106,7 @@
                                     <th class="px-5 py-3 text-left font-medium  whitespace-nowrap">Merek</th>
                                     <th class="px-5 py-3 text-left font-medium  whitespace-nowrap">Satuan</th>
                                     <th class="px-5 py-3 text-left font-medium  whitespace-nowrap">Stok</th>
+                                    <th class="px-5 py-3 text-left font-medium  whitespace-nowrap">Pengingat Stok</th>
                                     <th class="px-5 py-3 text-left font-medium  whitespace-nowrap">Harga Jual</th>
                                     <th class="px-5 py-3 text-center font-medium">Aksi</th>
                                 </tr>
@@ -151,7 +152,10 @@
                                         </td>
                                         <td class="px-5 py-4  whitespace-nowrap">{{ $produk->merek->nama_merek }}</td>
                                         <td class="px-5 py-4  whitespace-nowrap">{{ $produk->satuan->nama_satuan }}</td>
-                                        <td class="px-5 py-4  whitespace-nowrap">{{ $produk->stok_produk }}</td>
+                                        <td class="px-5 py-4 !text-center whitespace-nowrap">{{ $produk->stok_produk }}
+                                        </td>
+                                        <td class="px-5 py-4 !text-center whitespace-nowrap">{{ $produk->pengingat_stok }}
+                                        </td>
 
                                         <td class="px-5 py-4  whitespace-nowrap">Rp
                                             {{ number_format($produk->harga_jual, 0, ',', '.') }}</td>

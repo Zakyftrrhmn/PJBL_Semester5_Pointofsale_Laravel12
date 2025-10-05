@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('kode_produk')->unique();
             $table->string('nama_produk');
             $table->unsignedInteger('stok_produk');
+            $table->unsignedInteger('pengingat_stok')->default(10);
             $table->unsignedBigInteger('harga_beli');
             $table->unsignedBigInteger('harga_jual');
             $table->string('photo_produk')->nullable();

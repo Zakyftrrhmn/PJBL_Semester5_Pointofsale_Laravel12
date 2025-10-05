@@ -11,7 +11,7 @@
                 <div class="flex items-start gap-6 mb-6">
                     <div
                         class="w-40 h-40 rounded-lg overflow-hidden border border-gray-300 bg-gray-50 flex items-center justify-center">
-                        <img src="{{ $produk->photo_produk ? asset('storage/' . $produk->photo_produk) : asset('images/no-image.png') }}"
+                        <img src="{{ $produk->photo_produk ? asset('storage/' . $produk->photo_produk) : asset('assets/images/produk/default-produk.png') }}"
                             alt="Foto Produk" class="w-full h-full object-cover">
                     </div>
                     <div>
@@ -45,8 +45,16 @@
                     </div>
 
                     <div>
-                        <p class="text-sm text-gray-500">Stok</p>
+                        <p class="text-sm text-gray-500">Stok Produk</p>
                         <p class="font-medium">{{ $produk->stok_produk }}</p>
+                        {{-- TAMBAHKAN INDIKATOR STOK RENDAH --}}
+                        @if ($produk->stok_produk <= $produk->pengingat_stok)
+                            <p class="text-xs text-red-500 font-medium">⚠️ Stok Rendah!</p>
+                        @endif
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Batas Pengingat Stok</p>
+                        <p class="font-medium">{{ $produk->pengingat_stok }}</p>
                     </div>
 
                     <div>

@@ -56,6 +56,7 @@ class ProdukController extends Controller
         $request->validate([
             'nama_produk' => 'required|string|max:255',
             'stok_produk' => 'required|integer|min:0',
+            'pengingat_stok'   => 'required|integer|min:0',
             'harga_beli' => 'required|integer|min:0',
             'harga_jual' => [
                 'required',
@@ -81,6 +82,8 @@ class ProdukController extends Controller
             $data['photo_produk'] = $request->file('photo_produk')->store('produk', 'public');
         }
 
+        // Saat Produk::create($data) dipanggil, event 'saving' di model akan dieksekusi 
+        // untuk memastikan 'is_active' sesuai dengan 'stok_produk'.
         Produk::create($data);
 
         return redirect()->route('produk.index')->with('success', 'Produk berhasil ditambahkan');
@@ -109,16 +112,17 @@ class ProdukController extends Controller
         $produk = Produk::findOrFail($id);
 
         $request->validate([
-            'nama_produk'     => 'required|string|max:255',
-            'stok_produk'     => 'required|integer|min:0',
-            'harga_beli'      => 'required|integer|min:0',
-            'harga_jual'      => 'required|integer|gt:harga_beli',
-            'satuan_id'       => 'required|exists:satuans,id',
-            'kategori_id'     => 'required|exists:kategoris,id',
-            'merek_id'        => 'required|exists:mereks,id',
-            'is_active'       => 'required|in:active,non_active',
+            'nama_produk'      => 'required|string|max:255',
+            'stok_produk'      => 'required|integer|min:0',
+            'pengingat_stok'   => 'required|integer|min:0',
+            'harga_beli'       => 'required|integer|min:0',
+            'harga_jual'       => 'required|integer|gt:harga_beli',
+            'satuan_id'        => 'required|exists:satuans,id',
+            'kategori_id'      => 'required|exists:kategoris,id',
+            'merek_id'         => 'required|exists:mereks,id',
+            'is_active'        => 'required|in:active,non_active',
             'deskripsi_produk' => 'nullable|string',
-            'photo_produk'    => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'photo_produk'     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         // Update photo jika ada upload baru
@@ -136,12 +140,13 @@ class ProdukController extends Controller
         // Update data lainnya
         $produk->nama_produk      = $request->nama_produk;
         $produk->stok_produk      = $request->stok_produk;
+        $produk->pengingat_stok   = $request->pengingat_stok;
         $produk->harga_beli       = $request->harga_beli;
         $produk->harga_jual       = $request->harga_jual;
         $produk->satuan_id        = $request->satuan_id;
         $produk->kategori_id      = $request->kategori_id;
         $produk->merek_id         = $request->merek_id;
-        $produk->is_active        = $request->is_active;
+        $produk->is_active        = $request->is_active; // Nilai dari form tetap diset
         $produk->deskripsi_produk = $request->deskripsi_produk;
 
         $produk->save();

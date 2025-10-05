@@ -14,8 +14,8 @@
                     <div class="flex items-start gap-6">
                         <div
                             class="w-32 h-32 rounded-lg overflow-hidden border border-gray-300 bg-gray-50 flex items-center justify-center">
-                            <img id="preview-image" src="{{ asset('images/no-image.png') }}" alt="Preview Produk"
-                                class="w-full h-full object-cover">
+                            <img id="preview-image" src="{{ asset('assets/images/produk/default-produk.png') }}"
+                                alt="Preview Produk" class="w-full h-full object-cover">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Foto Produk</label>
@@ -120,7 +120,19 @@
                                 <p class="text-xs text-red-500">{{ $message }}</p>
                             @enderror
                         </div>
-
+                        
+                        <div>
+                            <label for="pengingat_stok" class="block text-sm font-medium text-gray-700">Batas Pengingat Stok
+                                <span class="text-red-500">*</span></label>
+                            <input type="number" id="pengingat_stok" name="pengingat_stok"
+                                value="{{ old('pengingat_stok', 10) }}" required min="0"
+                                class="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm shadow-sm
+        focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                                placeholder="Cth: 10 (Notifikasi akan muncul jika stok <= 10)" />
+                            @error('pengingat_stok')
+                                <p class="text-xs text-red-500">{{ $message }}</p>
+                            @enderror
+                        </div>
                         {{-- Harga Beli --}}
                         <div>
                             <label for="harga_beli" class="block text-sm font-medium text-gray-700">Harga Beli <span
@@ -160,7 +172,8 @@
                             <select id="is_active" name="is_active"
                                 class="mt-1 block w-full rounded-lg border-gray-300 p-2.5 text-sm shadow-sm
                                    focus:border-blue-400 focus:ring-2 focus:ring-blue-100">
-                                <option value="active" {{ old('is_active') == 'active' ? 'selected' : '' }}>Active</option>
+                                <option value="active" {{ old('is_active') == 'active' ? 'selected' : '' }}>Active
+                                </option>
                                 <option value="non_active" {{ old('is_active') == 'non_active' ? 'selected' : '' }}>Non
                                     Active</option>
                             </select>
