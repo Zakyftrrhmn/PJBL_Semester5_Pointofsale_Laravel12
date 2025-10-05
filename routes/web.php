@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\MerekController;
 use App\Http\Controllers\PelangganController;
@@ -12,24 +13,11 @@ use App\Http\Controllers\PesananPembelianController;
 use App\Http\Controllers\ReturPembelianController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Auth;
 
-
-
-Route::get('/', function () {
-    // Arahkan user yang sudah login ke dashboard (contoh: /admin/produk)
-    if (auth()->check()) {
-        return redirect()->route('produk.index');
-    }
-    return view('auth.login');
-})->name('login');
-
-
-// Proses Login
-Route::post('/login', [App\Http\Controllers\Auth\LoginController::class, 'login']);
-
-// Proses Logout
-Route::post('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
-
+Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->name('login.post');
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 Route::prefix('admin')->middleware(['auth'])->group(function () {
     // Kategori

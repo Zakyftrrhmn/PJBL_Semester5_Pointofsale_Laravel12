@@ -124,16 +124,12 @@
                         <i class="fill-gray-500 group-hover:fill-gray-700 bx bx-user"></i>
                         Edit Profile
                     </button>
-
-
-
-
                     <div class="relative" x-data="{ dropdownOpen: false }" @click.outside="dropdownOpen = false">
                         <a class="flex items-center text-gray-700" href="#"
                             @click.prevent="dropdownOpen = ! dropdownOpen">
                             <span class="mr-3 h-9 w-9 overflow-hidden rounded-full">
                                 @if (Auth::user()->photo_user)
-                                    <img src="{{ asset('storage/' . Auth::user()->photo_user) }}}" alt="User" />
+                                    <img src="{{ asset('storage/' . Auth::user()->photo_user) }}" alt="User" />
                                 @else
                                     <img src="{{ asset('assets/images/user/default-user.png') }}" alt="User" />
                                 @endif
