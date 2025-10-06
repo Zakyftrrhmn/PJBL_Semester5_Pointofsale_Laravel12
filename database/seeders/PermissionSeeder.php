@@ -19,6 +19,10 @@ class PermissionSeeder extends Seeder
 
         // 1. Definisikan Permissions
         $permissions = [
+
+            ['name' => 'dashboard.index', 'group' => 'Dashboard Management', 'description' => 'Melihat Dashboard'],
+
+
             // User Management
             ['name' => 'user.index', 'group' => 'User Management', 'description' => 'Melihat daftar user'],
             ['name' => 'user.create', 'group' => 'User Management', 'description' => 'Menambah user baru'],

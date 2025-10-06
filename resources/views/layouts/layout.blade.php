@@ -53,6 +53,17 @@
 
       @include('components.script')
 
+      <script>
+          // Mencegah user kembali ke halaman login setelah login
+          if (window.history && window.history.pushState) {
+              window.history.pushState(null, '', window.location.href);
+              window.onpopstate = function() {
+                  // Kalau user klik tombol back, browser akan tetap di halaman ini
+                  window.history.pushState(null, '', window.location.href);
+              };
+          }
+      </script>
+
   </body>
 
   </html>

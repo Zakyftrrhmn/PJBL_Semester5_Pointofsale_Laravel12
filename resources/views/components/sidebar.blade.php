@@ -24,12 +24,15 @@
                         class="transition duration-300 menu-group-icon mx-auto bx bx-dots-horizontal-rounded !text-center"></i>
                 </h3>
                 <ul class="mb-6 flex flex-col gap-y-0.5">
-                    <li>
-                        <a href="#" class="menu-item group text-gray-800 hover:menu-item-active">
-                            <i class="bx bxs-dashboard"></i>
-                            <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Dashboard</span>
-                        </a>
-                    </li>
+                    @can('dashboard.index')
+                        <li>
+                            <a href="{{ route('dashboard.index') }}"
+                                class="menu-item group hover:menu-item-active {{ request()->is('admin/dashboard*') ? 'menu-item-active' : 'text-gray-800' }}">
+                                <i class="bx bxs-dashboard text-xl"></i>
+                                <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Dashboard</span>
+                            </a>
+                        </li>
+                    @endcan
                 </ul>
 
                 @canany(['produk.index', 'kategori.index', 'merek.index', 'satuan.index', 'invoice.index'])

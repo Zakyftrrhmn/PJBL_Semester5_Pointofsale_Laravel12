@@ -123,7 +123,6 @@ class POSController extends Controller
                     'penjualan_id' => $penjualan->id,
                     'produk_id'    => $produk->id,
                     'qty'          => $item['qty'],
-                    // Pastikan harga_satuan dan subtotal menggunakan nilai dari model (sudah bersih)
                     'harga_satuan' => $produk->harga_jual,
                     'subtotal'     => $produk->harga_jual * $item['qty'],
                 ]);
@@ -134,16 +133,10 @@ class POSController extends Controller
             }
 
             DB::commit();
-
-            // Redirect ke halaman detail/print struk yang baru
             return redirect()->route('invoice.show', $penjualan->id)
                 ->with('success', 'Transaksi berhasil disimpan! Kode Transaksi: ' . $penjualan->kode_penjualan);
         } catch (\Exception $e) {
             DB::rollBack();
-            // Aktifkan Log ini jika masih terjadi error di production untuk melihat detailnya
-            // Log::error('POS Transaction Error: ' . $e->getMessage() . ' | Trace: ' . $e->getTraceAsString());
-
-            // Berikan pesan error yang lebih informatif jika ada pesan dari exception, atau pesan umum
             $errorMessage = $e->getMessage() ?: 'Terjadi kesalahan server yang tidak diketahui.';
             return redirect()->back()->with('error', 'Gagal menyimpan transaksi. ' . $errorMessage)->withInput();
         }

@@ -7,14 +7,7 @@
 
     {{-- Script untuk Alpine.js --}}
     @php
-        // Ambil data produk dan pelanggan dari controller.
-        // Asumsi variabel $produks dan $pelanggans sudah berupa
-        // Collection/Array yang berisi data yang dibutuhkan.
-        // MENGHILANGKAN PROSES MAPPING ULANG UNTUK MENGURANGI OVERHEAD
-        // Jika data dari controller sudah *ringan*, kode ini menjadi lebih cepat.
 
-        // Jika data $produks / $pelanggans di controller masih terlalu banyak field,
-        // optimasinya HARUS dilakukan di Controller (menggunakan `select()` atau Resource).
         $produksForJs = $produks; // Asumsi $produks adalah koleksi yang sudah di-select field-field penting saja.
         $pelanggansForJs = $pelanggans; // Sama untuk pelanggan.
     @endphp

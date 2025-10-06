@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Penjualan;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf; // Asumsi menggunakan DomPDF seperti pada fitur ekspor lain
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class InvoiceController extends Controller
 {
@@ -45,35 +45,45 @@ class InvoiceController extends Controller
         return view('pages.invoice.show', compact('penjualan'));
     }
 
-    /**
-     * Cetak Invoice (Struk) TANPA Diskon.
-     */
     public function printNoDiscount(Penjualan $penjualan)
     {
         $penjualan->load('pelanggan', 'user', 'detailPenjualans.produk.satuan');
-        $isDiscountApplied = false; // Flag untuk template print
+        $isDiscountApplied = false;
 
-        $data = compact('penjualan', 'isDiscountApplied');
+        // Hitung ulang subtotal awal
+        $subTotalAwal = $penjualan->detailPenjualans->sum(function ($detail) {
+            return $detail->qty * $detail->harga_satuan;
+        });
 
-        // Atur ukuran kertas kecil (struk kasir)
+        // Simulasi tanpa diskon
+        $totalTanpaDiskon = $subTotalAwal;
+        $bayar = $penjualan->jumlah_bayar;
+        $kembalian = $bayar - $totalTanpaDiskon;
+
+        $data = compact('penjualan', 'isDiscountApplied', 'subTotalAwal', 'totalTanpaDiskon', 'bayar', 'kembalian');
+
         $pdf = Pdf::loadView('pages.invoice.print-template', $data)
-            ->setPaper('a7', 'portrait') // Ukuran kecil A7, bisa diatur [0, 0, 200, 300] untuk custom
+            ->setPaper('a7', 'portrait')
             ->setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true]);
 
         return $pdf->stream('Invoice-' . $penjualan->kode_penjualan . '-TanpaDiskon.pdf');
     }
 
-    /**
-     * Cetak Invoice (Struk) DENGAN Diskon.
-     */
     public function printWithDiscount(Penjualan $penjualan)
     {
         $penjualan->load('pelanggan', 'user', 'detailPenjualans.produk.satuan');
-        $isDiscountApplied = true; // Flag untuk template print
+        $isDiscountApplied = true;
 
-        $data = compact('penjualan', 'isDiscountApplied');
+        $subTotalAwal = $penjualan->detailPenjualans->sum(function ($detail) {
+            return $detail->qty * $detail->harga_satuan;
+        });
 
-        // Atur ukuran kertas kecil (struk kasir)
+        $totalDenganDiskon = $penjualan->total_bayar;
+        $bayar = $penjualan->jumlah_bayar;
+        $kembalian = $bayar - $totalDenganDiskon;
+
+        $data = compact('penjualan', 'isDiscountApplied', 'subTotalAwal', 'totalDenganDiskon', 'bayar', 'kembalian');
+
         $pdf = Pdf::loadView('pages.invoice.print-template', $data)
             ->setPaper('a7', 'portrait')
             ->setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true]);

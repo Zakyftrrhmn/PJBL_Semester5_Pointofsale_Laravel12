@@ -20,7 +20,6 @@ class LoginController extends Controller
             'g-recaptcha-response' => ['required'],
         ]);
 
-        // === reCAPTCHA ===
         $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
             'secret' => env('RECAPTCHA_SECRET'),
             'response' => $request->input('g-recaptcha-response'),
@@ -33,22 +32,19 @@ class LoginController extends Controller
             ])->onlyInput('email');
         }
 
-        // === Limit Login Attempts ===
         $key = Str::lower($request->email) . '|' . $request->ip();
-        $maxAttempts = 10; // maksimal percobaan
-        $decaySeconds = 60; // waktu kunci (detik)
+        $maxAttempts = 10;
+        $decaySeconds = 60;
 
         if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
             $seconds = RateLimiter::availableIn($key);
 
-            // Simpan waktu lockout di session agar tidak hilang saat refresh
             $request->session()->put('lockout_until', now()->addSeconds($seconds));
 
             return back()
-                ->withErrors(['email' => "Terlalu banyak percobaan. Coba lagi dalam $seconds detik."]);
+                ->withErrors(['emaizl' => "Terlalu banyak percobaan. Coba lagi dalam $seconds detik."]);
         }
 
-        // === Proses Login ===
         if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
             RateLimiter::clear($key);
             $request->session()->forget('lockout_until');
@@ -64,7 +60,6 @@ class LoginController extends Controller
             return redirect()->route('dashboard.index');
         }
 
-        // === Gagal Login ===
         RateLimiter::hit($key, $decaySeconds);
 
         return back()->withErrors([
@@ -74,7 +69,17 @@ class LoginController extends Controller
 
     public function showLoginForm(Request $request)
     {
-        // Periksa apakah masih dalam masa lockout
+        if (Auth::check()) {
+            $user = Auth::user();
+            $firstPermission = $user->getAllPermissions()->first();
+
+            if ($firstPermission && Route::has($firstPermission->name)) {
+                return redirect()->route($firstPermission->name);
+            }
+
+            return redirect('/admin');
+        }
+
         $lockoutUntil = $request->session()->get('lockout_until');
         $remaining = 0;
 
@@ -84,7 +89,11 @@ class LoginController extends Controller
             $request->session()->forget('lockout_until');
         }
 
-        return view('auth.login', compact('remaining'));
+        return response(view('auth.login', compact('remaining')))->withHeaders([
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
+            'Expires' => 'Sun, 01 Jan 1990 00:00:00 GMT',
+        ]);
     }
 
     public function logout(Request $request)

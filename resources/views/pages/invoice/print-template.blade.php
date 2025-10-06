@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Struk Penjualan - {{ $penjualan->kode_penjualan }}</title>
-    {{-- Gaya minimal untuk struk kasir --}}
+
     <style>
         body {
             font-family: 'Courier New', Courier, monospace;
@@ -49,11 +49,10 @@
 </head>
 
 <body>
-
     <div class="container">
         <div class="text-center">
-            {{-- Ganti dengan nama toko Anda --}}
-            <strong>NAMA TOKO ANDA</strong><br>
+            {{-- Ganti dengan identitas toko --}}
+            <strong>INTI PERAGA MANDIRI</strong><br>
             <span style="font-size: 9px;">Jl. Contoh No. 123, Kota Anda</span><br>
             <span style="font-size: 9px;">Telp: 0812-XXXX-XXXX</span>
         </div>
@@ -85,65 +84,66 @@
 
         <div class="divider"></div>
 
+        {{-- ITEM PENJUALAN --}}
         <table>
-            @php
-                $subTotalAwal = 0;
-            @endphp
             @foreach ($penjualan->detailPenjualans as $detail)
-                @php
-                    $subTotalAwal += $detail->qty * $detail->harga_satuan;
-                @endphp
                 <tr>
                     <td colspan="3" class="item-name">{{ $detail->produk->nama_produk ?? 'Produk Dihapus' }}</td>
                 </tr>
                 <tr>
-                    <td style="padding-left: 10px;">{{ number_format($detail->qty, 0, ',', '.') }} x
-                        {{ number_format($detail->harga_satuan, 0, ',', '.') }}</td>
+                    <td style="padding-left: 10px;">
+                        {{ number_format($detail->qty, 0, ',', '.') }} x
+                        {{ number_format($detail->harga_satuan, 0, ',', '.') }}
+                    </td>
                     <td class="text-right" colspan="2">
-                        {{ number_format($detail->qty * $detail->harga_satuan, 0, ',', '.') }}</td>
+                        {{ number_format($detail->qty * $detail->harga_satuan, 0, ',', '.') }}
+                    </td>
                 </tr>
             @endforeach
         </table>
 
         <div class="divider"></div>
 
+        {{-- BAGIAN TOTAL --}}
         <table>
-            {{-- Total Harga Awal (Sebelum Diskon) --}}
-            <tr>
-                <td>Subtotal</td>
-                <td class="text-right">{{ number_format($subTotalAwal, 0, ',', '.') }}</td>
-            </tr>
-
             @if ($isDiscountApplied)
-                {{-- Tampilkan Diskon HANYA jika isDiscountApplied = true --}}
+                {{-- === DENGAN DISKON === --}}
+                <tr>
+                    <td>Subtotal</td>
+                    <td class="text-right">{{ number_format($subTotalAwal, 0, ',', '.') }}</td>
+                </tr>
                 <tr>
                     <td>Diskon</td>
                     <td class="text-right">({{ number_format($penjualan->diskon, 0, ',', '.') }})</td>
                 </tr>
                 <tr>
                     <td>Total (Net)</td>
-                    <td class="text-right"><strong>{{ number_format($penjualan->total_bayar, 0, ',', '.') }}</strong>
-                    </td>
+                    <td class="text-right"><strong>{{ number_format($totalDenganDiskon, 0, ',', '.') }}</strong></td>
                 </tr>
             @else
-                {{-- TANPA Diskon, Total Bayar adalah Total Harga Awal --}}
+                {{-- === TANPA DISKON === --}}
+                <tr>
+                    <td>Subtotal</td>
+                    <td class="text-right">{{ number_format($subTotalAwal, 0, ',', '.') }}</td>
+                </tr>
                 <tr>
                     <td>Total (Net)</td>
-                    <td class="text-right"><strong>{{ number_format($subTotalAwal, 0, ',', '.') }}</strong></td>
+                    <td class="text-right"><strong>{{ number_format($totalTanpaDiskon, 0, ',', '.') }}</strong></td>
                 </tr>
             @endif
         </table>
 
         <div class="divider"></div>
 
+        {{-- BAGIAN PEMBAYARAN --}}
         <table>
             <tr>
                 <td>Bayar</td>
-                <td class="text-right">{{ number_format($penjualan->jumlah_bayar, 0, ',', '.') }}</td>
+                <td class="text-right">{{ number_format($bayar, 0, ',', '.') }}</td>
             </tr>
             <tr>
                 <td>Kembalian</td>
-                <td class="text-right">{{ number_format($penjualan->kembalian, 0, ',', '.') }}</td>
+                <td class="text-right">{{ number_format($kembalian, 0, ',', '.') }}</td>
             </tr>
         </table>
 
@@ -151,19 +151,16 @@
 
         <div class="text-center" style="margin-top: 5px;">
             <p style="margin: 2px 0;">Terima Kasih atas kunjungan Anda!</p>
-            <p style="margin: 2px 0; font-size: 8px;">Barang yang sudah dibeli tidak dapat ditukar/dikembalikan.</p>
+            <p style="margin: 2px 0; font-size: 8px;">Barang yang sudah dibeli tidak dapat dikembalikan.</p>
         </div>
     </div>
 
     <script>
-        // Langsung print saat dokumen dimuat
+        // Cetak otomatis
         window.onload = function() {
             window.print();
-            // Optional: close tab after print
-            // window.close();
         }
     </script>
-
 </body>
 
 </html>
