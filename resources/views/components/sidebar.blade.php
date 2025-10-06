@@ -18,7 +18,6 @@
         <nav x-data="{ selected: $persist('Dashboard') }">
             <div>
                 <hr class="w-full mb-2 bg-indigo-900 opacity-70">
-                <!-- MAIN -->
                 <h3 class="mb-2 text-xs text-indigo-900 flex items-center justify-between">
                     <span class="menu-group-title" :class="sidebarToggle ? 'lg:hidden' : ''">Main</span>
                     <i :class="sidebarToggle ? 'opacity-100 visible lg:block ' : 'opacity-0 invisible'"
@@ -33,8 +32,7 @@
                     </li>
                 </ul>
 
-                <!-- INVENTORY -->
-                @canany(['produk.index', 'kategori.index', 'merek.index', 'satuan.index'])
+                @canany(['produk.index', 'kategori.index', 'merek.index', 'satuan.index', 'invoice.index'])
                     <hr class="w-full mb-2 bg-indigo-900 opacity-70">
                     <h3 class="mb-2 text-xs text-indigo-900 flex items-center justify-between text-lg font-medium">
                         <span class="menu-group-title" :class="sidebarToggle ? 'lg:hidden' : ''">Inventory</span>
@@ -42,8 +40,6 @@
                             class="transition duration-300 menu-group-icon mx-auto bx bx-dots-horizontal-rounded !text-center"></i>
                     </h3>
                     <ul class="mb-6 flex flex-col gap-y-0.5">
-
-
 
                         @can('produk.index')
                             <li>
@@ -55,13 +51,15 @@
                             </li>
                         @endcan
 
-                        <li>
-                            <a href="{{ route('barcode.index') }}"
-                                class="menu-item group hover:menu-item-active {{ request()->is('admin/barcode*') ? 'menu-item-active' : 'text-gray-800' }}">
-                                <i class="bx bx-barcode text-xl"></i>
-                                <span :class="sidebarToggle ? 'lg:hidden' : ''">Print Barcode</span>
-                            </a>
-                        </li>
+                        @can('barcode.index')
+                            <li>
+                                <a href="{{ route('barcode.index') }}"
+                                    class="menu-item group hover:menu-item-active {{ request()->is('admin/barcode*') ? 'menu-item-active' : 'text-gray-800' }}">
+                                    <i class="bx bx-barcode text-xl"></i>
+                                    <span :class="sidebarToggle ? 'lg:hidden' : ''">Print Barcode</span>
+                                </a>
+                            </li>
+                        @endcan
 
                         @can('kategori.index')
                             <li>
@@ -92,40 +90,49 @@
                                 </a>
                             </li>
                         @endcan
+
+                        @can('invoice.index')
+                            <li>
+                                <a href="{{ route('invoice.index') }}"
+                                    class="menu-item group hover:menu-item-active {{ request()->is('admin/invoice*') ? 'menu-item-active' : 'text-gray-800' }}">
+                                    <i class='bx bx-receipt text-xl'></i>
+                                    <span :class="sidebarToggle ? 'lg:hidden' : ''">Riwayat Penjualan</span>
+                                </a>
+                            </li>
+                        @endcan
                     </ul>
                 @endcanany
 
-                <!-- USER MANAGEMENT -->
-                @canany(['user.index', 'role.index'])
+                @canany(['pelanggan.index', 'pemasok.index'])
                     <hr class="w-full mb-2 bg-indigo-900 opacity-70">
                     <h3 class="mb-2 text-xs text-indigo-900 flex items-center justify-between text-lg font-medium">
-                        <span class="menu-group-title" :class="sidebarToggle ? 'lg:hidden' : ''">User Management</span>
+                        <span class="menu-group-title" :class="sidebarToggle ? 'lg:hidden' : ''">Peoples</span>
                         <i :class="sidebarToggle ? 'opacity-100 visible lg:block ' : 'opacity-0 invisible'"
                             class="transition duration-300 menu-group-icon mx-auto bx bx-dots-horizontal-rounded !text-center"></i>
                     </h3>
                     <ul class="mb-6 flex flex-col gap-y-0.5">
-                        @can('user.index')
+                        @can('pelanggan.index')
                             <li>
-                                <a href="{{ route('user.index') }}"
-                                    class="menu-item group hover:menu-item-active {{ request()->is('admin/user*') ? 'menu-item-active' : 'text-gray-800' }}">
-                                    <i class="bx bx-user"></i>
-                                    <span :class="sidebarToggle ? 'lg:hidden' : ''">Users</span>
+                                <a href="{{ route('pelanggan.index') }}"
+                                    class="menu-item group hover:menu-item-active {{ request()->is('admin/pelanggan*') ? 'menu-item-active' : 'text-gray-800' }}">
+                                    <i class="bx bx-group text-xl"></i>
+                                    <span :class="sidebarToggle ? 'lg:hidden' : ''">Pelanggan</span>
                                 </a>
                             </li>
                         @endcan
-                        @can('role.index')
+
+                        @can('pemasok.index')
                             <li>
-                                <a href="{{ route('role.index') }}"
-                                    class="menu-item group hover:menu-item-active {{ request()->is('admin/role*') ? 'menu-item-active' : 'text-gray-800' }}">
-                                    <i class="bx bx-shield"></i>
-                                    <span :class="sidebarToggle ? 'lg:hidden' : ''">Roles & Permissions</span>
+                                <a href="{{ route('pemasok.index') }}"
+                                    class="menu-item group hover:menu-item-active {{ request()->is('admin/pemasok*') ? 'menu-item-active' : 'text-gray-800' }}">
+                                    <i class='bx bxs-business text-xl'></i>
+                                    <span :class="sidebarToggle ? 'lg:hidden' : ''">Pemasok</span>
                                 </a>
                             </li>
                         @endcan
                     </ul>
                 @endcanany
 
-                <!-- PEMBELIAN -->
                 @canany(['pembelian.create', 'pesanan-pembelian.index', 'retur-pembelian.index'])
                     <hr class="w-full mb-2 bg-indigo-900 opacity-70">
                     <h3 class="mb-2 text-xs text-indigo-900 flex items-center justify-between text-lg font-medium">
@@ -166,31 +173,30 @@
                     </ul>
                 @endcanany
 
-                <!-- PEOPLES -->
-                @canany(['pelanggan.index', 'pemasok.index'])
+                @canany(['user.index', 'role.index'])
                     <hr class="w-full mb-2 bg-indigo-900 opacity-70">
                     <h3 class="mb-2 text-xs text-indigo-900 flex items-center justify-between text-lg font-medium">
-                        <span class="menu-group-title" :class="sidebarToggle ? 'lg:hidden' : ''">Peoples</span>
+                        <span class="menu-group-title" :class="sidebarToggle ? 'lg:hidden' : ''">User Management</span>
                         <i :class="sidebarToggle ? 'opacity-100 visible lg:block ' : 'opacity-0 invisible'"
                             class="transition duration-300 menu-group-icon mx-auto bx bx-dots-horizontal-rounded !text-center"></i>
                     </h3>
                     <ul class="mb-6 flex flex-col gap-y-0.5">
-                        @can('pelanggan.index')
+                        @can('user.index')
                             <li>
-                                <a href="{{ route('pelanggan.index') }}"
-                                    class="menu-item group hover:menu-item-active {{ request()->is('admin/pelanggan*') ? 'menu-item-active' : 'text-gray-800' }}">
-                                    <i class="bx bx-group text-xl"></i>
-                                    <span :class="sidebarToggle ? 'lg:hidden' : ''">Pelanggan</span>
+                                <a href="{{ route('user.index') }}"
+                                    class="menu-item group hover:menu-item-active {{ request()->is('admin/user*') ? 'menu-item-active' : 'text-gray-800' }}">
+                                    <i class="bx bx-user"></i>
+                                    <span :class="sidebarToggle ? 'lg:hidden' : ''">Users</span>
                                 </a>
                             </li>
                         @endcan
 
-                        @can('pemasok.index')
+                        @can('role.index')
                             <li>
-                                <a href="{{ route('pemasok.index') }}"
-                                    class="menu-item group hover:menu-item-active {{ request()->is('admin/pemasok*') ? 'menu-item-active' : 'text-gray-800' }}">
-                                    <i class='bx bxs-business text-xl'></i>
-                                    <span :class="sidebarToggle ? 'lg:hidden' : ''">Pemasok</span>
+                                <a href="{{ route('role.index') }}"
+                                    class="menu-item group hover:menu-item-active {{ request()->is('admin/role*') ? 'menu-item-active' : 'text-gray-800' }}">
+                                    <i class="bx bx-shield"></i>
+                                    <span :class="sidebarToggle ? 'lg:hidden' : ''">Roles & Permissions</span>
                                 </a>
                             </li>
                         @endcan

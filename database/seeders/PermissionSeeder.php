@@ -31,14 +31,21 @@ class PermissionSeeder extends Seeder
             ['name' => 'role.edit', 'group' => 'Role & Permission', 'description' => 'Mengubah role dan hak akses'],
             ['name' => 'role.destroy', 'group' => 'Role & Permission', 'description' => 'Menghapus role'],
 
-            // Contoh Modul Lain (Pemasok)
+            // PEOPLES - Pemasok
             ['name' => 'pemasok.index', 'group' => 'Pemasok', 'description' => 'Melihat daftar pemasok'],
             ['name' => 'pemasok.create', 'group' => 'Pemasok', 'description' => 'Menambah pemasok baru'],
             ['name' => 'pemasok.edit', 'group' => 'Pemasok', 'description' => 'Mengubah data pemasok'],
             ['name' => 'pemasok.destroy', 'group' => 'Pemasok', 'description' => 'Menghapus pemasok'],
-            ['name' => 'pemasok.export', 'group' => 'Pemasok', 'description' => 'Export data pemasok'], // Tambahan
+            ['name' => 'pemasok.export', 'group' => 'Pemasok', 'description' => 'Export data pemasok'],
 
-            // Produk
+            // PEOPLES - Pelanggan
+            ['name' => 'pelanggan.index', 'group' => 'Pelanggan', 'description' => 'Melihat daftar pelanggan'],
+            ['name' => 'pelanggan.create', 'group' => 'Pelanggan', 'description' => 'Menambah pelanggan baru'],
+            ['name' => 'pelanggan.edit', 'group' => 'Pelanggan', 'description' => 'Mengubah data pelanggan'],
+            ['name' => 'pelanggan.destroy', 'group' => 'Pelanggan', 'description' => 'Menghapus pelanggan'],
+            ['name' => 'pelanggan.export', 'group' => 'Pelanggan', 'description' => 'Export data pelanggan'],
+
+            // INVENTORY - Produk
             ['name' => 'produk.index', 'group' => 'Produk', 'description' => 'Melihat daftar produk'],
             ['name' => 'produk.create', 'group' => 'Produk', 'description' => 'Menambah produk baru'],
             ['name' => 'produk.edit', 'group' => 'Produk', 'description' => 'Mengubah data produk'],
@@ -46,57 +53,95 @@ class PermissionSeeder extends Seeder
             ['name' => 'produk.show', 'group' => 'Produk', 'description' => 'Melihat detail produk'],
             ['name' => 'produk.export', 'group' => 'Produk', 'description' => 'Export data produk'],
 
-            // Kategori
+            // INVENTORY - Kategori
             ['name' => 'kategori.index', 'group' => 'Kategori', 'description' => 'Melihat daftar kategori'],
             ['name' => 'kategori.create', 'group' => 'Kategori', 'description' => 'Menambah kategori baru'],
             ['name' => 'kategori.edit', 'group' => 'Kategori', 'description' => 'Mengubah data kategori'],
             ['name' => 'kategori.destroy', 'group' => 'Kategori', 'description' => 'Menghapus kategori'],
 
-            // Pelanggan
-            ['name' => 'pelanggan.index', 'group' => 'Pelanggan', 'description' => 'Melihat daftar pelanggan'],
-            ['name' => 'pelanggan.create', 'group' => 'Pelanggan', 'description' => 'Menambah pelanggan baru'],
-            ['name' => 'pelanggan.edit', 'group' => 'Pelanggan', 'description' => 'Mengubah data pelanggan'],
-            ['name' => 'pelanggan.destroy', 'group' => 'Pelanggan', 'description' => 'Menghapus pelanggan'],
-            ['name' => 'pelanggan.export', 'group' => 'Pelanggan', 'description' => 'Export data pelanggan'],
-
-            // Satuan
+            // INVENTORY - Satuan
             ['name' => 'satuan.index', 'group' => 'Satuan', 'description' => 'Melihat daftar satuan'],
             ['name' => 'satuan.create', 'group' => 'Satuan', 'description' => 'Menambah satuan baru'],
             ['name' => 'satuan.edit', 'group' => 'Satuan', 'description' => 'Mengubah data satuan'],
             ['name' => 'satuan.destroy', 'group' => 'Satuan', 'description' => 'Menghapus satuan'],
 
-            // Merek
+            // INVENTORY - Merek
             ['name' => 'merek.index', 'group' => 'Merek', 'description' => 'Melihat daftar merek'],
             ['name' => 'merek.create', 'group' => 'Merek', 'description' => 'Menambah merek baru'],
             ['name' => 'merek.edit', 'group' => 'Merek', 'description' => 'Mengubah data merek'],
             ['name' => 'merek.destroy', 'group' => 'Merek', 'description' => 'Menghapus merek'],
 
+            // ====================================================================================
+            // PENAMBAHAN CORE PERMISSION
+            // ====================================================================================
+
+            // POINT OF SALE (POS) - Tambahan yang hilang
+            ['name' => 'penjualan.pos', 'group' => 'Point of Sale', 'description' => 'Akses dan lakukan transaksi POS (Kasir)'],
+
+            // INVENTORY - Riwayat Penjualan (Invoice)
+            ['name' => 'invoice.index', 'group' => 'Penjualan', 'description' => 'Melihat riwayat penjualan (invoice)'],
+            ['name' => 'invoice.show', 'group' => 'Penjualan', 'description' => 'Melihat detail invoice'],
+            ['name' => 'invoice.export', 'group' => 'Penjualan', 'description' => 'Export data penjualan/cetak struk'],
+
+            // PEMBELIAN
+            ['name' => 'pembelian.create', 'group' => 'Pembelian', 'description' => 'Membuat transaksi pembelian baru'],
+            ['name' => 'pembelian.index', 'group' => 'Pembelian', 'description' => 'Melihat daftar transaksi pembelian'],
+            ['name' => 'pembelian.destroy', 'group' => 'Pembelian', 'description' => 'Menghapus transaksi pembelian'],
+
+            // Pesanan Pembelian
+            ['name' => 'pesanan-pembelian.index', 'group' => 'Pesanan Pembelian', 'description' => 'Melihat daftar pesanan pembelian'],
+            ['name' => 'pesanan-pembelian.create', 'group' => 'Pesanan Pembelian', 'description' => 'Membuat pesanan pembelian baru'],
+            ['name' => 'pesanan-pembelian.edit', 'group' => 'Pesanan Pembelian', 'description' => 'Mengubah data pesanan pembelian'],
+            ['name' => 'pesanan-pembelian.destroy', 'group' => 'Pesanan Pembelian', 'description' => 'Menghapus pesanan pembelian'],
+
+            // Retur Pembelian
+            ['name' => 'retur-pembelian.index', 'group' => 'Retur Pembelian', 'description' => 'Melihat daftar retur pembelian'],
+            ['name' => 'retur-pembelian.create', 'group' => 'Retur Pembelian', 'description' => 'Membuat retur pembelian baru'],
+            ['name' => 'retur-pembelian.edit', 'group' => 'Retur Pembelian', 'description' => 'Mengubah data retur pembelian'],
+            ['name' => 'retur-pembelian.destroy', 'group' => 'Retur Pembelian', 'description' => 'Menghapus retur pembelian'],
+
+            // Barcode
+            ['name' => 'barcode.index', 'group' => 'Barcode', 'description' => 'Akses halaman cetak barcode'],
+
         ];
 
+        // Masukkan semua permission ke database
         foreach ($permissions as $item) {
             Permission::firstOrCreate($item);
         }
 
+        // 2. Definisikan Roles
         $roleSuperAdmin = Role::firstOrCreate(['name' => 'Super Admin']);
         $roleKasir      = Role::firstOrCreate(['name' => 'Kasir']);
         $roleStafGudang = Role::firstOrCreate(['name' => 'Staf Gudang']);
 
+        // 3. Assign Permissions ke Roles
+        // Super Admin: Semua Permission
         $roleSuperAdmin->givePermissionTo(Permission::all());
 
+        // Kasir: Hanya fitur yang relevan untuk transaksi penjualan dan data customer
         $kasirPermissions = [
-            'pemasok.index',
             'pelanggan.index',
             'pelanggan.create',
             'pelanggan.edit',
+            'pemasok.index',
+
+            // Akses ke form dan proses POS (WAJIB ADA)
+            'penjualan.pos',
+
+            // Akses ke riwayat penjualan
+            'invoice.index',
         ];
         $roleKasir->syncPermissions($kasirPermissions);
 
+        // Staf Gudang: Fokus pada Inventory dan Pembelian/Retur
         $gudangPermissions = [
             'produk.index',
             'produk.create',
             'produk.edit',
             'produk.destroy',
             'produk.export',
+            'produk.show',
             'kategori.index',
             'kategori.create',
             'kategori.edit',
@@ -109,8 +154,19 @@ class PermissionSeeder extends Seeder
             'merek.create',
             'merek.edit',
             'merek.destroy',
+
+            // Pembelian
+            'pembelian.create',
+            'pembelian.index', // Tambahkan index agar bisa lihat riwayat pembelian
+            'pesanan-pembelian.index',
+            'retur-pembelian.index',
+
+            // Barcode
+            'barcode.index',
         ];
         $roleStafGudang->syncPermissions($gudangPermissions);
+
+        // 4. Assign Role ke User Pertama (Contoh)
         $user = User::first();
         if ($user) {
             $user->assignRole($roleSuperAdmin);

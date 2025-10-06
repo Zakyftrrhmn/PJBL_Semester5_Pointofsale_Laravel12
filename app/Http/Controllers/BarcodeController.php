@@ -9,6 +9,11 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class BarcodeController extends Controller
 {
+    public function __construct()
+    {
+        // Memastikan hanya pengguna dengan permission 'barcode.index' yang dapat mengakses controller ini.
+        $this->middleware('can:barcode.index');
+    }
     public function index()
     {
         $produks = Produk::all();
@@ -28,11 +33,11 @@ class BarcodeController extends Controller
         $barcodeDataModal = [];
         foreach ($produks as $produk) {
             if (!isset($barcodeDataModal[$produk->id])) {
-                $qty = $request->jumlah[$produk->id] ?? 1; 
+                $qty = $request->jumlah[$produk->id] ?? 1;
                 $barcodeDataModal[$produk->id] = [
                     'nama_produk' => $produk->nama_produk,
                     'kode_produk' => $produk->kode_produk,
-                    'qty' => $qty, 
+                    'qty' => $qty,
                     'barcode_html' => DNS1D::getBarcodeHTML($produk->kode_produk, 'C128', 1.5, 30),
                 ];
             }

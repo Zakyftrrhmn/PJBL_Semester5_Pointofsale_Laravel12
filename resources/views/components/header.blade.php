@@ -112,16 +112,17 @@
                         </div>
                     </div>
 
-
-                    <a href="" class="text-sm px-3 py-1 rounded-lg bg-indigo-900 text-white shadow-lg">
-                        <i class="bx bx-cart"></i>
-                        Kasir (POS)
-                    </a>
-
+                    @can('penjualan.pos')
+                        <a href="{{ route('pos.index') }}"
+                            class="text-sm px-3 py-1 rounded-lg bg-indigo-900 text-white shadow-lg whitespace-nowrap">
+                            <i class="bx bx-cart"></i>
+                            Kasir (POS)
+                        </a>
+                    @endcan
 
                     <button
-                        class="text-sm border border-gray-500 text-gray-500 px-3 py-1 rounded-lg hover:bg-blue-200 hover:text-blue-700 hover:border-none transition-colors">
-                        <i class="fill-gray-500 group-hover:fill-gray-700 bx bx-user"></i>
+                        class="text-sm border border-gray-500 text-gray-500 px-3 py-1 rounded-lg hover:bg-blue-200 hover:text-blue-700 hover:border-none transition-colors whitespace-nowrap">
+                        <i class="fill-gray-500 group-hover:fill-gray-700 bx bx-user "></i>
                         Edit Profile
                     </button>
                     <div class="relative" x-data="{ dropdownOpen: false }" @click.outside="dropdownOpen = false">
@@ -135,7 +136,8 @@
                                 @endif
                             </span>
 
-                            <span class="text-theme-sm mr-1 block font-medium"> {{ Auth::user()->name }} </span>
+                            <span class="text-theme-sm mr-1 block font-medium whitespace-nowrap">
+                                {{ Auth::user()->name }} </span>
 
                             <i :class="dropdownOpen && 'rotate-180'" class="bx bx-chevron-down stroke-gray-500"></i>
                         </a>
@@ -143,10 +145,10 @@
                         <div x-show="dropdownOpen"
                             class="shadow-theme-lg absolute right-0 mt-[17px] flex w-[260px] flex-col rounded-2xl border border-gray-200 bg-white p-3">
                             <div>
-                                <span class="text-theme-sm block font-medium text-gray-700">
+                                <span class="text-theme-sm block font-medium text-gray-700 whitespace-nowrap">
                                     {{ Auth::user()->getRoleNames()->implode(', ') }}
                                 </span>
-                                <span class="text-theme-xs mt-0.5 block text-gray-500">
+                                <span class="text-theme-xs mt-0.5 block text-gray-500 whitespace-nowrap">
                                     {{ Auth::user()->email }}
                                 </span>
                             </div>

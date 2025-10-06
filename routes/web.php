@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\BarcodeController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\MerekController;
 use App\Http\Controllers\PelangganController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\SatuanController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PembelianController;
 use App\Http\Controllers\PesananPembelianController;
+use App\Http\Controllers\POSController;
 use App\Http\Controllers\ReturPembelianController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
@@ -39,6 +41,17 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
     Route::get('/barcode', [BarcodeController::class, 'index'])->name('barcode.index');
     Route::post('/barcode/cetak-pdf', [BarcodeController::class, 'cetakPdf'])->name('barcode.cetak-pdf');
     Route::post('/barcode/generate', [BarcodeController::class, 'generateBarcodes'])->name('barcode.generate');
+
+    // Point of Sale (POS)
+    Route::get('pos', [POSController::class, 'index'])->name('pos.index');
+    Route::post('pos', [POSController::class, 'store'])->name('pos.store');
+
+    Route::prefix('invoice')->group(function () {
+        Route::get('/', [InvoiceController::class, 'index'])->name('invoice.index');
+        Route::get('/{penjualan}', [InvoiceController::class, 'show'])->name('invoice.show');
+        Route::get('/print/no-diskon/{penjualan}', [InvoiceController::class, 'printNoDiscount'])->name('invoice.print.no-diskon');
+        Route::get('/print/diskon/{penjualan}', [InvoiceController::class, 'printWithDiscount'])->name('invoice.print.diskon');
+    });
 
     // pelanggan
     Route::resource('pelanggan', PelangganController::class);
