@@ -43,6 +43,8 @@
                     </h3>
                     <ul class="mb-6 flex flex-col gap-y-0.5">
 
+
+
                         @can('produk.index')
                             <li>
                                 <a href="{{ route('produk.index') }}"
@@ -52,6 +54,14 @@
                                 </a>
                             </li>
                         @endcan
+
+                        <li>
+                            <a href="{{ route('barcode.index') }}"
+                                class="menu-item group hover:menu-item-active {{ request()->is('admin/barcode*') ? 'menu-item-active' : 'text-gray-800' }}">
+                                <i class="bx bx-barcode text-xl"></i>
+                                <span :class="sidebarToggle ? 'lg:hidden' : ''">Print Barcode</span>
+                            </a>
+                        </li>
 
                         @can('kategori.index')
                             <li>

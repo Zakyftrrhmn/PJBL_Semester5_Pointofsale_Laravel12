@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\BarcodeController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\MerekController;
 use App\Http\Controllers\PelangganController;
@@ -35,6 +36,9 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
     Route::get('produk-export-excel', [ProdukController::class, 'exportExcel'])->name('produk.export.excel');
     Route::get('produk-export-pdf', [ProdukController::class, 'exportPDF'])->name('produk.export.pdf');
 
+    Route::get('/barcode', [BarcodeController::class, 'index'])->name('barcode.index');
+    Route::post('/barcode/cetak-pdf', [BarcodeController::class, 'cetakPdf'])->name('barcode.cetak-pdf');
+    Route::post('/barcode/generate', [BarcodeController::class, 'generateBarcodes'])->name('barcode.generate');
 
     // pelanggan
     Route::resource('pelanggan', PelangganController::class);

@@ -144,12 +144,12 @@
                                         <td class="px-5 py-4  whitespace-nowrap">
                                             @if ($produk->is_active === 'active')
                                                 <span
-                                                    class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-green-800 bg-green-200 rounded-sm">
+                                                    class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-sm">
                                                     <i class="bx bxs-circle text-[6px]"></i> Active
                                                 </span>
                                             @else
                                                 <span
-                                                    class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-red-800 bg-red-200 rounded-sm">
+                                                    class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-sm">
                                                     <i class="bx bxs-circle text-[6px]"></i> Non Active
                                                 </span>
                                             @endif
