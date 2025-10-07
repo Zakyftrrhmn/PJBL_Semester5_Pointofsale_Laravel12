@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Produk extends Model
 {
+
+    protected $table = 'produks';
     use HasFactory;
 
     public $incrementing = false;

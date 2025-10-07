@@ -104,6 +104,10 @@ class PermissionSeeder extends Seeder
             ['name' => 'retur-pembelian.edit', 'group' => 'Retur Pembelian', 'description' => 'Mengubah data retur pembelian'],
             ['name' => 'retur-pembelian.destroy', 'group' => 'Retur Pembelian', 'description' => 'Menghapus retur pembelian'],
 
+            ['name' => 'retur-penjualan.index', 'group' => 'Retur Penjualan', 'description' => 'Melihat daftar retur penjualan'],
+            ['name' => 'retur-penjualan.create', 'group' => 'Retur Penjualan', 'description' => 'Membuat retur penjualan baru'],
+            ['name' => 'retur-penjualan.destroy', 'group' => 'Retur Penjualan', 'description' => 'Menghapus retur penjualan'],
+
             // Barcode
             ['name' => 'barcode.index', 'group' => 'Barcode', 'description' => 'Akses halaman cetak barcode'],
 

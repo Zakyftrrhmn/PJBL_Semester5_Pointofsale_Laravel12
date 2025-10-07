@@ -17,25 +17,28 @@
     <div class="no-scrollbar flex flex-col overflow-y-auto duration-300 ease-linear">
         <nav x-data="{ selected: $persist('Dashboard') }">
             <div>
-                <hr class="w-full mb-2 bg-indigo-900 opacity-70">
-                <h3 class="mb-2 text-xs text-indigo-900 flex items-center justify-between">
-                    <span class="menu-group-title" :class="sidebarToggle ? 'lg:hidden' : ''">Main</span>
-                    <i :class="sidebarToggle ? 'opacity-100 visible lg:block ' : 'opacity-0 invisible'"
-                        class="transition duration-300 menu-group-icon mx-auto bx bx-dots-horizontal-rounded !text-center"></i>
-                </h3>
-                <ul class="mb-6 flex flex-col gap-y-0.5">
-                    @can('dashboard.index')
-                        <li>
-                            <a href="{{ route('dashboard.index') }}"
-                                class="menu-item group hover:menu-item-active {{ request()->is('admin/dashboard*') ? 'menu-item-active' : 'text-gray-800' }}">
-                                <i class="bx bxs-dashboard text-xl"></i>
-                                <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Dashboard</span>
-                            </a>
-                        </li>
-                    @endcan
-                </ul>
+                @canany(['dashboard.index'])
 
-                @canany(['produk.index', 'kategori.index', 'merek.index', 'satuan.index', 'invoice.index'])
+                    <hr class="w-full mb-2 bg-indigo-900 opacity-70">
+                    <h3 class="mb-2 text-xs text-indigo-900 flex items-center justify-between">
+                        <span class="menu-group-title" :class="sidebarToggle ? 'lg:hidden' : ''">Main</span>
+                        <i :class="sidebarToggle ? 'opacity-100 visible lg:block ' : 'opacity-0 invisible'"
+                            class="transition duration-300 menu-group-icon mx-auto bx bx-dots-horizontal-rounded !text-center"></i>
+                    </h3>
+                    <ul class="mb-6 flex flex-col gap-y-0.5">
+                        @can('dashboard.index')
+                            <li>
+                                <a href="{{ route('dashboard.index') }}"
+                                    class="menu-item group hover:menu-item-active {{ request()->is('admin/dashboard*') ? 'menu-item-active' : 'text-gray-800' }}">
+                                    <i class="bx bxs-dashboard text-xl"></i>
+                                    <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Dashboard</span>
+                                </a>
+                            </li>
+                        @endcan
+                    </ul>
+                @endcan
+
+                @canany(['produk.index', 'kategori.index', 'merek.index', 'satuan.index'])
                     <hr class="w-full mb-2 bg-indigo-900 opacity-70">
                     <h3 class="mb-2 text-xs text-indigo-900 flex items-center justify-between text-lg font-medium">
                         <span class="menu-group-title" :class="sidebarToggle ? 'lg:hidden' : ''">Inventory</span>
@@ -93,6 +96,17 @@
                                 </a>
                             </li>
                         @endcan
+                    </ul>
+                @endcanany
+
+                @canany(['invoice.index', 'retur-penjualan.index'])
+                    <hr class="w-full mb-2 bg-indigo-900 opacity-70">
+                    <h3 class="mb-2 text-xs text-indigo-900 flex items-center justify-between text-lg font-medium">
+                        <span class="menu-group-title" :class="sidebarToggle ? 'lg:hidden' : ''">Penjualan</span>
+                        <i :class="sidebarToggle ? 'opacity-100 visible lg:block ' : 'opacity-0 invisible'"
+                            class="transition duration-300 menu-group-icon mx-auto bx bx-dots-horizontal-rounded !text-center"></i>
+                    </h3>
+                    <ul class="mb-6 flex flex-col gap-y-0.5">
 
                         @can('invoice.index')
                             <li>
@@ -100,6 +114,16 @@
                                     class="menu-item group hover:menu-item-active {{ request()->is('admin/invoice*') ? 'menu-item-active' : 'text-gray-800' }}">
                                     <i class='bx bx-receipt text-xl'></i>
                                     <span :class="sidebarToggle ? 'lg:hidden' : ''">Riwayat Penjualan</span>
+                                </a>
+                            </li>
+                        @endcan
+
+                        @can('retur-penjualan.index')
+                            <li>
+                                <a href="{{ route('retur-penjualan.index') }}"
+                                    class="menu-item group hover:menu-item-active {{ request()->is('admin/retur-penjualan*') ? 'menu-item-active' : 'text-gray-800' }}">
+                                    <i class='bx bx-undo text-xl'></i>
+                                    <span :class="sidebarToggle ? 'lg:hidden' : ''">Retur Penjualan</span>
                                 </a>
                             </li>
                         @endcan

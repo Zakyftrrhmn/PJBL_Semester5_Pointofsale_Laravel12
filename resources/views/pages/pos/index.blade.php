@@ -152,6 +152,7 @@
                         <label for="pelanggan_id" class="block text-sm font-medium text-gray-700">Pelanggan</label>
                         <select id="pelanggan_id" x-model="pelanggan_id"
                             class="w-full rounded-lg border border-gray-300 p-2 text-sm text-gray-700 focus:border-blue-400">
+                            <option value="">Umum</option>
                             <template x-for="p in initialPelanggans" :key="p.id">
                                 <option :value="p.id" x-text="p.nama_pelanggan"></option>
                             </template>

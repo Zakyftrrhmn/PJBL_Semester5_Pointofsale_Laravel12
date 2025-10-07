@@ -15,6 +15,7 @@ use App\Http\Controllers\PembelianController;
 use App\Http\Controllers\PesananPembelianController;
 use App\Http\Controllers\POSController;
 use App\Http\Controllers\ReturPembelianController;
+use App\Http\Controllers\ReturPenjualanController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
@@ -102,6 +103,9 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
 
     // User Management
     Route::resource('user', UserController::class)->except(['show']);
+
+    Route::resource('retur-penjualan', ReturPenjualanController::class)->except(['show', 'edit', 'update', 'destroy']);
+    Route::get('retur-penjualan/get-produk', [ReturPenjualanController::class, 'getProdukByPenjualan'])->name('retur-penjualan.get-produk');
 
     // Role & Permission Management
     Route::resource('role', RoleController::class);
