@@ -121,11 +121,18 @@
 
                                             @can('user.destroy')
                                                 @if (Auth::id() != $user->id)
-                                                    <button
-                                                        @click="showModal = true; deleteUrl = '{{ route('user.destroy', $user->id) }}'"
-                                                        class="p-2 border rounded-lg shadow-sm text-gray-700 border-gray-200 hover:bg-gray-100">
-                                                        <i class="bx bx-trash text-base"></i>
-                                                    </button>
+                                                    @if (!$user->hasRole('Super Admin'))
+                                                        <button
+                                                            @click="showModal = true; deleteUrl = '{{ route('user.destroy', $user->id) }}'"
+                                                            class="p-2 border rounded-lg shadow-sm text-gray-700 border-gray-200 hover:bg-gray-100">
+                                                            <i class="bx bx-trash text-base"></i>
+                                                        </button>
+                                                    @else
+                                                        <span class="p-2 text-red-500 cursor-not-allowed"
+                                                            title="Super Admin cannot be deleted">
+                                                            <i class='bx bx-lock-alt text-base'></i>
+                                                        </span>
+                                                    @endif
                                                 @endif
                                             @endcan
                                         </td>

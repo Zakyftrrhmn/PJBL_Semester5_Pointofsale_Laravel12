@@ -120,11 +120,13 @@
                         </a>
                     @endcan
 
-                    <button
-                        class="text-sm border border-gray-500 text-gray-500 px-3 py-1 rounded-lg hover:bg-blue-200 hover:text-blue-700 hover:border-none transition-colors whitespace-nowrap">
-                        <i class="fill-gray-500 group-hover:fill-gray-700 bx bx-user "></i>
-                        Edit Profile
-                    </button>
+                    @auth
+                        <a href="{{ route('user.edit', Auth::user()->id) }}"
+                            class="text-sm border border-gray-500 text-gray-500 px-3 py-1 rounded-lg hover:bg-blue-200 hover:text-blue-700 hover:border-none transition-colors whitespace-nowrap">
+                            <i class="fill-gray-500 group-hover:fill-gray-700 bx bx-user "></i>
+                            Edit Profile
+                        </a>
+                    @endauth
                     <div class="relative" x-data="{ dropdownOpen: false }" @click.outside="dropdownOpen = false">
                         <a class="flex items-center text-gray-700" href="#"
                             @click.prevent="dropdownOpen = ! dropdownOpen">

@@ -81,52 +81,40 @@
                                 placeholder="Ulangi password" required>
                         </div>
                     </div>
-                    {{-- Pilih Peran (Role) --}}
                     <div class="space-y-1">
                         <label for="roles" class="block text-sm font-semibold text-gray-800">
                             Pilih Peran (Role) <span class="text-red-500">*</span>
                         </label>
 
                         <div class="relative">
-                            <select name="roles[]" id="roles" multiple
+                            {{-- Hapus atribut 'multiple' dan ubah 'roles[]' menjadi 'roles' --}}
+                            <select name="roles" id="roles"
                                 class="peer mt-1 block w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 shadow-sm transition-all
-                    focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:outline-none hover:border-gray-300"
+                                focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:outline-none hover:border-gray-300"
                                 required>
+                                <option value="" disabled selected>Pilih salah satu peran</option>
+                                {{-- Tambahkan placeholder --}}
                                 @foreach ($roles as $role)
-                                    <option value="{{ $role }}"
-                                        {{ in_array($role, old('roles', [])) ? 'selected' : '' }}>
+                                    {{-- Ubah logika old() untuk single selection --}}
+                                    <option value="{{ $role }}" {{ old('roles') == $role ? 'selected' : '' }}>
                                         {{ ucfirst($role) }}
                                     </option>
                                 @endforeach
                             </select>
 
-                            {{-- Icon kecil di kanan atas --}}
+                            {{-- Icon kecil di kanan atas (ganti icon panah ke bawah biasa) --}}
                             <svg class="absolute right-3 top-3.5 h-4 w-4 text-gray-400 peer-focus:text-blue-400"
                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                             </svg>
                         </div>
 
-                        <div class="flex items-start gap-2 mt-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mt-[2px] text-gray-400" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M13 16h-1v-4h-1m1-4h.01M12 18.5A6.5 6.5 0 105.5 12a6.5 6.5 0 006.5 6.5z" />
-                            </svg>
-                            <p class="text-xs text-gray-500">
-                                Tekan <kbd
-                                    class="px-1 py-0.5 bg-gray-100 border border-gray-300 rounded text-[10px]">Ctrl</kbd>
-                                (Windows) atau
-                                <kbd
-                                    class="px-1 py-0.5 bg-gray-100 border border-gray-300 rounded text-[10px]">Command</kbd>
-                                (Mac) untuk memilih lebih dari satu peran.
-                            </p>
-                        </div>
 
                         @error('roles')
                             <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                         @enderror
                     </div>
+
 
 
                     {{-- Tombol Aksi --}}

@@ -6,17 +6,13 @@
     <div class="space-y-6">
         <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
             <div class="p-6">
-                {{-- Gunakan method POST dengan @method('PUT') untuk update, dan tambahkan enctype untuk file upload --}}
                 <form action="{{ route('user.update', $user->id) }}" method="POST" enctype="multipart/form-data"
                     class="space-y-6">
                     @csrf
                     @method('PUT')
-
-                    {{-- Upload Foto User --}}
                     <div class="flex items-start gap-6">
                         <div
                             class="w-32 h-32 rounded-full overflow-hidden border border-gray-300 bg-gray-50 flex items-center justify-center">
-                            {{-- Tampilkan foto user saat ini, jika ada. Gunakan placeholder jika tidak ada. --}}
                             @php
                                 $photoPath = $user->photo_user
                                     ? asset('storage/' . $user->photo_user)
@@ -41,9 +37,7 @@
                         </div>
                     </div>
 
-                    {{-- Form Input Data Diri dan Akun (2 Kolom) --}}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {{-- Nama Lengkap --}}
                         <div>
                             <label for="name" class="block text-sm font-medium text-gray-700">Nama Lengkap <span
                                     class="text-red-500">*</span></label>
@@ -55,7 +49,6 @@
                             @enderror
                         </div>
 
-                        {{-- Email --}}
                         <div>
                             <label for="email" class="block text-sm font-medium text-gray-700">Email <span
                                     class="text-red-500">*</span></label>
@@ -67,7 +60,6 @@
                             @enderror
                         </div>
 
-                        {{-- Password (Opsional) --}}
                         <div>
                             <label for="password" class="block text-sm font-medium text-gray-700">Password Baru</label>
                             <input type="password" id="password" name="password"
@@ -79,7 +71,6 @@
                             @enderror
                         </div>
 
-                        {{-- Konfirmasi Password --}}
                         <div>
                             <label for="password_confirmation" class="block text-sm font-medium text-gray-700">Konfirmasi
                                 Password Baru</label>
@@ -88,63 +79,78 @@
                                 placeholder="Ulangi password baru">
                         </div>
                     </div>
+                    @if (Auth::user()->hasRole('Super Admin') && !$user->hasRole('Super Admin'))
+                        <div class="space-y-1">
+                            <label for="roles" class="block text-sm font-semibold text-gray-800">
+                                Pilih Peran (Role) <span class="text-red-500">*</span>
+                            </label>
 
-                    {{-- Pilih Peran (Role) --}}
-                    <div class="space-y-1">
-                        <label for="roles" class="block text-sm font-semibold text-gray-800">
-                            Pilih Peran (Role) <span class="text-red-500">*</span>
-                        </label>
+                            <div class="relative">
+                                @php
+                                    $currentRole = $user->getRoleNames()->first();
+                                    $selectedRole = old('roles', $currentRole);
+                                @endphp
+                                <select name="roles" id="roles"
+                                    class="peer mt-1 block w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 shadow-sm transition-all
+                        focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:outline-none hover:border-gray-300"
+                                    required>
+                                    <option value="" disabled {{ $selectedRole ? '' : 'selected' }}>Pilih salah satu
+                                        peran</option>
+                                    @foreach ($roles as $role)
+                                        <option value="{{ $role }}" {{ $selectedRole == $role ? 'selected' : '' }}>
+                                            {{ ucfirst($role) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <svg class="absolute right-3 top-3.5 h-4 w-4 text-gray-400 peer-focus:text-blue-400"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                            <div class="flex items-start gap-2 mt-1">
+                                {{-- Icon Info --}}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mt-[2px] text-gray-400"
+                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M13 16h-1v-4h-1m1-4h.01M12 18.5A6.5 6.5 0 105.5 12a6.5 6.5 0 006.5 6.5z" />
+                                </svg>
+                                <p class="text-xs text-gray-500">
+                                    Pilih satu peran untuk pengguna ini.
+                                </p>
+                            </div>
 
-                        <div class="relative">
-                            @php
-                                // Mendapatkan peran yang sudah dimiliki user
-                                $currentRoles = $user->getRoleNames()->toArray();
-                                // Menentukan peran yang harus dipilih (utamakan old, jika tidak ada gunakan current)
-                                $selectedRoles = old('roles', $currentRoles);
-                            @endphp
-
-                            <select name="roles[]" id="roles" multiple
-                                class="peer mt-1 block w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 shadow-sm transition-all
-                   focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:outline-none hover:border-gray-300"
-                                required>
-                                @foreach ($roles as $role)
-                                    <option value="{{ $role }}"
-                                        {{ in_array($role, $selectedRoles) ? 'selected' : '' }}>
-                                        {{ ucfirst($role) }}
-                                    </option>
-                                @endforeach
-                            </select>
-
-                            {{-- Icon kecil di kanan atas (tanda panah) --}}
-                            <svg class="absolute right-3 top-3.5 h-4 w-4 text-gray-400 peer-focus:text-blue-400"
-                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
+                            @error('roles')
+                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
-
-                        <div class="flex items-start gap-2 mt-1">
-                            {{-- Icon Info --}}
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mt-[2px] text-gray-400" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M13 16h-1v-4h-1m1-4h.01M12 18.5A6.5 6.5 0 105.5 12a6.5 6.5 0 006.5 6.5z" />
-                            </svg>
-                            <p class="text-xs text-gray-500">
-                                Tekan
-                                <kbd class="px-1 py-0.5 bg-gray-100 border border-gray-300 rounded text-[10px]">Ctrl</kbd>
-                                (Windows) atau
-                                <kbd
-                                    class="px-1 py-0.5 bg-gray-100 border border-gray-300 rounded text-[10px]">Command</kbd>
-                                (Mac) untuk memilih lebih dari satu peran.
+                    @else
+                        <div class="space-y-1">
+                            <label class="block text-sm font-semibold text-gray-800">
+                                Peran (Role)
+                            </label>
+                            <p class="mt-1 text-sm text-gray-700 p-2.5 rounded-lg border border-gray-300 bg-gray-50">
+                                @forelse ($user->getRoleNames() as $role)
+                                    <span
+                                        class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-sm font-medium text-blue-800">
+                                        {{ ucfirst($role) }}
+                                    </span>
+                                @empty
+                                    <span
+                                        class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-sm font-medium text-red-800">
+                                        Tidak Ada Peran
+                                    </span>
+                                @endforelse
+                                @if ($user->hasRole('Super Admin'))
+                                    <span class="ml-2 text-xs text-red-500">(Role Super Admin tidak dapat diubah)</span>
+                                @else
+                                    <span class="ml-2 text-xs text-gray-500">(Hanya Super Admin yang dapat mengubah
+                                        peran)</span>
+                                @endif
                             </p>
                         </div>
-
-                        @error('roles')
-                            <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    {{-- Tombol Aksi --}}
+                    @endif
                     <div class="flex justify-end gap-3">
                         <a href="{{ route('user.index') }}"
                             class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">Batal</a>
@@ -157,8 +163,6 @@
             </div>
         </div>
     </div>
-
-    {{-- Script untuk Preview Gambar --}}
     <script>
         document.getElementById('photo_user').addEventListener('change', function(e) {
             let reader = new FileReader();
