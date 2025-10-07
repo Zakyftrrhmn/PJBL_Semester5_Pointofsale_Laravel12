@@ -18,13 +18,14 @@
             background-position: center;
             background-size: cover;
             position: relative;
+            padding-top: 50px;
+            padding-bottom: 50px;
         }
 
         body::before {
             content: "";
             position: absolute;
             inset: 0;
-            background: rgba(255, 255, 255, 0.7);
         }
 
         /* styling disabled fieldset supaya jelas terlihat terkunci */
