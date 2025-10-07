@@ -9,17 +9,43 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
 {
+    /**
+     * Tentukan kunci throttling.
+     */
+    protected function throttleKey(Request $request): string
+    {
+        // Kunci dibuat dari input email saat ini (POST request)
+        return Str::lower($request->input('email')) . '|' . $request->ip();
+    }
+
     public function login(Request $request)
     {
+        // 1. Validasi Input
         $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
+            'email' => ['required', 'string', 'email'],
+            'password' => ['required', 'string'],
             'g-recaptcha-response' => ['required'],
         ]);
 
+        $key = $this->throttleKey($request);
+        $maxAttempts = 10;
+        $decaySeconds = 60; // 1 menit
+
+        // 2. Periksa Lockout (Throttle)
+        if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
+            $seconds = RateLimiter::availableIn($key);
+
+            // Jika form berhasil di-submit saat sedang lockout, tolak dengan exception
+            throw ValidationException::withMessages([
+                'email' => "Terlalu banyak percobaan login. Coba lagi dalam $seconds detik.",
+            ]);
+        }
+
+        // 3. Verifikasi reCAPTCHA
         $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
             'secret' => env('RECAPTCHA_SECRET'),
             'response' => $request->input('g-recaptcha-response'),
@@ -27,29 +53,23 @@ class LoginController extends Controller
         ])->json();
 
         if (empty($response['success']) || $response['success'] !== true) {
+            // Hit rate limiter jika CAPTCHA gagal verifikasi
+            RateLimiter::hit($key, $decaySeconds);
+            // Simpan email ke session saat HITTING limiter
+            $request->session()->put('locked_email', $request->input('email'));
+
             return back()->withErrors([
-                'captcha' => 'Verifikasi reCAPTCHA gagal. Silakan coba lagi.',
+                'captcha_error' => 'Verifikasi reCAPTCHA gagal. Silakan coba lagi.',
             ])->onlyInput('email');
         }
 
-        $key = Str::lower($request->email) . '|' . $request->ip();
-        $maxAttempts = 10;
-        $decaySeconds = 60;
-
-        if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
-            $seconds = RateLimiter::availableIn($key);
-
-            $request->session()->put('lockout_until', now()->addSeconds($seconds));
-
-            return back()
-                ->withErrors(['emaizl' => "Terlalu banyak percobaan. Coba lagi dalam $seconds detik."]);
-        }
-
+        // 4. Coba Autentikasi
         if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
-            RateLimiter::clear($key);
-            $request->session()->forget('lockout_until');
+            RateLimiter::clear($key); // Hapus lock pada sukses login
+            $request->session()->forget('locked_email'); // Hapus locked_email setelah sukses
             $request->session()->regenerate();
 
+            // Logika Redirect
             $user = Auth::user();
             $firstPermission = $user->getAllPermissions()->first();
 
@@ -60,7 +80,10 @@ class LoginController extends Controller
             return redirect()->route('dashboard.index');
         }
 
+        // 5. Autentikasi Gagal
         RateLimiter::hit($key, $decaySeconds);
+        // Simpan email ke session saat HITTING limiter
+        $request->session()->put('locked_email', $request->input('email'));
 
         return back()->withErrors([
             'email' => 'Email atau password salah.',
@@ -69,6 +92,7 @@ class LoginController extends Controller
 
     public function showLoginForm(Request $request)
     {
+        // Jika sudah login, redirect
         if (Auth::check()) {
             $user = Auth::user();
             $firstPermission = $user->getAllPermissions()->first();
@@ -76,19 +100,33 @@ class LoginController extends Controller
             if ($firstPermission && Route::has($firstPermission->name)) {
                 return redirect()->route($firstPermission->name);
             }
-
-            return redirect('/admin');
+            return redirect()->route('admin');
         }
 
-        $lockoutUntil = $request->session()->get('lockout_until');
+        // Cek lockout status
+        $maxAttempts = 10;
+
+        // Ambil email yang terakhir kali gagal (tersimpan di session)
+        $email_for_key = $request->session()->get('locked_email');
+
         $remaining = 0;
 
-        if ($lockoutUntil && now()->lt($lockoutUntil)) {
-            $remaining = now()->diffInSeconds($lockoutUntil);
-        } else {
-            $request->session()->forget('lockout_until');
+        if ($email_for_key) {
+            // Buat key menggunakan email yang disimpan di session
+            $key = Str::lower($email_for_key) . '|' . $request->ip();
+
+            // Hitung sisa waktu lockout
+            $remaining = RateLimiter::tooManyAttempts($key, $maxAttempts)
+                ? RateLimiter::availableIn($key)
+                : 0;
+
+            // Jika lockout sudah berakhir, hapus session locked_email
+            if ($remaining === 0) {
+                $request->session()->forget('locked_email');
+            }
         }
 
+        // Header Cache-Control
         return response(view('auth.login', compact('remaining')))->withHeaders([
             'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
             'Pragma' => 'no-cache',

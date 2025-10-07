@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\BarcodeController;
-use App\Http\Controllers\DashboardController; // Tambahkan import ini
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\MerekController;
@@ -20,33 +20,26 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
 
-Route::middleware(['guest', 'prevent-back'])->group(function () {
-    Route::get('/', function () {
-        if (Auth::check()) {
-            $user = Auth::user();
-            $firstPermission = $user->getAllPermissions()->first();
 
-            if ($firstPermission && Route::has($firstPermission->name)) {
-                return redirect()->route($firstPermission->name);
-            }
+// =========================================================
+// RUTE AUTHENTIKASI (LOGIN)
+// TIDAK ADA MIDDLEWARE 'guest' AGAR TIDAK ADA CONFLICT DENGAN Auth::check()
+// =========================================================
 
-            // Diarahkan ke dashboard.index jika tidak ada permission spesifik ditemukan
-            return redirect()->route('dashboard.index');
-        }
-        return (new LoginController())->showLoginForm(request());
-    })->name('login');
-    Route::post('/login', [LoginController::class, 'login'])->name('auth.login.post');
-});
+// Rute utama '/' dialihkan ke showLoginForm.
+// Pengecekan Auth::check() dan redirect dilakukan sepenuhnya di dalam showLoginForm.
+Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->name('auth.login.post');
 
+
+// =========================================================
+// RUTE TERPROTEKSI (AUTH)
+// =========================================================
 Route::prefix('admin')->middleware(['auth'])->group(function () {
-
-    Route::get('/', function () {
-        return redirect()->route('dashboard.index');
-    })->name('admin');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 
-
+    // Pindahkan rute logout ke dalam group 'auth'
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
     // Kategori
@@ -59,7 +52,7 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
     Route::resource('satuan', SatuanController::class);
 
 
-    // produk
+    // Produk
     Route::resource('produk', ProdukController::class);
     Route::get('produk-export-excel', [ProdukController::class, 'exportExcel'])->name('produk.export.excel');
     Route::get('produk-export-pdf', [ProdukController::class, 'exportPDF'])->name('produk.export.pdf');
@@ -79,12 +72,12 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
         Route::get('/print/diskon/{penjualan}', [InvoiceController::class, 'printWithDiscount'])->name('invoice.print.diskon');
     });
 
-    // pelanggan
+    // Pelanggan
     Route::resource('pelanggan', PelangganController::class);
     Route::get('pelanggan-export-excel', [PelangganController::class, 'exportExcel'])->name('pelanggan.export.excel');
     Route::get('pelanggan-export-pdf', [PelangganController::class, 'exportPDF'])->name('pelanggan.export.pdf');
 
-    // pemasok
+    // Pemasok
     Route::resource('pemasok', PemasokController::class);
     Route::get('pemasok-export-excel', [PemasokController::class, 'exportExcel'])->name('pemasok.export.excel');
     Route::get('pemasok-export-pdf', [PemasokController::class, 'exportPDF'])->name('pemasok.export.pdf');

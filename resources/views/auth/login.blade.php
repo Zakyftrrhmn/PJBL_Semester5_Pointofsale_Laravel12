@@ -57,11 +57,10 @@
             </div>
         @endif
 
-        <form action="/login" method="POST" class="mt-8">
+        <form action="{{ route('auth.login.post') }}" method="POST" class="mt-8">
             @csrf
 
-            {{-- fieldset akan disabled seluruh input jika session('lockout') ada --}}
-            <fieldset id="login-fieldset" @if (session('lockout')) disabled @endif class="space-y-5">
+            <fieldset id="login-fieldset" @if (($remaining ?? 0) > 0) disabled @endif class="space-y-5">
                 {{-- EMAIL --}}
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -84,12 +83,23 @@
                     @enderror
                 </div>
 
-                {{-- reCAPTCHA (bungkus dengan relatif supaya kita bisa overlay saat lockout) --}}
+                {{-- reCAPTCHA --}}
                 <div class="relative">
                     <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITEKEY') }}"></div>
 
+                    {{-- Error: Wajib Diisi (required) --}}
+                    @error('g-recaptcha-response')
+                        <p class="mt-1 text-sm text-red-600 font-medium">⚠️ Verifikasi reCAPTCHA harus diisi.</p>
+                    @enderror
+
+                    {{-- Error: Gagal Verifikasi dari Controller --}}
+                    @error('captcha_error')
+                        <p class="mt-1 text-sm text-red-600 font-medium">⚠️ {{ $message }}</p>
+                    @enderror
+
+
                     {{-- overlay agar reCAPTCHA tidak bisa diklik selama lockout --}}
-                    @if (session('lockout'))
+                    @if (($remaining ?? 0) > 0)
                         <div id="recaptcha-overlay" class="absolute inset-0"></div>
                     @endif
                 </div>
@@ -98,7 +108,7 @@
                 <div class="flex items-center justify-between mt-2">
                     <button id="submit-btn" type="submit"
                         class="px-6 py-2 w-full bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
-                        @if (session('lockout')) disabled @endif>
+                        @if (($remaining ?? 0) > 0) disabled @endif>
                         <i class='bx bx-log-in mr-1'></i> Masuk
                     </button>
                 </div>
@@ -106,7 +116,7 @@
         </form>
 
         {{-- Lockout message + progress --}}
-        @if ($remaining ?? 0)
+        @if (($remaining ?? 0) > 0)
             <div id="lockout-wrapper" class="mt-4 text-center text-sm text-red-600 font-medium">
                 ⚠️ Terlalu banyak percobaan login. Coba lagi dalam
                 <span id="lock-seconds">{{ $remaining }}</span> detik.
@@ -120,35 +130,33 @@
                 (function() {
                     const secondsEl = document.getElementById('lock-seconds');
                     const barEl = document.getElementById('countdown-bar');
-                    const submitBtn = document.getElementById('submit-btn');
-                    const fieldset = document.getElementById('login-fieldset');
-                    const lockWrapper = document.getElementById('lockout-wrapper');
-                    let total = parseInt(secondsEl.textContent || '0', 10);
-                    let seconds = total;
 
-                    // disable semua input
-                    if (fieldset) fieldset.disabled = true;
-                    if (submitBtn) submitBtn.disabled = true;
+                    let total = 60; // Total adalah 60 detik
+                    let seconds = parseInt(secondsEl.textContent || '0', 10);
+
+                    if (seconds > 0) total = seconds;
+
+                    // Mengatur lebar awal bar
+                    if (barEl && total > 0) {
+                        barEl.style.width = ((seconds / total) * 100) + '%';
+                    }
 
                     const timer = setInterval(() => {
                         seconds--;
-                        if (seconds < 0) seconds = 0;
+                        if (seconds <= 0) {
+                            clearInterval(timer);
+                            // Redirect untuk membersihkan tampilan dan status RateLimiter di server
+                            window.location.href = '{{ route('login') }}';
+                            return;
+                        }
                         secondsEl.textContent = seconds;
                         if (barEl && total > 0) {
                             barEl.style.width = ((seconds / total) * 100) + '%';
-                        }
-                        if (seconds <= 0) {
-                            clearInterval(timer);
-                            fieldset.disabled = false;
-                            submitBtn.disabled = false;
-                            if (lockWrapper) lockWrapper.remove();
-                            if (barEl) barEl.remove();
                         }
                     }, 1000);
                 })();
             </script>
         @endif
-
 
         <p class="text-xs text-center text-gray-400 mt-6">&copy; {{ date('Y') }} Point of Sale System</p>
     </div>
