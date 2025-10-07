@@ -114,15 +114,15 @@
 
                     @can('penjualan.pos')
                         <a href="{{ route('pos.index') }}"
-                            class="text-sm px-3 py-1 rounded-lg bg-indigo-900 text-white shadow-lg whitespace-nowrap">
+                            class="text-sm px-3 py-1 rounded-lg bg-red-700 text-white shadow-lg whitespace-nowrap">
                             <i class="bx bx-cart"></i>
-                            Kasir (POS)
+                            Kasir Transaksi (POS)
                         </a>
                     @endcan
 
                     @auth
                         <a href="{{ route('user.edit', Auth::user()->id) }}"
-                            class="text-sm border border-gray-500 text-gray-500 px-3 py-1 rounded-lg hover:bg-blue-200 hover:text-blue-700 hover:border-none transition-colors whitespace-nowrap">
+                            class="text-sm border border-gray-500 text-gray-500 px-3 py-1 rounded-lg    transition-colors whitespace-nowrap">
                             <i class="fill-gray-500 group-hover:fill-gray-700 bx bx-user "></i>
                             Edit Profile
                         </a>

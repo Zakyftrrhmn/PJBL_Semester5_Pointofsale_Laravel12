@@ -92,21 +92,27 @@ class PermissionSeeder extends Seeder
             ['name' => 'pembelian.index', 'group' => 'Pembelian', 'description' => 'Melihat daftar transaksi pembelian'],
             ['name' => 'pembelian.destroy', 'group' => 'Pembelian', 'description' => 'Menghapus transaksi pembelian'],
 
-            // Pesanan Pembelian
-            ['name' => 'pesanan-pembelian.index', 'group' => 'Pesanan Pembelian', 'description' => 'Melihat daftar pesanan pembelian'],
-            ['name' => 'pesanan-pembelian.create', 'group' => 'Pesanan Pembelian', 'description' => 'Membuat pesanan pembelian baru'],
-            ['name' => 'pesanan-pembelian.edit', 'group' => 'Pesanan Pembelian', 'description' => 'Mengubah data pesanan pembelian'],
-            ['name' => 'pesanan-pembelian.destroy', 'group' => 'Pesanan Pembelian', 'description' => 'Menghapus pesanan pembelian'],
+            // PERBAIKAN DAN PENAMBAHAN UNTUK PEMBELIAN DAN PESANAN PEMBELIAN
+
+            // PEMBELIAN (Untuk transaksi baru/CRUD utama)
+            ['name' => 'pembelian.create', 'group' => 'Pembelian', 'description' => 'Membuat transaksi pembelian baru'],
+            ['name' => 'pembelian.index', 'group' => 'Pembelian', 'description' => 'Melihat daftar transaksi pembelian'],
+            ['name' => 'pembelian.show', 'group' => 'Pembelian', 'description' => 'Melihat detail transaksi pembelian'], // *TAMBAHAN*
+            ['name' => 'pembelian.edit', 'group' => 'Pembelian', 'description' => 'Mengubah transaksi pembelian'], // *TAMBAHAN*
+            ['name' => 'pembelian.destroy', 'group' => 'Pembelian', 'description' => 'Menghapus transaksi pembelian'],
+            ['name' => 'pembelian.export', 'group' => 'Pembelian', 'description' => 'Mencetak/export faktur pembelian'], // *TAMBAHAN*
+
+            // Karena Anda membedakan Controller, kita pertahankan permission Pesanan-Pembelian/History
+            // Gunakan group 'Pembelian' saja agar lebih rapih di UI Role/Permission
+            ['name' => 'pesanan-pembelian.index', 'group' => 'Pembelian', 'description' => 'Melihat riwayat pesanan pembelian'],
+            ['name' => 'pesanan-pembelian.show', 'group' => 'Pembelian', 'description' => 'Melihat detail pesanan pembelian'], // *TAMBAHAN*
+            ['name' => 'pesanan-pembelian.export', 'group' => 'Pembelian', 'description' => 'Mencetak faktur pesanan pembelian'], // *TAMBAHAN*
 
             // Retur Pembelian
             ['name' => 'retur-pembelian.index', 'group' => 'Retur Pembelian', 'description' => 'Melihat daftar retur pembelian'],
             ['name' => 'retur-pembelian.create', 'group' => 'Retur Pembelian', 'description' => 'Membuat retur pembelian baru'],
             ['name' => 'retur-pembelian.edit', 'group' => 'Retur Pembelian', 'description' => 'Mengubah data retur pembelian'],
             ['name' => 'retur-pembelian.destroy', 'group' => 'Retur Pembelian', 'description' => 'Menghapus retur pembelian'],
-
-            ['name' => 'retur-penjualan.index', 'group' => 'Retur Penjualan', 'description' => 'Melihat daftar retur penjualan'],
-            ['name' => 'retur-penjualan.create', 'group' => 'Retur Penjualan', 'description' => 'Membuat retur penjualan baru'],
-            ['name' => 'retur-penjualan.destroy', 'group' => 'Retur Penjualan', 'description' => 'Menghapus retur penjualan'],
 
             // Barcode
             ['name' => 'barcode.index', 'group' => 'Barcode', 'description' => 'Akses halaman cetak barcode'],

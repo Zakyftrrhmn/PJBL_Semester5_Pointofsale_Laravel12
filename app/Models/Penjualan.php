@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\ReturPenjualan;
 
 class Penjualan extends Model
 {
@@ -62,5 +63,19 @@ class Penjualan extends Model
     public function pelanggan(): BelongsTo
     {
         return $this->belongsTo(Pelanggan::class);
+    }
+
+    public function returPenjualans()
+    {
+        return $this->hasMany(ReturPenjualan::class, 'penjualan_id');
+    }
+
+    public function getStatusAttribute()
+    {
+        if ($this->returPenjualans()->exists()) {
+            return 'Returned';
+        }
+
+        return 'Completed';
     }
 }

@@ -16,13 +16,14 @@ class PesananPembelianController extends Controller
         $this->middleware('permission:pesanan-pembelian.show')->only('show');
         $this->middleware('permission:pesanan-pembelian.export')->only('exportPDF');
     }
-    
+
+
     /**
      * Display a listing of the resource (Pesanan Pembelian).
      */
     public function index(Request $request)
     {
-        $pembelians = Pembelian::with('pemasok')
+        $pembelians = Pembelian::with(['pemasok',  'returPembelians'])
             ->when($request->search, function ($query, $search) {
                 $query->where('kode_pembelian', 'like', "%{$search}%")
                     ->orWhereHas('pemasok', function ($q) use ($search) {

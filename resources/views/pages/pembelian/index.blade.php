@@ -65,6 +65,8 @@
                             <th class="whitespace-nowrap px-4 py-3 text-left font-medium text-gray-900">
                                 Total Bayar
                             </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status</th>
                             <th class="whitespace-nowrap px-4 py-3 text-left font-medium text-gray-900 w-24">
                                 Aksi
                             </th>
@@ -88,6 +90,19 @@
                                 </td>
                                 <td class="whitespace-nowrap px-4 py-3 text-gray-700 font-semibold">
                                     Rp {{ number_format($pembelian->total_bayar, 0, ',', '.') }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                                    @if ($pembelian->status === 'Returned')
+                                        <span
+                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                            Returned
+                                        </span>
+                                    @else
+                                        <span
+                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            Completed
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="whitespace-nowrap px-4 py-3 flex items-center gap-2">
                                     <a href="{{ route('pesanan-pembelian.show', $pembelian->id) }}"

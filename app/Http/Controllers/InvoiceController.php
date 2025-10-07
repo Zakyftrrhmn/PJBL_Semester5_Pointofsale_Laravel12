@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Penjualan;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Helpers\Terbilang;
 
 class InvoiceController extends Controller
 {
@@ -19,7 +20,7 @@ class InvoiceController extends Controller
      */
     public function index(Request $request)
     {
-        $penjualans = Penjualan::with(['pelanggan', 'user'])
+        $penjualans = Penjualan::with(['pelanggan', 'user', 'returPenjualans'])
             ->when($request->search, function ($query, $search) {
                 $query->where('kode_penjualan', 'like', "%{$search}%")
                     ->orWhereHas('pelanggan', function ($q) use ($search) {
@@ -38,24 +39,19 @@ class InvoiceController extends Controller
      */
     public function show(Penjualan $penjualan)
     {
-        // Load relasi yang diperlukan untuk tampilan detail
         $penjualan->load('pelanggan', 'user', 'detailPenjualans.produk.satuan');
-
-        // Mengirim data ke view detail
         return view('pages.invoice.show', compact('penjualan'));
     }
 
+    /**
+     * Cetak invoice tanpa diskon
+     */
     public function printNoDiscount(Penjualan $penjualan)
     {
         $penjualan->load('pelanggan', 'user', 'detailPenjualans.produk.satuan');
         $isDiscountApplied = false;
 
-        // Hitung ulang subtotal awal
-        $subTotalAwal = $penjualan->detailPenjualans->sum(function ($detail) {
-            return $detail->qty * $detail->harga_satuan;
-        });
-
-        // Simulasi tanpa diskon
+        $subTotalAwal = $penjualan->detailPenjualans->sum(fn($d) => $d->qty * $d->harga_satuan);
         $totalTanpaDiskon = $subTotalAwal;
         $bayar = $penjualan->jumlah_bayar;
         $kembalian = $bayar - $totalTanpaDiskon;
@@ -63,21 +59,21 @@ class InvoiceController extends Controller
         $data = compact('penjualan', 'isDiscountApplied', 'subTotalAwal', 'totalTanpaDiskon', 'bayar', 'kembalian');
 
         $pdf = Pdf::loadView('pages.invoice.print-template', $data)
-            ->setPaper('a7', 'portrait')
+            ->setPaper([0, 0, 680, 400], 'portrait') // ukuran ±24cm x 14cm (half continuous form)
             ->setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true]);
 
         return $pdf->stream('Invoice-' . $penjualan->kode_penjualan . '-TanpaDiskon.pdf');
     }
 
+    /**
+     * Cetak invoice dengan diskon
+     */
     public function printWithDiscount(Penjualan $penjualan)
     {
         $penjualan->load('pelanggan', 'user', 'detailPenjualans.produk.satuan');
         $isDiscountApplied = true;
 
-        $subTotalAwal = $penjualan->detailPenjualans->sum(function ($detail) {
-            return $detail->qty * $detail->harga_satuan;
-        });
-
+        $subTotalAwal = $penjualan->detailPenjualans->sum(fn($d) => $d->qty * $d->harga_satuan);
         $totalDenganDiskon = $penjualan->total_bayar;
         $bayar = $penjualan->jumlah_bayar;
         $kembalian = $bayar - $totalDenganDiskon;
@@ -85,7 +81,7 @@ class InvoiceController extends Controller
         $data = compact('penjualan', 'isDiscountApplied', 'subTotalAwal', 'totalDenganDiskon', 'bayar', 'kembalian');
 
         $pdf = Pdf::loadView('pages.invoice.print-template', $data)
-            ->setPaper('a7', 'portrait')
+            ->setPaper([0, 0, 680, 400], 'portrait') // ukuran ±24cm x 14cm (half continuous form)
             ->setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true]);
 
         return $pdf->stream('Invoice-' . $penjualan->kode_penjualan . '-DenganDiskon.pdf');

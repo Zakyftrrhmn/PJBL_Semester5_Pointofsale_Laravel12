@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use App\Models\ReturPembelian;
 
 class Pembelian extends Model
 {
@@ -69,5 +70,14 @@ class Pembelian extends Model
     public function returPembelians()
     {
         return $this->hasMany(ReturPembelian::class);
+    }
+
+    public function getStatusAttribute()
+    {
+        if ($this->returPembelians()->exists()) {
+            return 'Returned';
+        }
+
+        return 'Completed';
     }
 }
