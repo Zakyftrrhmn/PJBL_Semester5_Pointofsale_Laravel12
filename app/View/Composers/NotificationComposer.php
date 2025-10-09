@@ -12,13 +12,13 @@ class NotificationComposer
      */
     public function compose(View $view): void
     {
-        // Ambil produk di mana stoknya di bawah atau sama dengan batas pengingat
         $stokRendahProduks = Produk::whereColumn('stok_produk', '<=', 'pengingat_stok')
             ->where('is_active', 'active')
-            ->select('nama_produk', 'stok_produk', 'pengingat_stok', 'photo_produk', 'kode_produk', 'updated_at')
+            ->select('id', 'nama_produk', 'stok_produk', 'pengingat_stok', 'photo_produk', 'kode_produk', 'updated_at')
             ->orderBy('updated_at', 'desc')
-            ->limit(5) // Batasi notifikasi yang ditampilkan
+            ->limit(5)
             ->get();
+
 
         $view->with('stokRendahProduks', $stokRendahProduks);
     }

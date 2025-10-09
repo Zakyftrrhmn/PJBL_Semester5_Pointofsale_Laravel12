@@ -5,11 +5,9 @@
 
 @section('content')
 
-    {{-- Script untuk Alpine.js --}}
     @php
-
-        $produksForJs = $produks; // Asumsi $produks adalah koleksi yang sudah di-select field-field penting saja.
-        $pelanggansForJs = $pelanggans; // Sama untuk pelanggan.
+        $produksForJs = $produksForJs;
+        $pelanggansForJs = $pelanggans;
     @endphp
 
     <div class="space-y-6">
@@ -33,56 +31,89 @@
             {{-- 1. Product Panel (Kiri) --}}
             <div class="lg:w-2/3 space-y-4">
                 <div class="rounded-2xl border border-gray-200 bg-white shadow-sm p-4 sticky top-4 z-10">
-                    <input type="text" x-model="searchTerm" x-ref="searchInput" @input.debounce.300ms="searchProduk"
-                        placeholder="Cari produk berdasarkan nama atau kode..."
-                        class="h-10 w-full rounded-lg border border-gray-200 pl-4 pr-3 text-sm text-gray-700 placeholder-gray-400 shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
+
+                    {{-- Form Pencarian dan Refresh (Server-Side) --}}
+                    {{-- Form ini akan ter-submit ketika ENTER ditekan di dalam input (perilaku default) --}}
+                    <form action="{{ route('pos.index') }}" method="GET" class="flex items-center gap-2">
+                        <div class="relative w-full">
+                            <input type="text" name="search" value="{{ request('search') }}" x-ref="searchInput"
+                                @keydown.enter="searchProduk" {{-- Hapus .prevent. searchProduk hanya menambahkan ke cart jika Barcode/Kode cocok. Jika tidak, Enter akan melakukan default submit form Laravel. --}}
+                                placeholder="Cari produk berdasarkan nama atau kode..."
+                                class="h-10 w-full rounded-lg border border-gray-200 pl-10 pr-3 text-sm text-gray-700 placeholder-gray-400 shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
+                            <span class="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400">
+                                <i class="bx bx-search text-lg"></i>
+                            </span>
+                        </div>
+
+                        {{-- Tambahkan tombol submit eksplisit (hidden) jika input tidak memiliki type="submit" untuk kompatibilitas browser --}}
+                        <button type="submit" class="hidden">Cari</button>
+
+                        {{-- Tombol Refresh (Reset Pencarian) --}}
+                        <div class="relative group">
+                            <a href="{{ route('pos.index') }}"
+                                class="flex items-center justify-center h-10 w-10 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shadow-sm">
+                                <i class="bx bx-refresh text-xl"></i>
+                            </a>
+                            <span
+                                class="absolute -top-10 left-1/2 -translate-x-1/2 
+                                px-2 py-1 text-sm text-white bg-black rounded 
+                                opacity-0 group-hover:opacity-100 
+                                scale-95 group-hover:scale-100 
+                                transition-all duration-300">
+                                Reset
+                            </span>
+                        </div>
+                    </form>
                 </div>
 
+                {{-- Daftar Produk (Sudah di-Paginate) --}}
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                    <template x-for="produk in filteredProduks" :key="produk.id">
-                        <div @click="addToCart(produk)"
+                    @forelse ($produks as $produk)
+                        <div @click="addToCart({{ json_encode($produk) }})"
                             :class="{
-                                'opacity-50 cursor-not-allowed': produk.stok_produk <= 0,
-                                'hover:shadow-xl hover:-translate-y-1 cursor-pointer': produk.stok_produk > 0
+                                'opacity-50 cursor-not-allowed': {{ $produk['stok_produk'] }} <= 0,
+                                'hover:shadow-xl hover:-translate-y-1 cursor-pointer': {{ $produk['stok_produk'] }} > 0
                             }"
                             class="flex flex-col justify-between min-w-[150px] rounded-xl border border-gray-200 bg-white p-3 text-center shadow-sm transition-all duration-200 ease-in-out">
 
                             <div
                                 class="relative w-full mb-2 overflow-hidden rounded-lg aspect-square border border-gray-100 bg-gray-50">
-                                <img :src="produk.photo_produk ?
-                                    '{{ asset('storage') }}/' + produk.photo_produk :
-                                    '{{ asset('assets/images/produk/default-produk.png') }}'"
+                                <img src="{{ $produk['photo_produk'] ? asset('storage') . '/' . $produk['photo_produk'] : asset('assets/images/produk/default-produk.png') }}"
                                     alt="Foto Produk"
                                     class="w-full h-full object-cover transition-transform duration-300 hover:scale-105">
 
-                                <template x-if="produk.stok_produk <= 0">
+                                @if ($produk['stok_produk'] <= 0)
                                     <div
                                         class="absolute inset-0 bg-black/60 flex items-center justify-center text-xs font-semibold uppercase tracking-wide text-white rounded-lg">
                                         Habis
                                     </div>
-                                </template>
+                                @endif
                             </div>
 
                             <div class="space-y-1">
-                                <p class="text-sm font-semibold text-gray-800 truncate" x-text="produk.nama_produk"
-                                    :title="produk.nama_produk"></p>
-                                <p class="text-xs text-gray-500 font-mono truncate" x-text="produk.kode_produk"></p>
+                                <p class="text-sm font-semibold text-gray-800 truncate"
+                                    title="{{ $produk['nama_produk'] }}">
+                                    {{ $produk['nama_produk'] }}</p>
+                                <p class="text-xs text-gray-500 font-mono truncate">{{ $produk['kode_produk'] }}</p>
 
                                 <p class="font-bold text-green-600 text-sm sm:text-base leading-tight break-words"
-                                    x-text="formatRupiah(produk.harga_jual)"></p>
+                                    x-text="formatRupiah({{ $produk['harga_jual'] }})"></p>
 
-                                <p class="text-xs font-medium mt-1 break-words"
-                                    :class="produk.stok_produk <= 5 ? 'text-red-500' : 'text-gray-500'"
-                                    x-text="'Stok: ' + produk.stok_produk"></p>
+                                <p
+                                    class="text-xs font-medium mt-1 break-words {{ $produk['stok_produk'] <= 5 ? 'text-red-500' : 'text-gray-500' }}">
+                                    Stok: {{ $produk['stok_produk'] }}</p>
                             </div>
                         </div>
-                    </template>
-
-                    <template x-if="filteredProduks.length === 0">
+                    @empty
                         <div class="col-span-full text-center py-10 text-gray-500">
                             Tidak ada produk ditemukan.
                         </div>
-                    </template>
+                    @endforelse
+                </div>
+
+                {{-- Tautan Pagination --}}
+                <div class="mt-4">
+                    {{ $produks->links('vendor.pagination.tailwind') }}
                 </div>
 
             </div>
@@ -184,11 +215,8 @@
                     <input type="hidden" name="total_bayar" :value="totalBayar">
                     <input type="hidden" name="jumlah_bayar" :value="jumlahBayar">
                     <input type="hidden" name="kembalian" :value="kembalian">
-
-                    {{-- Ubah 'total_harga' menjadi 'subtotalCart' di Alpine, karena 'totalHarga' tidak ada di logic Alpine Anda --}}
                     <input type="hidden" name="cart_data" :value="JSON.stringify(cart)">
                     <input type="hidden" name="total_harga" :value="subtotalCart">
-
 
                     <button type="submit" :disabled="!isReadyToPay"
                         :class="{
@@ -210,12 +238,10 @@
     <script>
         function posData(data) {
             return {
-                // Data Statis
                 allProduks: data.initialProduks,
                 initialPelanggans: data.initialPelanggans,
                 pelangganUmumId: data.pelangganUmumId,
 
-                // Data Reaktif
                 searchTerm: '',
                 filteredProduks: data.initialProduks,
                 cart: [],
@@ -223,7 +249,6 @@
                 diskon: 0,
                 jumlahBayar: 0,
 
-                // Computed Properties
                 get subtotalCart() {
                     return this.cart.reduce((sum, item) => sum + (item.subtotal || 0), 0);
                 },
@@ -252,13 +277,11 @@
                     return 'Rp ' + Math.abs(number).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
                 },
 
-                // Logika Keranjang
                 calculateTotals() {
                     this.diskon = Math.max(0, this.diskon || 0);
                     this.jumlahBayar = Math.max(0, this.jumlahBayar || 0);
 
                     this.cart.forEach(item => {
-                        // Pastikan harga_satuan adalah angka
                         const hargaSatuan = parseFloat(item.harga_satuan) || 0;
                         item.subtotal = item.qty * hargaSatuan;
                     });
@@ -273,7 +296,6 @@
                     const existingIndex = this.cart.findIndex(item => item.id === produk.id);
 
                     if (existingIndex > -1) {
-                        // Produk sudah ada, tambahkan kuantitas
                         const item = this.cart[existingIndex];
                         if (item.qty < produk.stok_produk) {
                             item.qty++;
@@ -282,15 +304,13 @@
                             alert(`Maksimal stok untuk ${produk.nama_produk} adalah ${produk.stok_produk}!`);
                         }
                     } else {
-                        // Produk belum ada, tambahkan ke keranjang
-                        // Menggunakan harga_jual sebagai harga_satuan
                         const hargaJual = parseFloat(produk.harga_jual) || 0;
                         this.cart.push({
                             id: produk.id,
                             nama_produk: produk.nama_produk,
                             kode_produk: produk.kode_produk,
                             harga_satuan: hargaJual,
-                            stok_produk: produk.stok_produk, // Untuk validasi
+                            stok_produk: produk.stok_produk,
                             qty: 1,
                             subtotal: hargaJual,
                         });
@@ -308,7 +328,6 @@
                         alert(`Maksimal stok untuk ${item.nama_produk} adalah ${item.stok_produk}!`);
                     }
 
-                    // Gunakan $set untuk memastikan Alpine mendeteksi perubahan pada array item di cart
                     this.cart[index].qty = qty;
                     this.calculateTotals();
                 },
@@ -334,36 +353,26 @@
                     this.calculateTotals();
                 },
 
-                // Logika Pencarian Produk (Manual / Barcode Text)
-                searchProduk() {
-                    const term = this.searchTerm.toLowerCase().trim();
-                    if (!term) {
-                        this.filteredProduks = this.allProduks;
-                        return;
-                    }
+                // Fungsi ini sekarang hanya fokus pada logika Barcode Scanner (menambah ke cart)
+                // Jika tidak cocok, ia akan mengizinkan event enter (submit form) diteruskan.
+                searchProduk(event) {
+                    const term = this.$refs.searchInput.value.toLowerCase().trim();
 
-                    // Cek apakah input adalah kode produk (mengabaikan integrasi barcode scanner)
+                    // Cari produk berdasarkan kode di data yang sedang ditampilkan (allProduks)
                     const produkByCode = this.allProduks.find(p => p.kode_produk.toLowerCase() === term);
 
                     if (produkByCode) {
-                        // Jika kode produk cocok, tambahkan ke keranjang dan bersihkan input
+                        // Jika kode produk cocok (kasus Barcode Scanner), tambahkan ke keranjang.
                         this.addToCart(produkByCode);
+                        this.$refs.searchInput.value = '';
                         this.searchTerm = '';
-                        this.$refs.searchInput.focus();
-                        this.filteredProduks = this.allProduks; // Reset filter setelah menemukan produk
+                        // Penting: Hentikan event submit form agar halaman tidak reload setelah Barcode di-scan.
+                        event.preventDefault();
                         return;
                     }
 
-
-                    // Jika tidak cocok, lakukan filter berdasarkan nama/kode
-                    this.filteredProduks = this.allProduks.filter(produk =>
-                        (produk.nama_produk && produk.nama_produk.toLowerCase().includes(term)) ||
-                        (produk.kode_produk && produk.kode_produk.toLowerCase().includes(term))
-                    );
+                    // Jika kode tidak cocok, biarkan event Enter berlanjut (form submit) untuk melakukan pencarian server-side Laravel.
                 },
-
-                // Logika Form Submission (Dihapus dari form, dipindahkan ke button agar tidak perlu mencegah default submit)
-                // submitTransaction(event) { ... }
             }
         }
     </script>

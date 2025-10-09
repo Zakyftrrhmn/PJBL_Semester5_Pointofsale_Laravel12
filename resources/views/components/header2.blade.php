@@ -22,10 +22,10 @@
     <div class="flex items-center gap-2 sm:gap-4 px-3 sm:px-5 py-3">
 
         <!-- Tombol Dashboard -->
-        <a href="{{ route('pos.index') }}"
+        <a href="{{ route('produk.index') }}"
             class="text-xs sm:text-sm px-2 sm:px-3 py-1.5 rounded-lg bg-indigo-900 text-white shadow hover:bg-indigo-800 transition">
             <i class="bx bx-world text-base sm:text-sm"></i>
-            <span class="hidden sm:inline">Dashboard</span>
+            <span class="hidden sm:inline">Kembali ke dashboard</span>
         </a>
 
         <!-- Profil User -->

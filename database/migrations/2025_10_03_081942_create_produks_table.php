@@ -22,9 +22,9 @@ return new class extends Migration
             $table->string('photo_produk')->nullable();
             $table->string('deskripsi_produk')->nullable();
             $table->enum('is_active', ['active', 'non_active']);
-            $table->foreignId('satuan_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('kategori_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('merek_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('satuan_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('kategori_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('merek_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
     }

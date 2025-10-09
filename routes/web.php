@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\BackupController;
 use App\Http\Controllers\BarcodeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvoiceController;
@@ -64,6 +65,8 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
     // Point of Sale (POS)
     Route::get('pos', [POSController::class, 'index'])->name('pos.index');
     Route::post('pos', [POSController::class, 'store'])->name('pos.store');
+    // <<< TAMBAHKAN ROUTE INI UNTUK AJAX PAGINATION >>>
+    Route::get('pos/more-produk', [POSController::class, 'getMoreProduk'])->name('pos.more_produk');
 
     Route::prefix('invoice')->group(function () {
         Route::get('/', [InvoiceController::class, 'index'])->name('invoice.index');
@@ -103,4 +106,10 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
     // Role & Permission Management
     Route::resource('role', RoleController::class);
     Route::put('role/{role}/permissions', [RoleController::class, 'updatePermissions'])->name('role.update.permissions');
+
+
+    Route::get('/backup', [BackupController::class, 'index'])->name('backup.index');
+    Route::post('/backup/import', [BackupController::class, 'importNow'])->name('backup.import');
+    Route::get('/backup/download/{filename}', [BackupController::class, 'download'])->name('backup.download');
+    Route::delete('/backup/delete/{filename}', [BackupController::class, 'delete'])->name('backup.delete');
 });

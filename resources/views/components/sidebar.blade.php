@@ -52,7 +52,7 @@
                                 <a href="{{ route('produk.index') }}"
                                     class="menu-item group hover:menu-item-active {{ request()->is('admin/produk*') ? 'menu-item-active' : 'text-gray-800' }}">
                                     <i class="bx bx-basket text-xl"></i>
-                                    <span :class="sidebarToggle ? 'lg:hidden' : ''">Produk</span>
+                                    <span : class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Produk</span>
                                 </a>
                             </li>
                         @endcan
@@ -62,7 +62,8 @@
                                 <a href="{{ route('barcode.index') }}"
                                     class="menu-item group hover:menu-item-active {{ request()->is('admin/barcode*') ? 'menu-item-active' : 'text-gray-800' }}">
                                     <i class="bx bx-barcode text-xl"></i>
-                                    <span :class="sidebarToggle ? 'lg:hidden' : ''">Print Barcode</span>
+                                    <span : class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Print
+                                        Barcode</span>
                                 </a>
                             </li>
                         @endcan
@@ -72,7 +73,7 @@
                                 <a href="{{ route('kategori.index') }}"
                                     class="menu-item group hover:menu-item-active {{ request()->is('admin/kategori*') ? 'menu-item-active' : 'text-gray-800' }}">
                                     <i class="bx bx-list-ul text-xl"></i>
-                                    <span :class="sidebarToggle ? 'lg:hidden' : ''">Kategori</span>
+                                    <span : class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Kategori</span>
                                 </a>
                             </li>
                         @endcan
@@ -82,7 +83,7 @@
                                 <a href="{{ route('merek.index') }}"
                                     class="menu-item group hover:menu-item-active {{ request()->is('admin/merek*') ? 'menu-item-active' : 'text-gray-800' }}">
                                     <i class="bx bx-badge-check text-xl"></i>
-                                    <span :class="sidebarToggle ? 'lg:hidden' : ''">Merek</span>
+                                    <span : class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Merek</span>
                                 </a>
                             </li>
                         @endcan
@@ -92,7 +93,7 @@
                                 <a href="{{ route('satuan.index') }}"
                                     class="menu-item group hover:menu-item-active {{ request()->is('admin/satuan*') ? 'menu-item-active' : 'text-gray-800' }}">
                                     <i class="bx bx-box text-xl"></i>
-                                    <span :class="sidebarToggle ? 'lg:hidden' : ''">Satuan</span>
+                                    <span : class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Satuan</span>
                                 </a>
                             </li>
                         @endcan
@@ -113,7 +114,8 @@
                                 <a href="{{ route('invoice.index') }}"
                                     class="menu-item group hover:menu-item-active {{ request()->is('admin/invoice*') ? 'menu-item-active' : 'text-gray-800' }}">
                                     <i class='bx bx-receipt text-xl'></i>
-                                    <span :class="sidebarToggle ? 'lg:hidden' : ''">Riwayat Penjualan</span>
+                                    <span : class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Riwayat
+                                        Penjualan</span>
                                 </a>
                             </li>
                         @endcan
@@ -123,7 +125,8 @@
                                 <a href="{{ route('retur-penjualan.index') }}"
                                     class="menu-item group hover:menu-item-active {{ request()->is('admin/retur-penjualan*') ? 'menu-item-active' : 'text-gray-800' }}">
                                     <i class='bx bx-undo text-xl'></i>
-                                    <span :class="sidebarToggle ? 'lg:hidden' : ''">Retur Penjualan</span>
+                                    <span : class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Retur
+                                        Penjualan</span>
                                 </a>
                             </li>
                         @endcan
@@ -143,7 +146,7 @@
                                 <a href="{{ route('pelanggan.index') }}"
                                     class="menu-item group hover:menu-item-active {{ request()->is('admin/pelanggan*') ? 'menu-item-active' : 'text-gray-800' }}">
                                     <i class="bx bx-group text-xl"></i>
-                                    <span :class="sidebarToggle ? 'lg:hidden' : ''">Pelanggan</span>
+                                    <span : class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Pelanggan</span>
                                 </a>
                             </li>
                         @endcan
@@ -153,7 +156,7 @@
                                 <a href="{{ route('pemasok.index') }}"
                                     class="menu-item group hover:menu-item-active {{ request()->is('admin/pemasok*') ? 'menu-item-active' : 'text-gray-800' }}">
                                     <i class='bx bxs-business text-xl'></i>
-                                    <span :class="sidebarToggle ? 'lg:hidden' : ''">Pemasok</span>
+                                    <span : class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Pemasok</span>
                                 </a>
                             </li>
                         @endcan
@@ -173,7 +176,7 @@
                                 <a href="{{ route('pembelian.create') }}"
                                     class="menu-item group hover:menu-item-active {{ request()->is('admin/pembelian/create') ? 'menu-item-active' : 'text-gray-800' }}">
                                     <i class="bx bx-cart text-xl"></i>
-                                    <span :class="sidebarToggle ? 'lg:hidden' : ''">Pembelian</span>
+                                    <span : class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Pembelian</span>
                                 </a>
                             </li>
                         @endcan
@@ -183,7 +186,8 @@
                                 <a href="{{ route('pesanan-pembelian.index') }}"
                                     class="menu-item group hover:menu-item-active {{ request()->is('admin/pesanan-pembelian*') ? 'menu-item-active' : 'text-gray-800' }}">
                                     <i class="bx bx-receipt text-xl"></i>
-                                    <span :class="sidebarToggle ? 'lg:hidden' : ''">Pesanan Pembelian</span>
+                                    <span : class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Pesanan
+                                        Pembelian</span>
                                 </a>
                             </li>
                         @endcan
@@ -193,14 +197,14 @@
                                 <a href="{{ route('retur-pembelian.index') }}"
                                     class="menu-item group hover:menu-item-active {{ request()->is('admin/retur-pembelian*') ? 'menu-item-active' : 'text-gray-800' }}">
                                     <i class="bx bx-undo text-xl"></i>
-                                    <span :class="sidebarToggle ? 'lg:hidden' : ''">Retur Pembelian</span>
+                                    <span : class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Retur
+                                        Pembelian</span>
                                 </a>
                             </li>
                         @endcan
                     </ul>
                 @endcanany
-
-                @canany(['user.index', 'role.index'])
+                @canany(['user.index', 'role.index', 'database.backup'])
                     <hr class="w-full mb-2 bg-indigo-900 opacity-70">
                     <h3 class="mb-2 text-xs text-indigo-900 flex items-center justify-between text-lg font-medium">
                         <span class="menu-group-title" :class="sidebarToggle ? 'lg:hidden' : ''">User Management</span>
@@ -213,7 +217,7 @@
                                 <a href="{{ route('user.index') }}"
                                     class="menu-item group hover:menu-item-active {{ request()->is('admin/user*') ? 'menu-item-active' : 'text-gray-800' }}">
                                     <i class="bx bx-user"></i>
-                                    <span :class="sidebarToggle ? 'lg:hidden' : ''">Users</span>
+                                    <span : class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Users</span>
                                 </a>
                             </li>
                         @endcan
@@ -223,12 +227,26 @@
                                 <a href="{{ route('role.index') }}"
                                     class="menu-item group hover:menu-item-active {{ request()->is('admin/role*') ? 'menu-item-active' : 'text-gray-800' }}">
                                     <i class="bx bx-shield"></i>
-                                    <span :class="sidebarToggle ? 'lg:hidden' : ''">Roles & Permissions</span>
+                                    <span : class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Roles &
+                                        Permissions</span>
+                                </a>
+                            </li>
+                        @endcan
+
+                        @can('backup.index')
+                            <li>
+                                <a href="{{ route('backup.index') }}"
+                                    class="menu-item group hover:menu-item-active {{ request()->is('admin/backup*') ? 'menu-item-active' : 'text-gray-800' }}">
+                                    <i class="bx bx-hdd"></i>
+                                    <span : class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Backup
+                                        Data</span>
                                 </a>
                             </li>
                         @endcan
                     </ul>
                 @endcanany
+
+
 
             </div>
         </nav>

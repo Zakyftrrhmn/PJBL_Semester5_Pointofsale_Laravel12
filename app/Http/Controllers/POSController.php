@@ -17,16 +17,10 @@ class POSController extends Controller
         $this->middleware('can:penjualan.pos');
     }
 
-    // Tampilkan Form POS
-    public function index()
+    public function index(Request $request)
     {
-        $produks = Produk::where('is_active', 'active')->orderBy('nama_produk')->get(['id', 'nama_produk', 'kode_produk', 'harga_jual', 'stok_produk', 'photo_produk']);
-        $pelanggans = Pelanggan::orderBy('nama_pelanggan')->get(['id', 'nama_pelanggan']);
-
-        // Pelanggan umum/default
         $pelangganUmum = Pelanggan::where('nama_pelanggan', 'Umum')->first();
         if (!$pelangganUmum) {
-            // Opsional: Buat pelanggan 'Umum' jika belum ada
             $pelangganUmum = Pelanggan::create([
                 'nama_pelanggan' => 'Umum',
                 'telepon' => '-',
@@ -34,8 +28,30 @@ class POSController extends Controller
             ]);
         }
 
+        $pelanggans = Pelanggan::orderBy('nama_pelanggan')->get(['id', 'nama_pelanggan']);
 
-        return view('pages.pos.index', compact('produks', 'pelanggans', 'pelangganUmum'));
+        $produks = Produk::where('is_active', 'active')
+            ->when($request->search, function ($query, $search) {
+                $query->where('nama_produk', 'like', "%{$search}%")
+                    ->orWhere('kode_produk', 'like', "%{$search}%");
+            })
+            ->orderBy('nama_produk')
+            ->paginate(30)
+            ->withQueryString()
+            ->through(function ($produk) {
+                return [
+                    'id' => $produk->id,
+                    'nama_produk' => $produk->nama_produk,
+                    'kode_produk' => $produk->kode_produk,
+                    'harga_jual' => $produk->harga_jual,
+                    'stok_produk' => $produk->stok_produk,
+                    'photo_produk' => $produk->photo_produk,
+                ];
+            });
+
+        $produksForJs = $produks->items();
+
+        return view('pages.pos.index', compact('produks', 'produksForJs', 'pelanggans', 'pelangganUmum'));
     }
 
     // Proses Simpan Transaksi

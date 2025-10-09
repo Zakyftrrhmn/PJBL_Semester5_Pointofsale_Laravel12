@@ -58,17 +58,14 @@
                                 </div>
 
                                 <ul class="custom-scrollbar flex h-auto flex-col overflow-y-auto">
-                                    {{-- Loop Produk Stok Rendah --}}
                                     @forelse ($stokRendahProduks as $produk)
                                         <li>
-                                            {{-- Anda dapat mengganti '#' dengan rute ke halaman detail/edit produk --}}
-                                            <a class="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100"
-                                                href="#">
+                                            <a href="{{ route('produk.show', $produk) }}"
+                                                class="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100">
 
                                                 {{-- Photo Produk --}}
                                                 <span
                                                     class="relative z-1 block h-10 w-full max-w-10 rounded-full overflow-hidden">
-
                                                     <img src="{{ $produk->photo_produk ? asset('storage/' . $produk->photo_produk) : asset('assets/images/produk/default-produk.png') }}"
                                                         alt="{{ $produk->nama_produk }}"
                                                         class="object-cover w-full h-full" />
@@ -96,10 +93,12 @@
                                         </li>
                                     @empty
                                         <li>
-                                            <p class="p-3 text-center text-gray-500">Tidak ada notifikasi stok rendah
-                                                saat ini. ✨</p>
+                                            <p class="p-3 text-center text-gray-500">
+                                                Tidak ada notifikasi stok rendah saat ini. ✨
+                                            </p>
                                         </li>
                                     @endforelse
+
                                 </ul>
 
                                 @if ($stokRendahProduks->count() > 0)

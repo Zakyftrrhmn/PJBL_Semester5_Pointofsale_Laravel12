@@ -181,7 +181,7 @@
                                                     <i class="bx bx-edit text-base"></i>
                                                 </a>
                                             @endcan
-                                            @can('produk.destroy')
+{{ route('backup.delete', $backup['filename']) }}
                                                 <!-- Delete -->
                                                 <button
                                                     @click="showModal = true; deleteUrl = '{{ route('produk.destroy', $produk->id) }}'"
