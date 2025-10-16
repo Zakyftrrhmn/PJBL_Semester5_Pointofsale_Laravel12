@@ -17,14 +17,14 @@
     <div class="no-scrollbar flex flex-col overflow-y-auto duration-300 ease-linear">
         <nav x-data="{ selected: $persist('Dashboard') }">
             <div>
-                @canany(['dashboard.index'])
-
+                @canany(['dashboard.index', 'pages.index', 'rekeningBank.index '])
                     <hr class="w-full mb-2 bg-indigo-900 opacity-70">
                     <h3 class="mb-2 text-xs text-indigo-900 flex items-center justify-between">
                         <span class="menu-group-title" :class="sidebarToggle ? 'lg:hidden' : ''">Main</span>
                         <i :class="sidebarToggle ? 'opacity-100 visible lg:block ' : 'opacity-0 invisible'"
                             class="transition duration-300 menu-group-icon mx-auto bx bx-dots-horizontal-rounded !text-center"></i>
                     </h3>
+
                     <ul class="mb-6 flex flex-col gap-y-0.5">
                         @can('dashboard.index')
                             <li>
@@ -35,8 +35,53 @@
                                 </a>
                             </li>
                         @endcan
+
+                        <!-- Dropdown content -->
+                        @canany(['pages.index', 'rekeningBank.index'])
+                            <!-- Dropdown Menu Start -->
+                            <li x-data="{ open: {{ request()->is('admin/pages*') || request()->is('admin/rekeningBank*') ? 'true' : 'false' }} }">
+                                <a href="#" @click.prevent="open = !open"
+                                    class="menu-item group flex items-center justify-between"
+                                    :class="open ? 'menu-item-active' : 'menu-item-inactive'">
+                                    <div class="flex items-center gap-2">
+                                        <i class="bx bx-menu text-xl"></i>
+                                        <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Informasi Toko
+                                        </span>
+                                    </div>
+                                    <i class="bx bx-chevron-down text-xl transition-transform duration-300"
+                                        :class="open ? 'rotate-180' : ''"></i>
+                                </a>
+
+                                <ul x-show="open" x-transition class="menu-dropdown mt-2 flex flex-col gap-1">
+                                    @can('pages.index')
+                                        <li>
+                                            <a href="{{ route('pages.index') }}"
+                                                class="menu-dropdown-item group {{ request()->is('admin/pages*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                                <i class="bx bx-file text-base mr-2"></i>
+                                                <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Profil
+                                                    Toko</span>
+                                            </a>
+                                        </li>
+                                    @endcan
+
+                                    @can('rekeningBank.index')
+                                        <li>
+                                            <a href="{{ route('rekeningBank.index') }}"
+                                                class="menu-dropdown-item group {{ request()->is('admin/rekeningBank*') ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive' }}">
+                                                <i class="bx bx-credit-card text-base mr-2"></i>
+                                                <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Daftar Nomor
+                                                    Rekening</span>
+                                            </a>
+                                        </li>
+                                    @endcan
+                                </ul>
+                            </li>
+                        @endcanany
+                        <!-- Dropdown Menu End -->
+
                     </ul>
-                @endcan
+                @endcanany
+
 
                 @canany(['produk.index', 'kategori.index', 'merek.index', 'satuan.index'])
                     <hr class="w-full mb-2 bg-indigo-900 opacity-70">

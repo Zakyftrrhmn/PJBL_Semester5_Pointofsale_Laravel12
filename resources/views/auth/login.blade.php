@@ -87,7 +87,7 @@
 
                 {{-- reCAPTCHA --}}
                 <div class="relative">
-                    <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITEKEY') }}"></div>
+                    <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
 
                     {{-- Error: Wajib Diisi (required) --}}
                     @error('g-recaptcha-response')

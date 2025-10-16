@@ -29,6 +29,18 @@ class PermissionSeeder extends Seeder
             ['name' => 'user.edit', 'group' => 'User Management', 'description' => 'Mengubah data user'],
             ['name' => 'user.destroy', 'group' => 'User Management', 'description' => 'Menghapus user'],
 
+            // Rekening Bank
+            ['name' => 'rekeningBank.index', 'group' => 'Rekening Bank', 'description' => 'Melihat Rekening Bank'],
+            ['name' => 'rekeningBank.create', 'group' => 'Rekening Bank', 'description' => 'Menambahkan Rekening Bank'],
+            ['name' => 'rekeningBank.edit', 'group' => 'Rekening Bank', 'description' => 'Mengedit Rekening Bank'],
+            ['name' => 'rekeningBank.destroy', 'group' => 'Rekening Bank', 'description' => 'Menghapus Rekening Bank'],
+
+
+            // Pages
+            ['name' => 'pages.index', 'group' => 'Pages', 'description' => 'Melihat Pages'],
+            ['name' => 'pages.store', 'group' => 'Pages', 'description' => 'Menambahkan Pages'],
+            ['name' => 'pages.update', 'group' => 'Pages', 'description' => 'Mengedit Pages'],
+
             // Role & Permission Management
             ['name' => 'role.index', 'group' => 'Role & Permission', 'description' => 'Melihat daftar role'],
             ['name' => 'role.create', 'group' => 'Role & Permission', 'description' => 'Menambah role baru'],
@@ -128,6 +140,8 @@ class PermissionSeeder extends Seeder
             ['name' => 'backup.index', 'group' => 'System Management', 'description' => 'Menjalankan backup database'],
             ['name' => 'backup.create', 'group' => 'System Management', 'description' => 'Menjalankan backup database'],
             ['name' => 'backup.delete', 'group' => 'System Management', 'description' => 'Menjalankan backup database'],
+
+
 
 
         ];

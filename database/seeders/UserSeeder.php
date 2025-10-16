@@ -22,10 +22,10 @@ class UserSeeder extends Seeder
 
         // 2. Buat User Super Admin
         $user = User::firstOrCreate(
-            ['email' => 'superadmin@pos.com'],
+            ['email' => 'intiperagamandiri@pos.com'],
             [
                 'name' => 'Super Admin',
-                'password' => Hash::make('password'), // Password default: 'password'
+                'password' => Hash::make('pos2025'), // Password default: 'password'
             ]
         );
 
