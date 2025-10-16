@@ -3,11 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pembelian;
+use App\Models\Penjualan;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Carbon\Carbon;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Border;
 
 class LaporanController extends Controller
 {
@@ -300,5 +304,254 @@ class LaporanController extends Controller
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
         $writer->save('php://output');
+    }
+
+    public function indexPenjualan(Request $request)
+    {
+        $preset    = $request->input('preset', 'all');
+        $startDate = $request->input('start_date');
+        $endDate   = $request->input('end_date');
+        $status    = $request->input('status', 'all');
+
+        // Dapatkan rentang tanggal
+        $dateRange = $this->getDateRange($preset, $startDate, $endDate);
+        $startDate = $dateRange['start'];
+        $endDate   = $dateRange['end'];
+
+        // Tentukan label status
+        $statusLabel = match ($status) {
+            'completed' => 'Completed',
+            'return' => 'Retur',
+            default => 'Semua Status',
+        };
+
+        // Query Utama dengan Relasi 'pelanggan' dan 'returPenjualans'
+        $penjualans = Penjualan::with(['returPenjualans', 'pelanggan']) // Load relasi pelanggan
+            ->whereBetween('tanggal_penjualan', [$startDate, $endDate])
+            ->when($status !== 'all', function ($query) use ($status) {
+                if ($status === 'completed') {
+                    // Penjualan yang tidak memiliki retur
+                    return $query->doesntHave('returPenjualans');
+                } elseif ($status === 'return') {
+                    // Penjualan yang memiliki retur
+                    return $query->has('returPenjualans');
+                }
+            })
+            ->orderBy('tanggal_penjualan', 'desc')
+            ->paginate(15)
+            ->withQueryString();
+
+        // Query untuk Total Bayar Keseluruhan (tanpa pagination)
+        $total_bayar_all = Penjualan::whereBetween('tanggal_penjualan', [$startDate, $endDate])
+            ->when($status !== 'all', function ($query) use ($status) {
+                if ($status === 'completed') {
+                    return $query->doesntHave('returPenjualans');
+                } elseif ($status === 'return') {
+                    return $query->has('returPenjualans');
+                }
+            })
+            ->sum('total_bayar');
+
+        return view('pages.laporan.penjualan.index', [ // <-- UBAH PATH VIEW
+            'penjualans' => $penjualans, // <-- UBAH NAMA VARIABEL
+            'total_bayar_all' => $total_bayar_all,
+            'status_label' => $statusLabel,
+            'start_date_filtered' => $startDate,
+            'end_date_filtered' => $endDate,
+        ]);
+    }
+
+    /**
+     * Export laporan penjualan ke format PDF.
+     */
+    public function exportPDFPenjualan(Request $request)
+    {
+        ini_set('memory_limit', '2048M');
+        set_time_limit(600);
+
+        $preset    = $request->input('preset', 'all');
+        $startDate = $request->input('start_date');
+        $endDate   = $request->input('end_date');
+        $status    = $request->input('status', 'all');
+
+        // Ambil rentang tanggal
+        $dateRange = $this->getDateRange($preset, $startDate, $endDate);
+        $startDate = $dateRange['start'];
+        $endDate   = $dateRange['end'];
+
+        $periode = Carbon::parse($startDate)->format('d F Y') . ' s/d ' . Carbon::parse($endDate)->format('d F Y');
+        $statusLabel = match ($status) {
+            'completed' => 'Completed',
+            'return' => 'Retur',
+            default => 'Semua Status',
+        };
+
+        $penjualans = Penjualan::with(['returPenjualans', 'pelanggan'])
+            ->whereBetween('tanggal_penjualan', [$startDate, $endDate])
+            ->when($status !== 'all', function ($query) use ($status) {
+                if ($status === 'completed') return $query->doesntHave('returPenjualans');
+                if ($status === 'return') return $query->has('returPenjualans');
+            })
+            ->orderBy('tanggal_penjualan', 'asc')
+            ->get();
+
+        $total_bayar_all = $penjualans->sum('total_bayar');
+        $filename = 'Laporan_Penjualan_' . str_replace([' ', '/', '(', ')'], '_', $periode) . '.pdf';
+
+        $pdf = Pdf::setPaper('a4', 'portrait');
+
+        return $pdf->loadView('pages.laporan.penjualan.pdf', [
+            'penjualans' => $penjualans,
+            'periode' => $periode,
+            'total_bayar_all' => $total_bayar_all,
+            'status_label' => $statusLabel,
+            'preset_label' => match ($preset) {
+                'today' => 'Hari Ini',
+                'this_week' => 'Minggu Ini',
+                'this_month' => 'Bulan Ini',
+                'this_year' => 'Tahun Ini',
+                'custom' => 'Custom Range',
+                default => 'Seluruhnya',
+            },
+        ])->stream($filename);
+    }
+
+
+
+    /**
+     * Export laporan penjualan ke format Excel.
+     */
+    public function exportExcelPenjualan(Request $request)
+    {
+        ini_set('memory_limit', '2048M');
+        set_time_limit(600);
+
+        $preset    = $request->input('preset', 'all');
+        $startDate = $request->input('start_date');
+        $endDate   = $request->input('end_date');
+        $status    = $request->input('status', 'all');
+
+        $dateRange = $this->getDateRange($preset, $startDate, $endDate);
+        $startDate = $dateRange['start'];
+        $endDate   = $dateRange['end'];
+
+        $periode = Carbon::parse($startDate)->format('d F Y') . ' s/d ' . Carbon::parse($endDate)->format('d F Y');
+        $statusLabel = match ($status) {
+            'completed' => 'Completed',
+            'return' => 'Retur',
+            default => 'Semua Status',
+        };
+
+        // Query untuk data Penjualan
+        $penjualans = Penjualan::with(['returPenjualans', 'pelanggan']) // Load relasi pelanggan
+            ->whereBetween('tanggal_penjualan', [$startDate, $endDate])
+            ->when($status !== 'all', function ($query) use ($status) {
+                if ($status === 'completed') {
+                    return $query->doesntHave('returPenjualans');
+                } elseif ($status === 'return') {
+                    return $query->has('returPenjualans');
+                }
+            })
+            ->orderBy('tanggal_penjualan', 'desc')
+            ->get();
+
+        // Query untuk Total Bayar Keseluruhan
+        $total_bayar_all = Penjualan::whereBetween('tanggal_penjualan', [$startDate, $endDate])
+            ->when($status !== 'all', function ($query) use ($status) {
+                if ($status === 'completed') {
+                    return $query->doesntHave('returPenjualans');
+                } elseif ($status === 'return') {
+                    return $query->has('returPenjualans');
+                }
+            })
+            ->sum('total_bayar');
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Judul Laporan
+        $sheet->setCellValue('A1', 'LAPORAN PENJUALAN'); // <-- UBAH JUDUL
+        $sheet->mergeCells('A1:F1');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        // Periode
+        $sheet->setCellValue('A2', 'Periode: ' . $periode);
+        $sheet->mergeCells('A2:F2');
+        $sheet->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        // Status
+        $sheet->setCellValue('A3', 'Status: ' . $statusLabel);
+        $sheet->mergeCells('A3:F3');
+        $sheet->getStyle('A3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        // Header Tabel
+        $headers = ['No', 'Kode Penjualan', 'Tanggal', 'Pelanggan', 'Total Bayar', 'Status']; // <-- UBAH HEADER
+        $sheet->fromArray($headers, NULL, 'A5');
+        $sheet->getStyle('A5:F5')->getFont()->setBold(true);
+        $sheet->getStyle('A5:F5')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFD9E3F2');
+        $sheet->getStyle('A5:F5')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        // Konten Tabel
+        $row = 6;
+        foreach ($penjualans as $index => $penjualan) {
+            $statusData = $penjualan->returPenjualans->isNotEmpty() ? 'Retur' : 'Completed';
+            $sheet->setCellValue('A' . $row, $index + 1);
+            $sheet->setCellValue('B' . $row, $penjualan->kode_penjualan);
+            $sheet->setCellValue('C' . $row, Carbon::parse($penjualan->tanggal_penjualan)->format('d-m-Y'));
+            $sheet->setCellValue('D' . $row, $penjualan->pelanggan->nama_pelanggan ?? '-'); // <-- UBAH KE pelanggan
+            $sheet->setCellValue('E' . $row, $penjualan->total_bayar);
+            $sheet->setCellValue('F' . $row, $statusData);
+
+            // Format kolom Total Bayar sebagai mata uang
+            $sheet->getStyle('E' . $row)->getNumberFormat()->setFormatCode('"Rp"#,##0');
+
+            // Set alignment
+            $sheet->getStyle('A' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('C' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('F' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+            $row++;
+        }
+
+        // Total
+        $sheet->mergeCells('A' . $row . ':D' . $row);
+        $sheet->setCellValue('A' . $row, 'TOTAL KESELURUHAN:');
+        $sheet->getStyle('A' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+        $sheet->setCellValue('E' . $row, $total_bayar_all);
+        $sheet->getStyle('E' . $row)->getNumberFormat()->setFormatCode('"Rp"#,##0');
+        $sheet->getStyle('A' . $row . ':F' . $row)->getFont()->setBold(true);
+        $sheet->getStyle('A' . $row . ':F' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFD9E3F2');
+
+        // Border total
+        $sheet->getStyle('A' . $row . ':F' . $row)->applyFromArray([
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
+        ]);
+
+        // Border untuk header dan data
+        $styleArray = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['argb' => 'FF000000'],
+                ],
+            ],
+        ];
+        $sheet->getStyle('A5:F' . ($row - 1))->applyFromArray($styleArray);
+
+
+        // Auto size columns
+        foreach (range('A', 'F') as $columnID) {
+            $sheet->getColumnDimension($columnID)->setAutoSize(true);
+        }
+
+        $writer = new Xlsx($spreadsheet);
+        $filename = 'Laporan_Penjualan_' . str_replace([' ', '/', '(', ')'], '_', $periode) . '.xlsx'; // <-- UBAH NAMA FILE
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+        $writer->save('php://output');
+        exit;
     }
 }

@@ -116,5 +116,10 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
         Route::get('pembelian', [LaporanController::class, 'indexPembelian'])->name('laporan.pembelian.index');
         Route::get('pembelian/export-pdf', [LaporanController::class, 'exportPDFPembelian'])->name('laporan.pembelian.export.pdf');
         Route::get('pembelian/export-excel', [LaporanController::class, 'exportExcelPembelian'])->name('laporan.pembelian.export.excel');
+
+        // Laporan Penjualan (BARU)
+        Route::get('penjualan', [LaporanController::class, 'indexPenjualan'])->name('laporan.penjualan.index');
+        Route::get('penjualan/export-pdf', [LaporanController::class, 'exportPDFPenjualan'])->name('laporan.penjualan.export.pdf');
+        Route::get('penjualan/export-excel', [LaporanController::class, 'exportExcelPenjualan'])->name('laporan.penjualan.export.excel');
     });
 });

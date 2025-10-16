@@ -306,7 +306,7 @@
                             </a>
                         </li>
                         <li>
-                            <a href="#"
+                            <a href="{{ route('laporan.penjualan.index') }}"
                                 class="menu-item group hover:menu-item-active {{ request()->is('admin/laporan/penjualan*') ? 'menu-item-active' : 'text-gray-800' }}">
                                 <i class="bx bx-receipt"></i>
                                 <span :class="menu - item - text" :class="sidebarToggle ? 'lg:hidden' : ''">Laporan

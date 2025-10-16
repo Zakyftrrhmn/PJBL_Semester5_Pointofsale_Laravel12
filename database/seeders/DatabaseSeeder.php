@@ -22,7 +22,9 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             UserSeeder::class,
             PagesSeeder::class,
-            PembelianSeeder::class
+            PelangganSeeder::class,
+            PembelianSeeder::class,
+            PenjualanSeeder::class,
         ]);
     }
 }
