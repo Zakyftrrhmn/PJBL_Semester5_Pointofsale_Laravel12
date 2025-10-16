@@ -145,7 +145,7 @@
                             </th>
                             <th scope="col"
                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Pemasok {{-- Ganti Supplier menjadi Pemasok --}}
+                                Pemasok
                             </th>
                             <th scope="col"
                                 class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -157,6 +157,7 @@
                             </th>
                         </tr>
                     </thead>
+
                     <tbody class="bg-white divide-y divide-gray-200">
                         @forelse ($pembelians as $index => $pembelian)
                             <tr class="hover:bg-gray-50">
@@ -170,14 +171,13 @@
                                     {{ $pembelian->kode_pembelian }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{-- GUNAKAN relasi 'pemasok' dan null coalescing untuk menghindari error --}}
                                     {{ $pembelian->pemasok->nama_pemasok ?? '-' }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
                                     Rp{{ number_format($pembelian->total_bayar, 0, ',', '.') }}
                                 </td>
+
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                    {{-- Kolom Status --}}
                                     @if ($pembelian->returPembelians->isNotEmpty())
                                         <span
                                             class="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
@@ -193,13 +193,14 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-6 py-8 text-center text-gray-400 text-lg bg-gray-50">
+                                <td colspan="7" class="px-6 py-8 text-center text-gray-400 text-lg bg-gray-50">
                                     <i class='bx bx-info-circle mr-1'></i> Tidak ada data pembelian yang ditemukan sesuai
                                     filter.
                                 </td>
                             </tr>
                         @endforelse
                     </tbody>
+
                 </table>
             </div>
         </div>

@@ -117,6 +117,10 @@ class LaporanController extends Controller
      */
     public function exportPDFPembelian(Request $request)
     {
+
+        ini_set('memory_limit', '2048M');
+        set_time_limit(600);
+
         $preset    = $request->input('preset', 'all');
         $startDate = $request->input('start_date');
         $endDate   = $request->input('end_date');
@@ -175,6 +179,9 @@ class LaporanController extends Controller
      */
     public function exportExcelPembelian(Request $request)
     {
+        ini_set('memory_limit', '2048M');
+        set_time_limit(600);
+
         $preset    = $request->input('preset', 'all');
         $startDate = $request->input('start_date');
         $endDate   = $request->input('end_date');

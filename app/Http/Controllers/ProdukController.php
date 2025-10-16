@@ -179,7 +179,7 @@ class ProdukController extends Controller
 
     public function exportPDF()
     {
-        ini_set('memory_limit', '1024M');
+        ini_set('memory_limit', '2048M');
         set_time_limit(600);
 
         $produks = Produk::with(['kategori', 'merek', 'satuan'])->get();

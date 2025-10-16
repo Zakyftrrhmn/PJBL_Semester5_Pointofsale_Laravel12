@@ -206,7 +206,6 @@
         /* --- STYLING STATUS --- */
         .status-complete {
             color: #107c10;
-            background-color: #d9f5d9;
             padding: 3px 6px;
             border-radius: 3px;
             font-size: 8pt;
@@ -216,7 +215,6 @@
 
         .status-retur {
             color: #cc0000;
-            background-color: #ffeaea;
             padding: 3px 6px;
             border-radius: 3px;
             font-size: 8pt;
