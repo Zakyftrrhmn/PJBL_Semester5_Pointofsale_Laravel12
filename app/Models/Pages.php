@@ -13,6 +13,7 @@ class Pages extends Model
         'nama_toko',
         'nama_pemilik',
         'logo_sidebar',
+        'logo_sidebar2',
         'logo_login',
         'favicon',
         'alamat',

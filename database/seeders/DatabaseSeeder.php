@@ -21,7 +21,8 @@ class DatabaseSeeder extends Seeder
             PemasokSeeder::class,
             PermissionSeeder::class,
             UserSeeder::class,
-            PagesSeeder::class
+            PagesSeeder::class,
+            PembelianSeeder::class
         ]);
     }
 }

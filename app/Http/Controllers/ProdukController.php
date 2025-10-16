@@ -179,8 +179,12 @@ class ProdukController extends Controller
 
     public function exportPDF()
     {
+        ini_set('memory_limit', '1024M');
+        set_time_limit(600);
+
         $produks = Produk::with(['kategori', 'merek', 'satuan'])->get();
-        $pdf = Pdf::loadView('pages.produk.pdf', compact('produks'));
+        $pdf = Pdf::loadView('pages.produk.pdf', compact('produks'))
+            ->setPaper('a4', 'landscape');
         return $pdf->download('produk.pdf');
     }
 }

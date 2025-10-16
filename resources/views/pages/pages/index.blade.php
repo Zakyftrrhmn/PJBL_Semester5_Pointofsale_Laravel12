@@ -73,16 +73,19 @@
                         class="mt-1 w-full rounded-lg border-gray-300 p-2.5 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
                 </div>
             </div>
-
             {{-- Upload Logo --}}
             <div class="mt-8 border-t pt-6">
-                <h3 class="text-sm font-semibold text-gray-700 mb-4">Logo & Favicon <span
-                        class="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full ml-1">Opsional</span></h3>
+                <h3 class="text-sm font-semibold mb-4">Logo & Favicon</h3>
+
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {{-- Logo Sidebar --}}
+
+                    {{-- Logo Sidebar & Logo Inti --}}
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Logo Sidebar & Logo Inti <span
-                                class="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full ml-1">Opsional</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Logo Sidebar & Logo Inti
+                            <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full ml-1">Opsional</span>
+                        </label>
+
                         <div class="flex flex-col items-start gap-3">
                             <img id="preview_logo_sidebar"
                                 src="{{ $page && $page->logo_sidebar ? asset('storage/' . $page->logo_sidebar) : asset('assets/images/logo/logo-sidebar.png') }}"
@@ -90,13 +93,37 @@
                             <input type="file" name="logo_sidebar" accept="image/*"
                                 onchange="previewImage(event, 'preview_logo_sidebar')"
                                 class="text-sm file:mr-2 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100" />
+                            <p class="text-xs text-gray-500 mt-1">Disarankan ukuran: <strong>180×50 px</strong> (PNG
+                                transparan)</p>
+                        </div>
+                    </div>
+
+                    {{-- Logo Sidebar 2 --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Logo Sidebar 2 (Ketika sidebar ditutup)
+                            <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full ml-1">Opsional</span>
+                        </label>
+
+                        <div class="flex flex-col items-start gap-3">
+                            <img id="preview_logo_sidebar2"
+                                src="{{ $page && $page->logo_sidebar2 ? asset('storage/' . $page->logo_sidebar2) : asset('assets/images/logo/logo-sidebar2.png') }}"
+                                class="w-[60px] h-[60px] object-contain bg-gray-50 border border-gray-200 rounded-lg shadow-sm" />
+                            <input type="file" name="logo_sidebar2" id="logo_sidebar2" accept="image/*"
+                                onchange="previewImage(event, 'preview_logo_sidebar2')"
+                                class="text-sm file:mr-2 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100" />
+                            <p class="text-xs text-gray-500 mt-1">Disarankan ukuran: <strong>60×60 px</strong> (ikon kecil)
+                            </p>
                         </div>
                     </div>
 
                     {{-- Logo Login --}}
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Logo Login <span
-                                class="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full ml-1">Opsional</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Logo Login
+                            <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full ml-1">Opsional</span>
+                        </label>
+
                         <div class="flex flex-col items-start gap-3">
                             <img id="preview_logo_login"
                                 src="{{ $page && $page->logo_login ? asset('storage/' . $page->logo_login) : asset('assets/images/logo.png') }}"
@@ -104,13 +131,18 @@
                             <input type="file" name="logo_login" accept="image/*"
                                 onchange="previewImage(event, 'preview_logo_login')"
                                 class="text-sm file:mr-2 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100" />
+                            <p class="text-xs text-gray-500 mt-1">Disarankan ukuran: <strong>200×120 px</strong> (tampilan
+                                login)</p>
                         </div>
                     </div>
 
                     {{-- Favicon --}}
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Favicon <span
-                                class="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full ml-1">Opsional</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Favicon
+                            <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full ml-1">Opsional</span>
+                        </label>
+
                         <div class="flex flex-col items-start gap-3">
                             <img id="preview_favicon"
                                 src="{{ $page && $page->favicon ? asset('storage/' . $page->favicon) : asset('assets/images/logo/favicon.png') }}"
@@ -118,10 +150,13 @@
                             <input type="file" name="favicon" accept="image/*"
                                 onchange="previewImage(event, 'preview_favicon')"
                                 class="text-sm file:mr-2 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100" />
+                            <p class="text-xs text-gray-500 mt-1">Disarankan ukuran: <strong>32×32 px</strong> atau
+                                <strong>64×64 px</strong> (ikon tab browser)</p>
                         </div>
                     </div>
                 </div>
             </div>
+
 
             {{-- Tombol Simpan --}}
             <div class="mt-8 flex justify-end">
@@ -133,8 +168,8 @@
         </form>
 
         {{-- MODAL KONFIRMASI UPDATE --}}
-        <div x-show="showModal" class="fixed inset-0 z-99999 flex items-center justify-center bg-black/50 px-4" x-transition
-            style="display: none;">
+        <div x-show="showModal" class="fixed inset-0 z-99999 flex items-center justify-center bg-black/50 px-4"
+            x-transition style="display: none;">
             <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg">
                 <h2 class="text-lg font-semibold text-gray-800">Konfirmasi {{ $page ? 'Perbarui' : 'Simpan' }}</h2>
                 <p class="mt-2 text-sm text-gray-600">

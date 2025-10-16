@@ -6,6 +6,7 @@ use App\Http\Controllers\BarcodeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\MerekController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\PelangganController;
@@ -23,21 +24,9 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
 
-
-// =========================================================
-// RUTE AUTHENTIKASI (LOGIN)
-// TIDAK ADA MIDDLEWARE 'guest' AGAR TIDAK ADA CONFLICT DENGAN Auth::check()
-// =========================================================
-
-// Rute utama '/' dialihkan ke showLoginForm.
-// Pengecekan Auth::check() dan redirect dilakukan sepenuhnya di dalam showLoginForm.
 Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('auth.login.post');
 
-
-// =========================================================
-// RUTE TERPROTEKSI (AUTH)
-// =========================================================
 Route::prefix('admin')->middleware(['auth'])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
@@ -109,13 +98,23 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
     Route::resource('role', RoleController::class);
     Route::put('role/{role}/permissions', [RoleController::class, 'updatePermissions'])->name('role.update.permissions');
 
-
+    // backup
     Route::get('/backup', [BackupController::class, 'index'])->name('backup.index');
     Route::post('/backup/import', [BackupController::class, 'importNow'])->name('backup.import');
     Route::get('/backup/download/{filename}', [BackupController::class, 'download'])->name('backup.download');
     Route::delete('/backup/delete/{filename}', [BackupController::class, 'delete'])->name('backup.delete');
 
-
+    // rekening bank
     Route::resource('rekeningBank', RekeningBankController::class);
+
+    // pages
     Route::resource('pages', PagesController::class);
+
+    // Laporan
+    Route::prefix('laporan')->group(function () {
+        // Laporan Pembelian
+        Route::get('pembelian', [LaporanController::class, 'indexPembelian'])->name('laporan.pembelian.index');
+        Route::get('pembelian/export-pdf', [LaporanController::class, 'exportPDFPembelian'])->name('laporan.pembelian.export.pdf');
+        Route::get('pembelian/export-excel', [LaporanController::class, 'exportExcelPembelian'])->name('laporan.pembelian.export.excel');
+    });
 });

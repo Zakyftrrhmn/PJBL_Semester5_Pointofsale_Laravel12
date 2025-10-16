@@ -141,8 +141,7 @@ class PermissionSeeder extends Seeder
             ['name' => 'backup.create', 'group' => 'System Management', 'description' => 'Menjalankan backup database'],
             ['name' => 'backup.delete', 'group' => 'System Management', 'description' => 'Menjalankan backup database'],
 
-
-
+            ['name' => 'laporan.index', 'group' => 'Laporan', 'description' => 'Seluruh Laporan'],
 
         ];
 

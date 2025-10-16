@@ -291,8 +291,30 @@
                     </ul>
                 @endcanany
 
+                @can(['laporan.index'])
+                    <h3 class="mt-4 mb-2 text-xs font-semibold uppercase text-gray-400">
+                        Laporan
+                    </h3>
 
-
+                    <ul class="mb-6 flex flex-col gap-1.5">
+                        <li>
+                            <a href="{{ route('laporan.pembelian.index') }}"
+                                class="menu-item group hover:menu-item-active {{ request()->is('admin/laporan/pembelian*') ? 'menu-item-active' : 'text-gray-800' }}">
+                                <i class="bx bx-file"></i>
+                                <span :class="menu - item - text" :class="sidebarToggle ? 'lg:hidden' : ''">Laporan
+                                    Pembelian</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#"
+                                class="menu-item group hover:menu-item-active {{ request()->is('admin/laporan/penjualan*') ? 'menu-item-active' : 'text-gray-800' }}">
+                                <i class="bx bx-receipt"></i>
+                                <span :class="menu - item - text" :class="sidebarToggle ? 'lg:hidden' : ''">Laporan
+                                    Penjualan</span>
+                            </a>
+                        </li>
+                    </ul>
+                @endcan
             </div>
         </nav>
     </div>

@@ -128,6 +128,9 @@ class PelangganController extends Controller
 
     public function exportPDF()
     {
+        ini_set('memory_limit', '1024M');
+        set_time_limit(600);
+
         $pelanggans = Pelanggan::all();
         $pdf = Pdf::loadView('pages.pelanggan.pdf', compact('pelanggans'));
         return $pdf->download('pelanggan.pdf');

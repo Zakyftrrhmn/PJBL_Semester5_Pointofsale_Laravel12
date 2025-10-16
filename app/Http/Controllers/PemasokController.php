@@ -132,6 +132,9 @@ class PemasokController extends Controller
 
     public function exportPDF()
     {
+        ini_set('memory_limit', '1024M');
+        set_time_limit(600);
+
         $pemasoks = Pemasok::all();
         $pdf = Pdf::loadView('pages.pemasok.pdf', compact('pemasoks'));
         return $pdf->download('pemasok.pdf');

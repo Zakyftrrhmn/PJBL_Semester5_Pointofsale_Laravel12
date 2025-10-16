@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('nama_toko')->nullable();
             $table->string('nama_pemilik')->nullable();
             $table->string('logo_sidebar')->nullable();
+            $table->string('logo_sidebar2')->nullable();
             $table->string('logo_login')->nullable();
             $table->string('favicon')->nullable();
             $table->string('alamat')->nullable();

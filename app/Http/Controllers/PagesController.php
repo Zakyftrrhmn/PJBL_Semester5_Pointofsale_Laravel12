@@ -37,11 +37,12 @@ class PagesController extends Controller
             'telepon2' => 'nullable|string|max:20',
             'email' => 'required|email|max:100',
             'logo_sidebar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'logo_sidebar2' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'logo_login' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'favicon' => 'nullable|image|mimes:jpg,jpeg,png,ico|max:2048',
         ]);
 
-        foreach (['logo_sidebar', 'logo_login', 'favicon'] as $field) {
+        foreach (['logo_sidebar', 'logo_sidebar2', 'logo_login', 'favicon'] as $field) {
             if ($request->hasFile($field)) {
                 $validated[$field] = $request->file($field)->store('uploads/pages', 'public');
             }
@@ -89,7 +90,7 @@ class PagesController extends Controller
         ]);
 
         // Upload file baru jika ada
-        foreach (['logo_sidebar', 'logo_login', 'favicon'] as $field) {
+        foreach (['logo_sidebar', 'logo_sidebar2', 'logo_login', 'favicon'] as $field) {
             if ($request->hasFile($field)) {
                 $validated[$field] = $request->file($field)->store('uploads/pages', 'public');
             }
