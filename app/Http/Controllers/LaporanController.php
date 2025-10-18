@@ -121,7 +121,6 @@ class LaporanController extends Controller
      */
     public function exportPDFPembelian(Request $request)
     {
-
         ini_set('memory_limit', '2048M');
         set_time_limit(600);
 
@@ -142,8 +141,10 @@ class LaporanController extends Controller
             default => 'Semua Status',
         };
 
-        // Load relasi 'pemasok'
-        $pembelians = Pembelian::with(['returPembelians', 'pemasok'])
+        // --- Gunakan chunk untuk load data besar secara bertahap ---
+        $pembelians = collect(); // tampung hasil dari tiap chunk
+
+        Pembelian::with(['returPembelians', 'pemasok'])
             ->whereBetween('tanggal_pembelian', [$startDate, $endDate])
             ->when($status !== 'all', function ($query) use ($status) {
                 if ($status === 'completed') {
@@ -153,14 +154,17 @@ class LaporanController extends Controller
                 }
             })
             ->orderBy('tanggal_pembelian', 'asc')
-            ->get();
+            ->chunk(500, function ($rows) use ($pembelians) {
+                foreach ($rows as $row) {
+                    $pembelians->push($row);
+                }
+            });
+        // --- end chunk ---
 
         $total_bayar_all = $pembelians->sum('total_bayar');
         $filename = 'Laporan_Pembelian_' . str_replace([' ', '/', '(', ')'], '_', $periode) . '.pdf';
 
-        // --- PENGATURAN KERTAS A4 PORTRAIT (TEGAK) ---
-        $pdf = Pdf::setPaper('a4', 'portrait'); // <-- DIUBAH DARI 'landscape' KE 'portrait'
-        // ----------------------------------------
+        $pdf = Pdf::setPaper('a4', 'portrait');
 
         return $pdf->loadView('pages.laporan.pembelian.pdf', [
             'pembelians' => $pembelians,
@@ -177,6 +181,7 @@ class LaporanController extends Controller
             },
         ])->stream($filename);
     }
+
 
     /**
      * Export laporan pembelian ke format Excel.
@@ -203,8 +208,41 @@ class LaporanController extends Controller
             default => 'Semua Status',
         };
 
-        // Load relasi 'pemasok'
-        $pembelians = Pembelian::with(['returPembelians', 'pemasok'])
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // --- HEADER ---
+        $sheet->mergeCells('A1:F1');
+        $sheet->setCellValue('A1', 'LAPORAN PEMBELIAN');
+        $sheet->getStyle('A1')->getFont()->setSize(16)->setBold(true);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+        $sheet->mergeCells('A2:F2');
+        $sheet->setCellValue('A2', 'Periode: ' . $periode);
+        $sheet->getStyle('A2')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+        $sheet->mergeCells('A3:F3');
+        $sheet->setCellValue('A3', 'Status Filter: ' . $statusLabel);
+        $sheet->getStyle('A3')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+        $sheet->getRowDimension(4)->setRowHeight(5);
+
+        // --- HEADER KOLOM ---
+        $headers = ['No', 'Tanggal', 'Kode Transaksi', 'Pemasok', 'Total Bayar', 'Status'];
+        $sheet->fromArray($headers, null, 'A5');
+        $sheet->getStyle('A5:F5')->getFont()->setBold(true);
+        $sheet->getStyle('A5:F5')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A5:F5')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FFB8CCE4');
+        $sheet->getStyle('A5:F5')->getBorders()->getAllBorders()
+            ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+        // --- ISI DATA ---
+        $row = 6;
+        $index = 1;
+        $total_bayar_all = 0;
+
+        Pembelian::with(['returPembelians', 'pemasok'])
             ->whereBetween('tanggal_pembelian', [$startDate, $endDate])
             ->when($status !== 'all', function ($query) use ($status) {
                 if ($status === 'completed') {
@@ -214,86 +252,48 @@ class LaporanController extends Controller
                 }
             })
             ->orderBy('tanggal_pembelian', 'asc')
-            ->get();
+            ->chunk(500, function ($rows) use (&$sheet, &$row, &$index, &$total_bayar_all) {
+                foreach ($rows as $pembelian) {
+                    $sheet->setCellValue('A' . $row, $index++);
+                    $sheet->setCellValue('B' . $row, Carbon::parse($pembelian->tanggal_pembelian)->format('d/m/Y'));
+                    $sheet->setCellValue('C' . $row, $pembelian->kode_transaksi);
+                    $sheet->setCellValue('D' . $row, $pembelian->pemasok->nama ?? '-');
+                    $sheet->setCellValue('E' . $row, $pembelian->total_bayar);
 
-        $total_bayar_all = $pembelians->sum('total_bayar');
+                    $status_display = $pembelian->returPembelians->isNotEmpty() ? 'Retur' : 'Completed';
+                    $sheet->setCellValue('F' . $row, $status_display);
 
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
+                    $sheet->getStyle('A' . $row . ':F' . $row)->applyFromArray([
+                        'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
+                    ]);
+                    $sheet->getStyle('E' . $row)->getNumberFormat()->setFormatCode('#,##0');
+                    $sheet->getStyle('A' . $row . ':B' . $row)->getAlignment()
+                        ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+                    $sheet->getStyle('E' . $row)->getAlignment()
+                        ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
+                    $sheet->getStyle('F' . $row)->getAlignment()
+                        ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
 
-        // Judul Laporan
-        $sheet->mergeCells('A1:F1');
-        $sheet->setCellValue('A1', 'LAPORAN PEMBELIAN');
-        $sheet->getStyle('A1')->getFont()->setSize(16)->setBold(true);
-        $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+                    $total_bayar_all += $pembelian->total_bayar;
+                    $row++;
+                }
+            });
 
-        // Informasi Periode dan Status
-        $sheet->mergeCells('A2:F2');
-        $sheet->setCellValue('A2', 'Periode: ' . $periode);
-        $sheet->getStyle('A2')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-
-        $sheet->mergeCells('A3:F3');
-        $sheet->setCellValue('A3', 'Status Filter: ' . $statusLabel);
-        $sheet->getStyle('A3')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-
-        $sheet->getRowDimension(4)->setRowHeight(5); // Baris kosong pemisah
-
-        // Header Tabel
-        $sheet->setCellValue('A5', 'No');
-        $sheet->setCellValue('B5', 'Tanggal');
-        $sheet->setCellValue('C5', 'Kode Transaksi');
-        $sheet->setCellValue('D5', 'Pemasok'); // Ganti Supplier menjadi Pemasok
-        $sheet->setCellValue('E5', 'Total Bayar');
-        $sheet->setCellValue('F5', 'Status');
-
-        // Style Header
-        $sheet->getStyle('A5:F5')->getFont()->setBold(true);
-        $sheet->getStyle('A5:F5')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('A5:F5')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFB8CCE4');
-        $sheet->getStyle('A5:F5')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-
-        // Isi Tabel
-        $row = 6;
-        foreach ($pembelians as $index => $pembelian) {
-            $sheet->setCellValue('A' . $row, $index + 1);
-            // Perhatikan: Model Pembelian memiliki kolom 'tanggal_pembelian'
-            $sheet->setCellValue('B' . $row, Carbon::parse($pembelian->tanggal_pembelian)->format('d/m/Y'));
-            $sheet->setCellValue('C' . $row, $pembelian->kode_transaksi);
-            // GUNAKAN relasi 'pemasok' dan null coalescing untuk menghindari error
-            $sheet->setCellValue('D' . $row, $pembelian->pemasok->nama ?? '-');
-            $sheet->setCellValue('E' . $row, $pembelian->total_bayar);
-
-            // Kolom Status
-            $status_display = $pembelian->returPembelians->isNotEmpty() ? 'Retur' : 'Completed';
-            $sheet->setCellValue('F' . $row, $status_display);
-
-            // Style untuk sel data
-            $sheet->getStyle('A' . $row . ':F' . $row)->applyFromArray([
-                'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
-            ]);
-            $sheet->getStyle('E' . $row)->getNumberFormat()->setFormatCode('#,##0');
-            $sheet->getStyle('A' . $row . ':B' . $row)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle('E' . $row)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
-            $sheet->getStyle('F' . $row)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-
-            $row++;
-        }
-
-        // Total
+        // --- TOTAL KESELURUHAN ---
         $sheet->mergeCells('A' . $row . ':D' . $row);
         $sheet->setCellValue('A' . $row, 'TOTAL KESELURUHAN:');
         $sheet->getStyle('A' . $row)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
         $sheet->setCellValue('E' . $row, $total_bayar_all);
         $sheet->getStyle('E' . $row)->getNumberFormat()->setFormatCode('\"Rp\"#,##0');
         $sheet->getStyle('A' . $row . ':F' . $row)->getFont()->setBold(true);
-        $sheet->getStyle('A' . $row . ':F' . $row)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFD9E3F2');
-
-        // Border total
+        $sheet->getStyle('A' . $row . ':F' . $row)->getFill()
+            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FFD9E3F2');
         $sheet->getStyle('A' . $row . ':F' . $row)->applyFromArray([
             'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
         ]);
 
-        // Auto size columns
+        // --- AUTO SIZE KOLOM ---
         foreach (range('A', 'F') as $columnID) {
             $sheet->getColumnDimension($columnID)->setAutoSize(true);
         }
@@ -305,6 +305,7 @@ class LaporanController extends Controller
         header('Content-Disposition: attachment; filename="' . $filename . '"');
         $writer->save('php://output');
     }
+
 
     public function indexPenjualan(Request $request)
     {
@@ -374,7 +375,6 @@ class LaporanController extends Controller
         $endDate   = $request->input('end_date');
         $status    = $request->input('status', 'all');
 
-        // Ambil rentang tanggal
         $dateRange = $this->getDateRange($preset, $startDate, $endDate);
         $startDate = $dateRange['start'];
         $endDate   = $dateRange['end'];
@@ -386,14 +386,24 @@ class LaporanController extends Controller
             default => 'Semua Status',
         };
 
-        $penjualans = Penjualan::with(['returPenjualans', 'pelanggan'])
+        // --- Load data secara bertahap (chunking) ---
+        $penjualans = collect();
+
+        Penjualan::with(['pelanggan', 'returPenjualans'])
             ->whereBetween('tanggal_penjualan', [$startDate, $endDate])
             ->when($status !== 'all', function ($query) use ($status) {
-                if ($status === 'completed') return $query->doesntHave('returPenjualans');
-                if ($status === 'return') return $query->has('returPenjualans');
+                if ($status === 'completed') {
+                    return $query->doesntHave('returPenjualans');
+                } elseif ($status === 'return') {
+                    return $query->has('returPenjualans');
+                }
             })
             ->orderBy('tanggal_penjualan', 'asc')
-            ->get();
+            ->chunk(500, function ($rows) use ($penjualans) {
+                foreach ($rows as $row) {
+                    $penjualans->push($row);
+                }
+            });
 
         $total_bayar_all = $penjualans->sum('total_bayar');
         $filename = 'Laporan_Penjualan_' . str_replace([' ', '/', '(', ')'], '_', $periode) . '.pdf';
@@ -415,6 +425,7 @@ class LaporanController extends Controller
             },
         ])->stream($filename);
     }
+
 
 
 
@@ -442,8 +453,41 @@ class LaporanController extends Controller
             default => 'Semua Status',
         };
 
-        // Query untuk data Penjualan
-        $penjualans = Penjualan::with(['returPenjualans', 'pelanggan']) // Load relasi pelanggan
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // --- HEADER UTAMA ---
+        $sheet->mergeCells('A1:F1');
+        $sheet->setCellValue('A1', 'LAPORAN PENJUALAN');
+        $sheet->getStyle('A1')->getFont()->setSize(16)->setBold(true);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+        $sheet->mergeCells('A2:F2');
+        $sheet->setCellValue('A2', 'Periode: ' . $periode);
+        $sheet->getStyle('A2')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+        $sheet->mergeCells('A3:F3');
+        $sheet->setCellValue('A3', 'Status Filter: ' . $statusLabel);
+        $sheet->getStyle('A3')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+        $sheet->getRowDimension(4)->setRowHeight(5);
+
+        // --- HEADER KOLOM ---
+        $headers = ['No', 'Tanggal', 'Kode Transaksi', 'Pelanggan', 'Total Bayar', 'Status'];
+        $sheet->fromArray($headers, null, 'A5');
+        $sheet->getStyle('A5:F5')->getFont()->setBold(true);
+        $sheet->getStyle('A5:F5')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A5:F5')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FFB8CCE4');
+        $sheet->getStyle('A5:F5')->getBorders()->getAllBorders()
+            ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+        // --- ISI DATA ---
+        $row = 6;
+        $index = 1;
+        $total_bayar_all = 0;
+
+        Penjualan::with(['pelanggan', 'returPenjualans'])
             ->whereBetween('tanggal_penjualan', [$startDate, $endDate])
             ->when($status !== 'all', function ($query) use ($status) {
                 if ($status === 'completed') {
@@ -452,106 +496,58 @@ class LaporanController extends Controller
                     return $query->has('returPenjualans');
                 }
             })
-            ->orderBy('tanggal_penjualan', 'desc')
-            ->get();
+            ->orderBy('tanggal_penjualan', 'asc')
+            ->chunk(500, function ($rows) use (&$sheet, &$row, &$index, &$total_bayar_all) {
+                foreach ($rows as $penjualan) {
+                    $sheet->setCellValue('A' . $row, $index++);
+                    $sheet->setCellValue('B' . $row, Carbon::parse($penjualan->tanggal_penjualan)->format('d/m/Y'));
+                    $sheet->setCellValue('C' . $row, $penjualan->kode_transaksi);
+                    $sheet->setCellValue('D' . $row, $penjualan->pelanggan->nama ?? '-');
+                    $sheet->setCellValue('E' . $row, $penjualan->total_bayar);
 
-        // Query untuk Total Bayar Keseluruhan
-        $total_bayar_all = Penjualan::whereBetween('tanggal_penjualan', [$startDate, $endDate])
-            ->when($status !== 'all', function ($query) use ($status) {
-                if ($status === 'completed') {
-                    return $query->doesntHave('returPenjualans');
-                } elseif ($status === 'return') {
-                    return $query->has('returPenjualans');
+                    $status_display = $penjualan->returPenjualans->isNotEmpty() ? 'Retur' : 'Completed';
+                    $sheet->setCellValue('F' . $row, $status_display);
+
+                    // Styling baris
+                    $sheet->getStyle('A' . $row . ':F' . $row)->applyFromArray([
+                        'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
+                    ]);
+                    $sheet->getStyle('E' . $row)->getNumberFormat()->setFormatCode('#,##0');
+                    $sheet->getStyle('A' . $row . ':B' . $row)->getAlignment()
+                        ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+                    $sheet->getStyle('E' . $row)->getAlignment()
+                        ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
+                    $sheet->getStyle('F' . $row)->getAlignment()
+                        ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+                    $total_bayar_all += $penjualan->total_bayar;
+                    $row++;
                 }
-            })
-            ->sum('total_bayar');
+            });
 
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-
-        // Judul Laporan
-        $sheet->setCellValue('A1', 'LAPORAN PENJUALAN'); // <-- UBAH JUDUL
-        $sheet->mergeCells('A1:F1');
-        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
-        $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
-        // Periode
-        $sheet->setCellValue('A2', 'Periode: ' . $periode);
-        $sheet->mergeCells('A2:F2');
-        $sheet->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
-        // Status
-        $sheet->setCellValue('A3', 'Status: ' . $statusLabel);
-        $sheet->mergeCells('A3:F3');
-        $sheet->getStyle('A3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
-        // Header Tabel
-        $headers = ['No', 'Kode Penjualan', 'Tanggal', 'Pelanggan', 'Total Bayar', 'Status']; // <-- UBAH HEADER
-        $sheet->fromArray($headers, NULL, 'A5');
-        $sheet->getStyle('A5:F5')->getFont()->setBold(true);
-        $sheet->getStyle('A5:F5')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFD9E3F2');
-        $sheet->getStyle('A5:F5')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
-        // Konten Tabel
-        $row = 6;
-        foreach ($penjualans as $index => $penjualan) {
-            $statusData = $penjualan->returPenjualans->isNotEmpty() ? 'Retur' : 'Completed';
-            $sheet->setCellValue('A' . $row, $index + 1);
-            $sheet->setCellValue('B' . $row, $penjualan->kode_penjualan);
-            $sheet->setCellValue('C' . $row, Carbon::parse($penjualan->tanggal_penjualan)->format('d-m-Y'));
-            $sheet->setCellValue('D' . $row, $penjualan->pelanggan->nama_pelanggan ?? '-'); // <-- UBAH KE pelanggan
-            $sheet->setCellValue('E' . $row, $penjualan->total_bayar);
-            $sheet->setCellValue('F' . $row, $statusData);
-
-            // Format kolom Total Bayar sebagai mata uang
-            $sheet->getStyle('E' . $row)->getNumberFormat()->setFormatCode('"Rp"#,##0');
-
-            // Set alignment
-            $sheet->getStyle('A' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle('C' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle('F' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
-            $row++;
-        }
-
-        // Total
+        // --- TOTAL ---
         $sheet->mergeCells('A' . $row . ':D' . $row);
         $sheet->setCellValue('A' . $row, 'TOTAL KESELURUHAN:');
-        $sheet->getStyle('A' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+        $sheet->getStyle('A' . $row)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
         $sheet->setCellValue('E' . $row, $total_bayar_all);
-        $sheet->getStyle('E' . $row)->getNumberFormat()->setFormatCode('"Rp"#,##0');
+        $sheet->getStyle('E' . $row)->getNumberFormat()->setFormatCode('\"Rp\"#,##0');
         $sheet->getStyle('A' . $row . ':F' . $row)->getFont()->setBold(true);
-        $sheet->getStyle('A' . $row . ':F' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFD9E3F2');
-
-        // Border total
+        $sheet->getStyle('A' . $row . ':F' . $row)->getFill()
+            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FFD9E3F2');
         $sheet->getStyle('A' . $row . ':F' . $row)->applyFromArray([
-            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
+            'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
         ]);
 
-        // Border untuk header dan data
-        $styleArray = [
-            'borders' => [
-                'allBorders' => [
-                    'borderStyle' => Border::BORDER_THIN,
-                    'color' => ['argb' => 'FF000000'],
-                ],
-            ],
-        ];
-        $sheet->getStyle('A5:F' . ($row - 1))->applyFromArray($styleArray);
-
-
-        // Auto size columns
         foreach (range('A', 'F') as $columnID) {
             $sheet->getColumnDimension($columnID)->setAutoSize(true);
         }
 
         $writer = new Xlsx($spreadsheet);
-        $filename = 'Laporan_Penjualan_' . str_replace([' ', '/', '(', ')'], '_', $periode) . '.xlsx'; // <-- UBAH NAMA FILE
+        $filename = 'Laporan_Penjualan_' . str_replace([' ', '/', '(', ')'], '_', $periode) . '.xlsx';
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="' . $filename . '"');
-        header('Cache-Control: max-age=0');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
         $writer->save('php://output');
-        exit;
     }
 }

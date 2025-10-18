@@ -33,46 +33,71 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Nama Toko <span
-                            class="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full ml-1">Opsional</span></label>
+                            class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span>
+                    </label>
                     <input type="text" name="nama_toko" value="{{ old('nama_toko', $page->nama_toko ?? '') }}"
                         class="mt-1 w-full rounded-lg border-gray-300 p-2.5 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
+                    @error('nama_toko')
+                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Nama Pemilik <span
-                            class="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full ml-1">Opsional</span></label>
+                            class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span>
+                    </label>
                     <input type="text" name="nama_pemilik" value="{{ old('nama_pemilik', $page->nama_pemilik ?? '') }}"
                         class="mt-1 w-full rounded-lg border-gray-300 p-2.5 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
+                    @error('nama_pemilik')
+                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Alamat <span
-                            class="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full ml-1">Opsional</span></label>
+                            class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span>
+                    </label>
                     <input type="text" name="alamat" value="{{ old('alamat', $page->alamat ?? '') }}"
                         class="mt-1 w-full rounded-lg border-gray-300 p-2.5 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
+                    @error('alamat')
+                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Telepon <span
-                            class="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full ml-1">Opsional</span></label>
+                            class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span>
+                    </label>
                     <input type="text" name="telepon" value="{{ old('telepon', $page->telepon ?? '') }}"
                         class="mt-1 w-full rounded-lg border-gray-300 p-2.5 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
+                    @error('telepon')
+                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Telepon 2 <span
-                            class="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full ml-1">Opsional</span></label>
+                            class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span>
+                    </label>
                     <input type="text" name="telepon2" value="{{ old('telepon2', $page->telepon2 ?? '') }}"
                         class="mt-1 w-full rounded-lg border-gray-300 p-2.5 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
+                    @error('telepon2')
+                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Email <span
-                            class="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full ml-1">Opsional</span></label>
+                            class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span>
+                    </label>
                     <input type="email" name="email" value="{{ old('email', $page->email ?? '') }}"
                         class="mt-1 w-full rounded-lg border-gray-300 p-2.5 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
+                    @error('email')
+                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
             </div>
+
             {{-- Upload Logo --}}
             <div class="mt-8 border-t pt-6">
                 <h3 class="text-sm font-semibold mb-4">Logo & Favicon</h3>
@@ -81,11 +106,9 @@
 
                     {{-- Logo Sidebar & Logo Inti --}}
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Logo Sidebar & Logo Inti
-                            <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full ml-1">Opsional</span>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Logo Sidebar & Logo Inti <span
+                                class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span>
                         </label>
-
                         <div class="flex flex-col items-start gap-3">
                             <img id="preview_logo_sidebar"
                                 src="{{ $page && $page->logo_sidebar ? asset('storage/' . $page->logo_sidebar) : asset('assets/images/logo/logo-sidebar.png') }}"
@@ -93,37 +116,35 @@
                             <input type="file" name="logo_sidebar" accept="image/*"
                                 onchange="previewImage(event, 'preview_logo_sidebar')"
                                 class="text-sm file:mr-2 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100" />
-                            <p class="text-xs text-gray-500 mt-1">Disarankan ukuran: <strong>180×50 px</strong> (PNG
-                                transparan)</p>
+                            @error('logo_sidebar')
+                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
 
                     {{-- Logo Sidebar 2 --}}
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Logo Sidebar 2 (Ketika sidebar ditutup)
-                            <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full ml-1">Opsional</span>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Logo Sidebar 2 <span
+                                class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span>
                         </label>
-
                         <div class="flex flex-col items-start gap-3">
                             <img id="preview_logo_sidebar2"
                                 src="{{ $page && $page->logo_sidebar2 ? asset('storage/' . $page->logo_sidebar2) : asset('assets/images/logo/logo-sidebar2.png') }}"
                                 class="w-[60px] h-[60px] object-contain bg-gray-50 border border-gray-200 rounded-lg shadow-sm" />
-                            <input type="file" name="logo_sidebar2" id="logo_sidebar2" accept="image/*"
+                            <input type="file" name="logo_sidebar2" accept="image/*"
                                 onchange="previewImage(event, 'preview_logo_sidebar2')"
                                 class="text-sm file:mr-2 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100" />
-                            <p class="text-xs text-gray-500 mt-1">Disarankan ukuran: <strong>60×60 px</strong> (ikon kecil)
-                            </p>
+                            @error('logo_sidebar2')
+                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
 
                     {{-- Logo Login --}}
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Logo Login
-                            <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full ml-1">Opsional</span>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Logo Login <span
+                                class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span>
                         </label>
-
                         <div class="flex flex-col items-start gap-3">
                             <img id="preview_logo_login"
                                 src="{{ $page && $page->logo_login ? asset('storage/' . $page->logo_login) : asset('assets/images/logo.png') }}"
@@ -131,18 +152,17 @@
                             <input type="file" name="logo_login" accept="image/*"
                                 onchange="previewImage(event, 'preview_logo_login')"
                                 class="text-sm file:mr-2 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100" />
-                            <p class="text-xs text-gray-500 mt-1">Disarankan ukuran: <strong>200×120 px</strong> (tampilan
-                                login)</p>
+                            @error('logo_login')
+                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
 
                     {{-- Favicon --}}
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Favicon
-                            <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full ml-1">Opsional</span>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Favicon <span
+                                class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span>
                         </label>
-
                         <div class="flex flex-col items-start gap-3">
                             <img id="preview_favicon"
                                 src="{{ $page && $page->favicon ? asset('storage/' . $page->favicon) : asset('assets/images/logo/favicon.png') }}"
@@ -150,13 +170,13 @@
                             <input type="file" name="favicon" accept="image/*"
                                 onchange="previewImage(event, 'preview_favicon')"
                                 class="text-sm file:mr-2 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100" />
-                            <p class="text-xs text-gray-500 mt-1">Disarankan ukuran: <strong>32×32 px</strong> atau
-                                <strong>64×64 px</strong> (ikon tab browser)</p>
+                            @error('favicon')
+                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
                 </div>
             </div>
-
 
             {{-- Tombol Simpan --}}
             <div class="mt-8 flex justify-end">
@@ -167,7 +187,7 @@
             </div>
         </form>
 
-        {{-- MODAL KONFIRMASI UPDATE --}}
+        {{-- MODAL --}}
         <div x-show="showModal" class="fixed inset-0 z-99999 flex items-center justify-center bg-black/50 px-4"
             x-transition style="display: none;">
             <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg">

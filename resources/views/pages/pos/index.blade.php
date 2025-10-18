@@ -193,9 +193,10 @@
                     <div class="flex items-center gap-3">
                         <label for="jumlah_bayar" class="text-sm text-gray-600 w-24">Bayar (Rp) <span
                                 class="text-red-500">*</span></label>
-                        <input type="number" id="jumlah_bayar" x-model.number="jumlahBayar" @input="calculateTotals"
+                        <input type="number" id="jumlah_bayar" x-model="jumlahBayar" @input="calculateTotals"
                             :min="totalBayar"
                             class="w-full rounded-lg border border-gray-300 p-2 text-sm text-gray-700 focus:border-blue-400" />
+
                     </div>
 
                     <div class="flex justify-between items-center text-lg font-bold p-2 rounded-lg"
@@ -247,7 +248,7 @@
                 cart: [],
                 pelanggan_id: data.pelangganUmumId,
                 diskon: 0,
-                jumlahBayar: 0,
+                jumlahBayar: null,
 
                 get subtotalCart() {
                     return this.cart.reduce((sum, item) => sum + (item.subtotal || 0), 0);
@@ -257,6 +258,9 @@
                     return total > 0 ? total : 0;
                 },
                 get kembalian() {
+                    if (this.jumlahBayar === null || this.jumlahBayar === '') {
+                        return 0; // kalau belum diisi, kembalian = 0
+                    }
                     return this.jumlahBayar - this.totalBayar;
                 },
                 get isReadyToPay() {
@@ -279,7 +283,9 @@
 
                 calculateTotals() {
                     this.diskon = Math.max(0, this.diskon || 0);
-                    this.jumlahBayar = Math.max(0, this.jumlahBayar || 0);
+                    if (this.jumlahBayar !== null && this.jumlahBayar !== '') {
+                        this.jumlahBayar = Math.max(0, this.jumlahBayar || 0);
+                    }
 
                     this.cart.forEach(item => {
                         const hargaSatuan = parseFloat(item.harga_satuan) || 0;

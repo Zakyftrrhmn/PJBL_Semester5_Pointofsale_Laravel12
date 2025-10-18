@@ -6,12 +6,14 @@
 
         <a href="index.html">
             <span class="logo" :class="sidebarToggle ? 'hidden' : ''">
-                <img class="h-18 w-auto object-contain" src="{{ asset('assets/images/logo/logo-sidebar.png') }}"
+                <img class="h-18 w-auto object-contain"
+                    src="{{ $page && $page->logo_sidebar ? asset('storage/' . $page->logo_sidebar) : asset('assets/images/logo/logo-sidebar.png') }}"
                     alt="Logo" />
             </span>
 
             <img class="logo-icon h-18 w-auto object-contain" :class="sidebarToggle ? 'lg:block' : 'hidden'"
-                src="{{ asset('assets/images/logo/logo-sidebar2.png') }}" alt="Logo" />
+                src="{{ $page && $page->logo_sidebar2 ? asset('storage/' . $page->logo_sidebar2) : asset('assets/images/logo/logo-sidebar2.png') }}"
+                alt="Logo" />
         </a>
     </div>
     <div class="no-scrollbar flex flex-col overflow-y-auto duration-300 ease-linear">

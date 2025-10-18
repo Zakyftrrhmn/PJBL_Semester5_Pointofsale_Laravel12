@@ -19,31 +19,31 @@ class PenjualanSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Ambil semua ID yang diperlukan dari tabel lain
         $produkIds = Produk::pluck('id')->toArray();
         $pelangganIds = Pelanggan::pluck('id')->toArray();
         $userIds = User::pluck('id')->toArray();
 
-        // Cek ketersediaan data
         if (empty($produkIds) || empty($pelangganIds) || empty($userIds)) {
             $this->command->info('Pastikan tabel produks, pelanggans, dan users sudah terisi data.');
             return;
         }
 
-        // 2. Inisiasi penghitung dan data
-        $this->command->info('Memulai pembuatan 1000 data penjualan...');
         $faker = \Faker\Factory::create('id_ID');
-        $numPenjualan = 1000;
+        $numPenjualan = 500;
         $tanggalAwal = Carbon::now()->subMonths(6);
 
+        // === Tambahan: Batas retur hanya 5 ===
+        $maxRetur = 5;
+        $returCount = 0;
+
+        $this->command->info("Memulai pembuatan {$numPenjualan} data penjualan (maksimal {$maxRetur} retur)...");
+
         DB::beginTransaction();
+
         try {
             for ($i = 1; $i <= $numPenjualan; $i++) {
-                // Tentukan tanggal penjualan secara acak
                 $tanggalObj = $faker->dateTimeBetween($tanggalAwal, 'now');
                 $tanggal = $tanggalObj->format('Y-m-d');
-
-                // Buat kode penjualan
                 $kodePenjualan = 'PJL' . $tanggalObj->format('Ymd') . str_pad($i, 4, '0', STR_PAD_LEFT);
 
                 $pelangganId = $faker->randomElement($pelangganIds);
@@ -52,14 +52,12 @@ class PenjualanSeeder extends Seeder
                 $totalHarga = 0;
                 $detailsData = [];
 
-                // === 3. DATA DETAIL PENJUALAN ===
+                // === Detail Penjualan ===
                 $numDetails = $faker->numberBetween(1, 5);
                 $selectedProdukIds = $faker->randomElements($produkIds, $numDetails, false);
 
                 foreach ($selectedProdukIds as $produkId) {
                     $produk = Produk::find($produkId);
-
-                    // Pengecekan null dilakukan di sini untuk mencegah error jika Produk::find gagal
                     if (!$produk) continue;
 
                     $hargaSatuan = $produk->harga_jual;
@@ -77,21 +75,13 @@ class PenjualanSeeder extends Seeder
                     ];
                 }
 
-                // Lewati iterasi jika tidak ada detail (misal karena Produk::find gagal)
                 if (empty($detailsData)) continue;
 
-                // Hitung Diskon
-                $diskon = 0;
-                if ($faker->boolean(20)) {
-                    $diskon = (int)($totalHarga * 0.05); // Pastikan diskon adalah integer atau desimal
-                }
-
+                $diskon = $faker->boolean(20) ? (int)($totalHarga * 0.05) : 0;
                 $totalBayar = $totalHarga - $diskon;
                 $jumlahBayar = $totalBayar + $faker->numberBetween(0, 50000);
                 $kembalian = $jumlahBayar - $totalBayar;
 
-
-                // === 4. BUAT PENJUALAN UTAMA ===
                 $penjualan = Penjualan::create([
                     'kode_penjualan' => $kodePenjualan,
                     'tanggal_penjualan' => $tanggal,
@@ -106,51 +96,46 @@ class PenjualanSeeder extends Seeder
                     'updated_at' => $tanggalObj,
                 ]);
 
-                // === 5. BUAT DETAIL PENJUALAN ===
                 foreach ($detailsData as $detail) {
                     $detail['penjualan_id'] = $penjualan->id;
                     DetailPenjualan::create($detail);
-
-                    // Menonaktifkan logika pengurangan stok untuk Seeder
-                    /* DB::table('produks')->where('id', $detail['produk_id'])
-                        ->decrement('stok_produk', $detail['qty']); 
-                    */
                 }
 
-                // === 6. Secara acak buat Retur ===
-                if ($faker->boolean(10)) {
+                // === Buat retur hanya untuk 5 data pertama ===
+                if ($returCount < $maxRetur) {
                     $this->createRetur($penjualan->id, $tanggalObj, $userId, $detailsData);
+                    $returCount++;
                 }
 
-                if (($i) % 100 === 0) {
-                    $this->command->info("Progress: " . ($i) . " data penjualan berhasil dibuat.");
+                if ($i % 100 === 0) {
+                    $this->command->info("Progress: {$i} data penjualan berhasil dibuat...");
                 }
             }
 
             DB::commit();
-            $this->command->info('1000 data penjualan berhasil di-seed!');
+            $this->command->info("Selesai! {$numPenjualan} Penjualan dibuat dengan {$returCount} Retur saja.");
         } catch (\Exception $e) {
             DB::rollBack();
             $this->command->error('Gagal melakukan seeding Penjualan: ' . $e->getMessage());
-            $this->command->error('Pastikan UUID dan data relasi (Pelanggan, Produk, User) sudah terisi.');
-            return;
+            $this->command->error('Pastikan data relasi (Pelanggan, Produk, User) sudah terisi.');
         }
     }
 
+    /**
+     * Buat data retur untuk penjualan.
+     */
     protected function createRetur($penjualanId, $tanggalPenjualanObj, $userId, $detailsData)
     {
         $faker = \Faker\Factory::create('id_ID');
         $tanggalRetur = $faker->dateTimeBetween($tanggalPenjualanObj, Carbon::now())->format('Y-m-d');
 
         $detailToRetur = $faker->randomElement($detailsData);
-
         $produkId = $detailToRetur['produk_id'];
         $maxQty = $detailToRetur['qty'];
         $hargaSatuan = $detailToRetur['harga_satuan'];
 
         $jumlahRetur = $faker->numberBetween(1, $maxQty);
         $nilaiRetur = $jumlahRetur * $hargaSatuan;
-
         $kodeRetur = 'RPJ' . $faker->unique()->randomNumber(6);
 
         DB::table('retur_penjualans')->insert([
@@ -166,11 +151,5 @@ class PenjualanSeeder extends Seeder
             'created_at' => $tanggalRetur,
             'updated_at' => $tanggalRetur,
         ]);
-
-        // Menonaktifkan logika penambahan stok untuk Retur
-        /*
-        DB::table('produks')->where('id', $produkId)
-            ->increment('stok_produk', $jumlahRetur);
-        */
     }
 }

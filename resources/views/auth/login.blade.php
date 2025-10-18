@@ -47,7 +47,8 @@
 
     <div class="relative z-10 bg-white bg-opacity-90 rounded-2xl shadow-lg p-10 w-full max-w-md">
         <div class="flex justify-center mb-6">
-            <img src="{{ asset('assets/images/logo.png') }}" alt="Logo" class="h-20 object-contain">
+            <img src="{{ $page && $page->logo_login ? asset('storage/' . $page->logo_login) : asset('assets/images/logo.png') }}"
+                alt="Logo" class="h-20 object-contain">
         </div>
 
         <h1 class="text-2xl font-bold text-gray-800 text-center">Masuk ke Akun</h1>

@@ -17,65 +17,62 @@ class PembelianSeeder extends Seeder
      */
     public function run(): void
     {
-        // Pastikan ada data di tabel relasi
         $pemasoks = Pemasok::pluck('id')->toArray();
         $produks  = Produk::pluck('id')->toArray();
 
         if (empty($pemasoks) || empty($produks)) {
-            $this->command->info('Tidak dapat membuat Pembelian Seeder. Pastikan tabel Pemasoks dan Produk memiliki data.');
+            $this->command->info('Tidak dapat membuat Pembelian Seeder. Pastikan tabel Pemasok dan Produk memiliki data.');
             return;
         }
 
-        $this->command->info('Membuat 1000 data Pembelian, Detail Pembelian, dan Retur (jika ada)...');
+        $totalPembelian = 500;
+        $maxRetur = 5; // <<< hanya 5 retur saja
+        $returCount = 0;
 
-        // Jumlah data yang diinginkan
-        $count = 1000;
+        $this->command->info("Membuat {$totalPembelian} data Pembelian, Detail Pembelian, dan maksimal {$maxRetur} Retur...");
 
         DB::beginTransaction();
+
         try {
-            for ($i = 0; $i < $count; $i++) {
-                $faker = \Faker\Factory::create('id_ID');
+            $faker = \Faker\Factory::create('id_ID');
 
-                // Tentukan tanggal pembelian (misalnya 1 tahun ke belakang)
+            for ($i = 0; $i < $totalPembelian; $i++) {
                 $tanggalPembelian = $faker->dateTimeBetween('-1 year', 'now');
-
-                // 1. Inisialisasi Produk untuk Pembelian ini
-                // Ambil 1 sampai 5 produk acak
                 $itemsCount = $faker->numberBetween(1, 5);
                 $selectedProdukIds = $faker->randomElements($produks, $itemsCount);
 
                 $totalHarga = 0;
                 $detailsData = [];
-                $produkUpdates = [];
 
                 foreach ($selectedProdukIds as $produkId) {
                     $produk = Produk::find($produkId);
+                    if (!$produk) continue;
+
                     $hargaBeli = $produk->harga_beli;
                     $jumlah = $faker->numberBetween(5, 50);
                     $subtotal = $hargaBeli * $jumlah;
                     $totalHarga += $subtotal;
 
                     $detailsData[] = [
-                        'produk_id'    => $produkId,
-                        'jumlah'       => $jumlah,
-                        'harga_beli'   => $hargaBeli,
-                        'subtotal'     => $subtotal,
-                        'created_at'   => now(),
-                        'updated_at'   => now(),
+                        'produk_id'  => $produkId,
+                        'jumlah'     => $jumlah,
+                        'harga_beli' => $hargaBeli,
+                        'subtotal'   => $subtotal,
+                        'created_at' => now(),
+                        'updated_at' => now(),
                     ];
 
-                    // Persiapan untuk update stok setelah transaksi
-                    $produkUpdates[$produkId] = $jumlah;
+                    // Tambah stok produk
+                    DB::table('produks')->where('id', $produkId)
+                        ->increment('stok_produk', $jumlah);
                 }
 
-                // Hitung Diskon dan PPN
-                $diskon = $faker->numberBetween(0, (int)($totalHarga * 0.05)); // Maksimal 5%
-                $ppn = (int)(($totalHarga - $diskon) * 0.11); // PPN 11%
+                $diskon = $faker->numberBetween(0, (int)($totalHarga * 0.05));
+                $ppn = (int)(($totalHarga - $diskon) * 0.11);
                 $totalBayar = $totalHarga - $diskon + $ppn;
 
-                // 2. Buat Pembelian
                 $pembelian = Pembelian::create([
-                    'kode_pembelian'    => 'PO-' . $faker->unique()->randomNumber(6),
+                    'kode_pembelian'    => 'PO-' . strtoupper(uniqid()),
                     'tanggal_pembelian' => $tanggalPembelian,
                     'pemasok_id'        => $faker->randomElement($pemasoks),
                     'total_harga'       => $totalHarga,
@@ -86,23 +83,15 @@ class PembelianSeeder extends Seeder
                     'updated_at'        => $tanggalPembelian,
                 ]);
 
-                // 3. Buat Detail Pembelian dan Update Stok
                 foreach ($detailsData as $detail) {
                     $detail['pembelian_id'] = $pembelian->id;
                     DetailPembelian::create($detail);
-
-                    // Update stok produk
-                    DB::table('produks')->where('id', $detail['produk_id'])
-                        ->increment('stok_produk', $detail['jumlah']);
                 }
 
-                // 4. Secara acak buat Retur (misal 10% kemungkinan retur)
-                if ($faker->boolean(10)) {
-                    // Pilih satu item detail untuk diretur
+                // === Hanya buat 5 retur pertama ===
+                if ($returCount < $maxRetur) {
                     $detailToRetur = $faker->randomElement($detailsData);
                     $jumlahBeli = $detailToRetur['jumlah'];
-
-                    // Retur maksimal 50% dari jumlah beli
                     $jumlahRetur = $faker->numberBetween(1, ceil($jumlahBeli / 2));
                     $nilaiRetur = $jumlahRetur * $detailToRetur['harga_beli'];
                     $tanggalRetur = $faker->dateTimeBetween($tanggalPembelian, 'now');
@@ -119,9 +108,10 @@ class PembelianSeeder extends Seeder
                         'updated_at'    => $tanggalRetur,
                     ]);
 
-                    // Kurangi stok produk
                     DB::table('produks')->where('id', $detailToRetur['produk_id'])
                         ->decrement('stok_produk', $jumlahRetur);
+
+                    $returCount++;
                 }
 
                 if (($i + 1) % 100 === 0) {
@@ -130,11 +120,10 @@ class PembelianSeeder extends Seeder
             }
 
             DB::commit();
-            $this->command->info('1000 Data Pembelian berhasil di-seed!');
+            $this->command->info("Selesai! {$totalPembelian} Pembelian dibuat, dengan {$returCount} Retur saja.");
         } catch (\Exception $e) {
             DB::rollBack();
             $this->command->error('Gagal melakukan seeding: ' . $e->getMessage());
-            $this->command->error('Pastikan UUID dan data relasi sudah terisi (Pemasok, Produk, Satuan, Kategori, Merek).');
         }
     }
 }
