@@ -13,23 +13,25 @@ class PagesSeeder extends Seeder
     public function run(): void
     {
         Pages::create([
-            'nama_toko'   => null,
-            'nama_pemilik' => null,
-            'logo_sidebar' => null,
+            // Informasi Utama Toko
+            'nama_toko'     => 'Inti Peraga Mandiri',
+            'nama_pemilik'  => 'Syarifah Fauziah',
+
+            'logo_sidebar'  => null,
             'logo_sidebar2' => null,
-            'logo_login' => null,
-            'favicon' => null,
+            'logo_login'    => null,
+            'favicon'       => null,
 
-            'jalan'      => null,
-            'kelurahan'  => null,
-            'kecamatan'  => null,
-            'kota'       => null,
-            'provinsi'   => null,
-            'kode_pos'   => null,
+            'jalan'         => 'Jl. Jend. Ahmad Yani No.157 (Samping gg Arridha)',
+            'kelurahan'     => 'Tanah Datar',
+            'kecamatan'     => 'Pekanbaru Kota',
+            'kota'          => 'Pekanbaru',
+            'provinsi'      => 'Riau',
+            'kode_pos'      => '28115',
 
-            'telepon'    => null,
-            'telepon2'   => null,
-            'email'      => null,
+            'telepon'       => '0813-7586-6604',
+            'telepon2'      => null,
+            'email'         => null,
         ]);
     }
 }

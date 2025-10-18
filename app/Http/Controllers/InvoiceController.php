@@ -60,7 +60,7 @@ class InvoiceController extends Controller
 
         $pdf = Pdf::loadView('pages.invoice.print-template', $data)
             ->setPaper([0, 0, 680, 400], 'portrait') // ukuran ±24cm x 14cm (half continuous form)
-            ->setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true]);
+            ->setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true, 'chroot' => public_path(),]);
 
         return $pdf->stream('Invoice-' . $penjualan->kode_penjualan . '-TanpaDiskon.pdf');
     }
@@ -82,7 +82,7 @@ class InvoiceController extends Controller
 
         $pdf = Pdf::loadView('pages.invoice.print-template', $data)
             ->setPaper([0, 0, 680, 400], 'portrait') // ukuran ±24cm x 14cm (half continuous form)
-            ->setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true]);
+            ->setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true, 'chroot' => public_path(),]);
 
         return $pdf->stream('Invoice-' . $penjualan->kode_penjualan . '-DenganDiskon.pdf');
     }
