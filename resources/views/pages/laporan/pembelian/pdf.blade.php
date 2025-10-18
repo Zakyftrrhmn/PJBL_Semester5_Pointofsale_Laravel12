@@ -255,6 +255,11 @@
             margin-top: 0;
             font-style: italic;
         }
+
+        .kop-surat-info p {
+            margin: 2px 0;
+            line-height: 1.4;
+        }
     </style>
 </head>
 
@@ -263,17 +268,36 @@
     <div class="kop-surat clearfix">
         {{-- LOGO SEBELAH KIRI --}}
         {{-- Gunakan public_path() jika asset() tidak berfungsi saat generate PDF --}}
-        <img src="{{ public_path('assets/images/logo/logo-sidebar.png') }}" class="kop-surat-logo" alt="Logo Toko">
+        <img src="{{ $page && $page->logo_sidebar ? public_path('storage/' . $page->logo_sidebar) : public_path('assets/images/logo/logo-sidebar.png') }}"
+            class="kop-surat-logo" alt="Logo Toko">
 
-        {{-- INFO TOKO SEBELAH KANAN --}}
+        {{-- INFORMASI TOKO --}}
         <div class="kop-surat-info">
-            {{-- Nama Toko --}}
-            <h1>INTI PERAGA MANDIRI</h1>
-            {{-- Alamat Toko --}}
-            <p>Jalan Ahmad Yani No 157 Pekanbaru (Samping gg Arridha),</p>
-            <p>Tanah Datar Kec. Pekanbaru Kota, Kota Pekanbaru Prov. Riau, 28115</p>
-            {{-- Detail Tambahan --}}
-            <p>Domain Toko: official-store/inti-peraga-mandiri.33773 | Jenis Usaha: Individu</p>
+            <h1>{{ $page && $page->nama_toko ? strtoupper($page->nama_toko) : 'MASUKKAN NAMA TOKO DI INFORMASI TOKO' }}
+            </h1>
+
+            @if ($page)
+                <p>
+                    {{-- Baris 1: Jalan + Kelurahan --}}
+                    {{ $page->jalan ?? 'Jl. Belum diisi' }}{{ $page->kelurahan ? ', ' . $page->kelurahan : '' }}<br>
+
+                    {{-- Baris 2: Kecamatan + Kota --}}
+                    {{ $page->kecamatan ? 'Kec. ' . $page->kecamatan : '' }}{{ $page->kota ? ', ' . $page->kota : '' }}<br>
+
+                    {{-- Baris 3: Provinsi + Kode Pos --}}
+                    {{ $page->provinsi ?? '' }}{{ $page->kode_pos ? ' ' . $page->kode_pos : '' }}
+                </p>
+
+                @if ($page->telepon || $page->telepon2)
+                    <p>Telp: {{ $page->telepon }}{{ $page->telepon2 ? ' / ' . $page->telepon2 : '' }}</p>
+                @endif
+
+                @if ($page->email)
+                    <p>Email: {{ $page->email }}</p>
+                @endif
+            @else
+                <p>Masukkan alamat toko di informasi toko</p>
+            @endif
         </div>
     </div>
     {{-- /KOP SURAT --}}
@@ -344,12 +368,12 @@
     {{-- TANDA TANGAN --}}
     <div class="ttd-section clearfix">
         <div class="ttd-column">
-            <p>Pekanbaru, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</p>
+            <p>{{ $page->kota ? $page->kota : 'isi kota di informasi toko' }},
+                {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</p>
             <p style="margin-bottom: 5px;">Dibuat oleh,</p>
             <div class="ttd-box">
-                <span class="ttd-line"></span>
                 {{-- Nama Penandatanganan --}}
-                {{ 'Syarifah Fauziah' }}
+                {{ $page && $page->nama_pemilik ? $page->nama_pemilik : 'Masukkan nama pemilik toko di informasi toko' }}
             </div>
             {{-- Jabatan Penandatanganan --}}
             <p class="ttd-jabatan">{{ 'Pemilik' }}</p>

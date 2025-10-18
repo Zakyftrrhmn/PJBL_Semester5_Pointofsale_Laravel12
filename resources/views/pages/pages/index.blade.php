@@ -31,10 +31,10 @@
 
             {{-- ISI FORM --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {{-- Nama Toko --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Nama Toko <span
-                            class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span>
-                    </label>
+                            class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span></label>
                     <input type="text" name="nama_toko" value="{{ old('nama_toko', $page->nama_toko ?? '') }}"
                         class="mt-1 w-full rounded-lg border-gray-300 p-2.5 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
                     @error('nama_toko')
@@ -42,10 +42,10 @@
                     @enderror
                 </div>
 
+                {{-- Nama Pemilik --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Nama Pemilik <span
-                            class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span>
-                    </label>
+                            class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span></label>
                     <input type="text" name="nama_pemilik" value="{{ old('nama_pemilik', $page->nama_pemilik ?? '') }}"
                         class="mt-1 w-full rounded-lg border-gray-300 p-2.5 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
                     @error('nama_pemilik')
@@ -53,21 +53,71 @@
                     @enderror
                 </div>
 
+                {{-- === Alamat dipecah menjadi beberapa field === --}}
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Alamat <span
-                            class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span>
-                    </label>
-                    <input type="text" name="alamat" value="{{ old('alamat', $page->alamat ?? '') }}"
+                    <label class="block text-sm font-medium text-gray-700">Jalan <span
+                            class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span></label>
+                    <input type="text" name="jalan" value="{{ old('jalan', $page->jalan ?? '') }}"
                         class="mt-1 w-full rounded-lg border-gray-300 p-2.5 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
-                    @error('alamat')
+                    @error('jalan')
                         <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div>
+                    <label class="block text-sm font-medium text-gray-700">Kelurahan <span
+                            class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span></label>
+                    <input type="text" name="kelurahan" value="{{ old('kelurahan', $page->kelurahan ?? '') }}"
+                        class="mt-1 w-full rounded-lg border-gray-300 p-2.5 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
+                    @error('kelurahan')
+                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Kecamatan <span
+                            class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span></label>
+                    <input type="text" name="kecamatan" value="{{ old('kecamatan', $page->kecamatan ?? '') }}"
+                        class="mt-1 w-full rounded-lg border-gray-300 p-2.5 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
+                    @error('kecamatan')
+                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Kota <span
+                            class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span></label>
+                    <input type="text" name="kota" value="{{ old('kota', $page->kota ?? '') }}"
+                        class="mt-1 w-full rounded-lg border-gray-300 p-2.5 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
+                    @error('kota')
+                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Provinsi <span
+                            class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span></label>
+                    <input type="text" name="provinsi" value="{{ old('provinsi', $page->provinsi ?? '') }}"
+                        class="mt-1 w-full rounded-lg border-gray-300 p-2.5 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
+                    @error('provinsi')
+                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Kode Pos <span
+                            class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span></label>
+                    <input type="text" name="kode_pos" value="{{ old('kode_pos', $page->kode_pos ?? '') }}"
+                        class="mt-1 w-full rounded-lg border-gray-300 p-2.5 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
+                    @error('kode_pos')
+                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- === Kontak === --}}
+                <div>
                     <label class="block text-sm font-medium text-gray-700">Telepon <span
-                            class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span>
-                    </label>
+                            class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span></label>
                     <input type="text" name="telepon" value="{{ old('telepon', $page->telepon ?? '') }}"
                         class="mt-1 w-full rounded-lg border-gray-300 p-2.5 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
                     @error('telepon')
@@ -77,8 +127,7 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Telepon 2 <span
-                            class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span>
-                    </label>
+                            class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span></label>
                     <input type="text" name="telepon2" value="{{ old('telepon2', $page->telepon2 ?? '') }}"
                         class="mt-1 w-full rounded-lg border-gray-300 p-2.5 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
                     @error('telepon2')
@@ -88,8 +137,7 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Email <span
-                            class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span>
-                    </label>
+                            class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span></label>
                     <input type="email" name="email" value="{{ old('email', $page->email ?? '') }}"
                         class="mt-1 w-full rounded-lg border-gray-300 p-2.5 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
                     @error('email')
@@ -103,12 +151,10 @@
                 <h3 class="text-sm font-semibold mb-4">Logo & Favicon</h3>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-                    {{-- Logo Sidebar & Logo Inti --}}
+                    {{-- Logo Sidebar --}}
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Logo Sidebar & Logo Inti <span
-                                class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span>
-                        </label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Logo Sidebar <span
+                                class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span></label>
                         <div class="flex flex-col items-start gap-3">
                             <img id="preview_logo_sidebar"
                                 src="{{ $page && $page->logo_sidebar ? asset('storage/' . $page->logo_sidebar) : asset('assets/images/logo/logo-sidebar.png') }}"
@@ -116,17 +162,13 @@
                             <input type="file" name="logo_sidebar" accept="image/*"
                                 onchange="previewImage(event, 'preview_logo_sidebar')"
                                 class="text-sm file:mr-2 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100" />
-                            @error('logo_sidebar')
-                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
-                            @enderror
                         </div>
                     </div>
 
                     {{-- Logo Sidebar 2 --}}
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Logo Sidebar 2 <span
-                                class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span>
-                        </label>
+                                class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span></label>
                         <div class="flex flex-col items-start gap-3">
                             <img id="preview_logo_sidebar2"
                                 src="{{ $page && $page->logo_sidebar2 ? asset('storage/' . $page->logo_sidebar2) : asset('assets/images/logo/logo-sidebar2.png') }}"
@@ -134,17 +176,13 @@
                             <input type="file" name="logo_sidebar2" accept="image/*"
                                 onchange="previewImage(event, 'preview_logo_sidebar2')"
                                 class="text-sm file:mr-2 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100" />
-                            @error('logo_sidebar2')
-                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
-                            @enderror
                         </div>
                     </div>
 
                     {{-- Logo Login --}}
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Logo Login <span
-                                class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span>
-                        </label>
+                                class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span></label>
                         <div class="flex flex-col items-start gap-3">
                             <img id="preview_logo_login"
                                 src="{{ $page && $page->logo_login ? asset('storage/' . $page->logo_login) : asset('assets/images/logo.png') }}"
@@ -152,17 +190,13 @@
                             <input type="file" name="logo_login" accept="image/*"
                                 onchange="previewImage(event, 'preview_logo_login')"
                                 class="text-sm file:mr-2 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100" />
-                            @error('logo_login')
-                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
-                            @enderror
                         </div>
                     </div>
 
                     {{-- Favicon --}}
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Favicon <span
-                                class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span>
-                        </label>
+                                class="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-1">Opsional</span></label>
                         <div class="flex flex-col items-start gap-3">
                             <img id="preview_favicon"
                                 src="{{ $page && $page->favicon ? asset('storage/' . $page->favicon) : asset('assets/images/logo/favicon.png') }}"
@@ -170,9 +204,6 @@
                             <input type="file" name="favicon" accept="image/*"
                                 onchange="previewImage(event, 'preview_favicon')"
                                 class="text-sm file:mr-2 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100" />
-                            @error('favicon')
-                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
-                            @enderror
                         </div>
                     </div>
                 </div>
@@ -187,7 +218,7 @@
             </div>
         </form>
 
-        {{-- MODAL --}}
+        {{-- Modal Konfirmasi --}}
         <div x-show="showModal" class="fixed inset-0 z-99999 flex items-center justify-center bg-black/50 px-4"
             x-transition style="display: none;">
             <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg">

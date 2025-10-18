@@ -13,7 +13,7 @@ class ProdukSeeder extends Seeder
 {
     /**
      * Jalankan seed database.
-     * Logika telah diubah untuk menghasilkan 1000 produk secara dinamis.
+     * Logika telah diubah untuk menghasilkan 500 produk secara dinamis.
      */
     public function run(): void
     {
@@ -41,25 +41,25 @@ class ProdukSeeder extends Seeder
             'Cairan Kimia'
         ];
 
-        $productCount = 1000;
+        $productCount = 500;
 
         // Hapus data produk lama jika diperlukan (opsional, untuk memastikan database bersih)
         // Produk::truncate(); 
 
         echo "Memulai seeding $productCount produk...\n";
 
-        // 2. Lakukan perulangan untuk membuat 1000 produk
+        // 2. Lakukan perulangan untuk membuat 500 produk
         for ($i = 1; $i <= $productCount; $i++) {
             // Pembuatan data dinamis
             $prefixIndex = ($i - 1) % count($productPrefixes);
             $prefix = $productPrefixes[$prefixIndex];
 
-            // Kode Produk: PRD0001 hingga PRD1000
+            // Kode Produk: PRD0001 hingga PRD500
             $kodeProduk = 'PRD' . str_pad($i, 4, '0', STR_PAD_LEFT);
             $namaProduk = "$prefix $i";
 
             // Harga: Harga Beli acak dari 10.000 hingga 1.000.000
-            $hargaBeli = rand(10000, 1000000);
+            $hargaBeli = rand(5000, 500000);
 
             // Harga Jual: Markup 1.2x hingga 1.8x dari Harga Beli
             $markup = rand(120, 180) / 100;

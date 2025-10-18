@@ -16,7 +16,14 @@ class Pages extends Model
         'logo_sidebar2',
         'logo_login',
         'favicon',
-        'alamat',
+
+        'jalan',
+        'kelurahan',
+        'kecamatan',
+        'kota',
+        'provinsi',
+        'kode_pos',
+
         'telepon',
         'telepon2',
         'email',

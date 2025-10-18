@@ -19,7 +19,15 @@ return new class extends Migration
             $table->string('logo_sidebar2')->nullable();
             $table->string('logo_login')->nullable();
             $table->string('favicon')->nullable();
-            $table->string('alamat')->nullable();
+
+            // Pecahan alamat
+            $table->string('jalan')->nullable();        // Contoh: "Jl. Jend. Ahmad Yani No.157"
+            $table->string('kelurahan')->nullable();   // Contoh: "Tanah Datar"
+            $table->string('kecamatan')->nullable();   // Contoh: "Pekanbaru Kota"
+            $table->string('kota')->nullable();        // Contoh: "Kota Pekanbaru"
+            $table->string('provinsi')->nullable();    // Contoh: "Riau"
+            $table->string('kode_pos', 10)->nullable(); // Contoh: "28156"
+
             $table->string('telepon')->nullable();
             $table->string('telepon2')->nullable();
             $table->string('email')->nullable();
