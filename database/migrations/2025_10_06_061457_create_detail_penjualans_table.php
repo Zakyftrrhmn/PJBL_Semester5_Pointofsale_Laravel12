@@ -12,18 +12,24 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('detail_penjualans', function (Blueprint $table) {
-            $table->id();
-            $table->uuid('penjualan_id');
-            $table->foreign('penjualan_id')->references('id')->on('penjualans')->onDelete('cascade');
+            $table->uuid('id')->primary();
+            $table->foreignUuid('penjualan_id')->constrained('penjualans')->cascadeOnDelete();
+            $table->foreignUuid('produk_id')->constrained('produks')->cascadeOnDelete();
 
-            $table->uuid('produk_id');
-            $table->foreign('produk_id')->references('id')->on('produks')->onDelete('restrict'); // Pastikan produk tidak terhapus jika masih ada di penjualan
+            $table->unsignedInteger('qty');
+            $table->unsignedBigInteger('harga_satuan');
 
-            $table->integer('qty');
-            $table->decimal('harga_satuan', 15, 2);
+            // Diskon per produk: persen dan nominal (hasil per-item)
+            // persen: 0..100 dengan dua angka desimal, nominal: dalam rupiah
+            $table->decimal('diskon_percent', 8, 2)->default(0);
+            $table->decimal('diskon_nominal', 15, 2)->default(0);
+
+            // subtotal setelah diskon (qty * harga_satuan - diskon_nominal)
             $table->decimal('subtotal', 15, 2);
+
             $table->timestamps();
 
+            // Unique constraint agar 1 produk hanya muncul 1x di 1 penjualan (opsional)
             $table->unique(['penjualan_id', 'produk_id']);
         });
     }

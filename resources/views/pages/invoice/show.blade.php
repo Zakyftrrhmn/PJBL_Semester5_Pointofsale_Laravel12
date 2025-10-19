@@ -43,6 +43,7 @@
                                 <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Qty</th>
                                 <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Harga Satuan
                                 </th>
+                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Diskon (%)</th>
                                 <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Subtotal</th>
                             </tr>
                         </thead>
@@ -59,11 +60,15 @@
                                     <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-800 text-right">
                                         Rp {{ number_format($detail->harga_satuan, 0, ',', '.') }}
                                     </td>
+                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-800 text-right">
+                                        {{ number_format($detail->diskon_percent ?? 0, 0) }}%
+                                    </td>
                                     <td class="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900 text-right">
                                         Rp {{ number_format($detail->subtotal, 0, ',', '.') }}
                                     </td>
                                 </tr>
                             @endforeach
+
                         </tbody>
                     </table>
                 </div>
@@ -75,11 +80,16 @@
                             <span class="text-base font-semibold text-gray-900">Rp
                                 {{ number_format($penjualan->total_harga, 0, ',', '.') }}</span>
                         </div>
+
                         <div class="flex justify-between border-b pb-2">
-                            <span class="text-base text-red-600">Diskon:</span>
-                            <span class="text-base font-semibold text-red-600">- Rp
-                                {{ number_format($penjualan->diskon, 0, ',', '.') }}</span>
+                            <span class="text-base text-red-600">
+                                Diskon Transaksi ({{ number_format($penjualan->diskon_percent ?? 0, 0) }}%):
+                            </span>
+                            <span class="text-base font-semibold text-red-600">
+                                - Rp {{ number_format($penjualan->diskon_nominal ?? 0, 0, ',', '.') }}
+                            </span>
                         </div>
+
                         <div class="flex justify-between pt-2">
                             <span class="text-lg font-bold text-gray-900">Total Bayar (Net):</span>
                             <span class="text-lg font-bold text-blue-600">Rp
@@ -110,7 +120,7 @@
                         <i class='bx bx-printer mr-2 text-lg'></i> Cetak (Tanpa Diskon)
                     </a>
 
-                    @if ($penjualan->diskon > 0)
+                    @if ($penjualan->diskon_nominal > 0)
                         <a href="{{ route('invoice.print.diskon', $penjualan->id) }}" target="_blank"
                             class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700">
                             <i class='bx bx-printer mr-2 text-lg'></i> Cetak (Dengan Diskon)

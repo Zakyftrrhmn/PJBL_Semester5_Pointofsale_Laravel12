@@ -13,20 +13,26 @@ return new class extends Migration
     {
         Schema::create('penjualans', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('kode_penjualan', 20)->unique(); // Contoh: PJL20240001
+            $table->string('kode_penjualan', 20)->unique(); // Akan digenerate di model jika diperlukan
             $table->date('tanggal_penjualan');
+
+            // total bruto = jumlah semua subtotal (setelah diskon produk)
             $table->decimal('total_harga', 15, 2);
-            $table->decimal('diskon', 15, 2)->default(0);
-            $table->decimal('total_bayar', 15, 2); // Setelah diskon
+
+            // Diskon transaksi: persen dan nominal
+            $table->decimal('diskon_percent', 8, 2)->default(0);
+            $table->decimal('diskon_nominal', 15, 2)->default(0);
+
+            // total setelah diskon transaksi
+            $table->decimal('total_bayar', 15, 2);
+
             $table->decimal('jumlah_bayar', 15, 2); // Uang yang dibayarkan pelanggan
             $table->decimal('kembalian', 15, 2)->default(0);
 
-            // Relasi Pelanggan (Sudah BENAR menggunakan UUID)
-            // Asumsi: 'pelanggans.id' bertipe UUID
+            // Relasi Pelanggan (UUID)
             $table->foreignUuid('pelanggan_id')->constrained('pelanggans')->onDelete('cascade');
 
-            // Relasi User/Kasir (Perbaikan: Menggunakan foreignId() yang otomatis membuat kolom dan constraint)
-            // Asumsi: 'users.id' bertipe integer (standar Laravel)
+            // Relasi User/Kasir (asumsi users.id = integer)
             $table->foreignId('user_id')->constrained('users')->onDelete('restrict');
 
             $table->timestamps();

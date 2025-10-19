@@ -28,45 +28,29 @@
             pelangganUmumId: '{{ $pelangganUmum->id ?? '' }}'
         })">
 
-            {{-- 1. Product Panel (Kiri) --}}
+            {{-- Product Panel (Kiri) --}}
             <div class="lg:w-2/3 space-y-4">
                 <div class="rounded-2xl border border-gray-200 bg-white shadow-sm p-4 sticky top-4 z-10">
-
-                    {{-- Form Pencarian dan Refresh (Server-Side) --}}
-                    {{-- Form ini akan ter-submit ketika ENTER ditekan di dalam input (perilaku default) --}}
                     <form action="{{ route('pos.index') }}" method="GET" class="flex items-center gap-2">
                         <div class="relative w-full">
                             <input type="text" name="search" value="{{ request('search') }}" x-ref="searchInput"
-                                @keydown.enter="searchProduk" {{-- Hapus .prevent. searchProduk hanya menambahkan ke cart jika Barcode/Kode cocok. Jika tidak, Enter akan melakukan default submit form Laravel. --}}
-                                placeholder="Cari produk berdasarkan nama atau kode..."
+                                @keydown.enter="searchProduk" placeholder="Cari produk berdasarkan nama atau kode..."
                                 class="h-10 w-full rounded-lg border border-gray-200 pl-10 pr-3 text-sm text-gray-700 placeholder-gray-400 shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
                             <span class="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400">
                                 <i class="bx bx-search text-lg"></i>
                             </span>
                         </div>
-
-                        {{-- Tambahkan tombol submit eksplisit (hidden) jika input tidak memiliki type="submit" untuk kompatibilitas browser --}}
                         <button type="submit" class="hidden">Cari</button>
-
-                        {{-- Tombol Refresh (Reset Pencarian) --}}
                         <div class="relative group">
                             <a href="{{ route('pos.index') }}"
                                 class="flex items-center justify-center h-10 w-10 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shadow-sm">
                                 <i class="bx bx-refresh text-xl"></i>
                             </a>
-                            <span
-                                class="absolute -top-10 left-1/2 -translate-x-1/2 
-                                px-2 py-1 text-sm text-white bg-black rounded 
-                                opacity-0 group-hover:opacity-100 
-                                scale-95 group-hover:scale-100 
-                                transition-all duration-300">
-                                Reset
-                            </span>
                         </div>
                     </form>
                 </div>
 
-                {{-- Daftar Produk (Sudah di-Paginate) --}}
+                {{-- Daftar Produk --}}
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                     @forelse ($produks as $produk)
                         <div @click="addToCart({{ json_encode($produk) }})"
@@ -111,67 +95,99 @@
                     @endforelse
                 </div>
 
-                {{-- Tautan Pagination --}}
                 <div class="mt-4">
                     {{ $produks->links('vendor.pagination.tailwind') }}
                 </div>
 
             </div>
 
-            {{-- 2. Cart & Payment Panel (Kanan) --}}
+            {{-- Cart & Payment Panel (Kanan) --}}
             <div class="lg:w-1/3 bg-white rounded-2xl border border-gray-200 shadow-lg p-5 flex flex-col h-full">
                 <h3 class="text-lg font-semibold text-gray-800 border-b pb-3 mb-4">Keranjang Belanja</h3>
 
                 {{-- Daftar Item Keranjang --}}
-                <div class="flex-grow overflow-y-auto space-y-3 mb-4 min-h-[200px] max-h-[40vh]">
+                <div class="flex-grow overflow-y-auto space-y-3 mb-4 min-h-[150px] max-h-[40vh] p-2">
                     <template x-if="cart.length === 0">
-                        <div class="text-center py-10 text-gray-500">
-                            Keranjang kosong. Pilih produk di samping.
+                        <div class="text-center py-10 text-gray-500 text-sm">
+                            Keranjang kosong. Tambahkan produk.
                         </div>
                     </template>
+
                     <template x-for="(item, index) in cart" :key="item.id">
-                        <div class="flex items-center gap-3 border-b pb-3">
-                            <div class="flex-grow">
-                                <p class="text-sm font-medium" x-text="item.nama_produk"></p>
-                                <p class="text-xs text-gray-500" x-text="formatRupiah(item.harga_satuan)"></p>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <button @click="decrementQty(index)" :disabled="item.qty <= 1"
-                                    class="text-gray-600 hover:text-red-600 disabled:text-gray-300">
-                                    <i class="bx bx-minus-circle text-lg"></i>
-                                </button>
-                                <input type="number" x-model.number="item.qty"
-                                    @input="updateQty(index, $event.target.value)" min="1" :max="item.stok_produk"
-                                    class="w-12 text-center text-sm border border-gray-300 rounded-lg p-1" />
-                                <button @click="incrementQty(index)" :disabled="item.qty >= item.stok_produk"
-                                    class="text-gray-600 hover:text-green-600 disabled:text-gray-300">
-                                    <i class="bx bx-plus-circle text-lg"></i>
+                        <div class="border-b last:border-b-0 pb-3 last:pb-0 pt-1 relative group">
+
+                            <div class="flex justify-between items-start mb-1">
+                                <p class="text-sm font-semibold text-gray-800 pr-6" x-text="item.nama_produk"></p>
+                                <button @click="removeFromCart(index)"
+                                    class="text-red-400 hover:text-red-600 transition duration-150 p-1 -mt-1 -mr-1 absolute top-0 right-0"
+                                    title="Hapus Item">
+                                    <i class="bx bx-x text-xl"></i>
                                 </button>
                             </div>
-                            <div class="w-20 text-right">
-                                <p class="text-sm font-bold text-blue-600" x-text="formatRupiah(item.subtotal)"></p>
+
+                            <div class="grid grid-cols-3 gap-2 items-end">
+
+                                <div>
+                                    <label class="block text-[10px] text-gray-500 font-medium">QTY</label>
+                                    <div class="flex items-center">
+                                        <button @click="decrementQty(index)" :disabled="item.qty <= 1"
+                                            class="text-gray-500 hover:text-red-500 disabled:text-gray-300 p-0.5">
+                                            <i class="bx bx-minus text-sm"></i>
+                                        </button>
+                                        <input type="number" min="1" :max="item.stok_produk"
+                                            x-model.number="item.qty" @input="updateQty(index, $event.target.value)"
+                                            class="w-8 text-center text-xs border-y border-gray-300 p-0.5 font-medium focus:ring-blue-500 focus:border-blue-500" />
+                                        <button @click="incrementQty(index)" :disabled="item.qty >= item.stok_produk"
+                                            class="text-gray-500 hover:text-green-500 disabled:text-gray-300 p-0.5">
+                                            <i class="bx bx-plus text-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-[10px] text-gray-500 font-medium">DISKON (%)</label>
+                                    <input type="number" min="0" max="100" step="0.01"
+                                        class="w-full text-xs rounded-md border border-gray-300 p-1 text-center focus:ring-blue-500 focus:border-blue-500"
+                                        x-model.number="item.diskon_percent" @input="calculateTotals" />
+                                </div>
+
+                                <div class="text-right">
+                                    <label class="block text-[10px] text-gray-500 font-medium">SUBTOTAL</label>
+                                    <p class="text-sm font-extrabold text-blue-600" x-text="formatRupiah(item.subtotal)">
+                                    </p>
+                                </div>
                             </div>
-                            <button @click="removeFromCart(index)" class="text-red-500 hover:text-red-700">
-                                <i class="bx bx-x-circle text-lg"></i>
-                            </button>
+
+                            <div class="text-right mt-1">
+                                <p class="text-[10px] text-gray-500 mr-2 inline"
+                                    x-text="'@ ' + formatRupiah(item.harga_satuan)"></p>
+
+                                <p class="text-[10px] text-red-500 line-through inline" x-show="item.diskon_percent > 0"
+                                    x-text="formatRupiah(item.qty * item.harga_satuan)">
+                                </p>
+                            </div>
                         </div>
                     </template>
                 </div>
-                {{-- Akhir Daftar Item Keranjang --}}
-
                 <hr class="mb-4">
 
                 {{-- Ringkasan dan Pembayaran --}}
                 <div class="space-y-3">
                     <div class="flex justify-between items-center text-sm">
-                        <p class="text-gray-600">Total Harga (Bruto)</p>
-                        <p class="font-medium" x-text="formatRupiah(subtotalCart)"></p>
+                        <p class="text-gray-600">Total Harga (setelah diskon produk)</p>
+                        <p class="font-medium" x-text="formatRupiah(subtotalAfterProductDiscounts)"></p>
                     </div>
 
                     <div class="flex items-center gap-3">
-                        <label for="diskon" class="text-sm text-gray-600 w-24">Diskon (Rp)</label>
-                        <input type="number" id="diskon" x-model.number="diskon" @input="calculateTotals" min="0"
+                        <label for="diskon_percent" class="text-sm text-gray-600 w-36">Diskon Transaksi (%)</label>
+                        <input type="number" id="diskon_percent" x-model.number="diskon_percent" @input="calculateTotals"
+                            min="0" max="100" step="0.01"
                             class="w-full rounded-lg border border-gray-300 p-2 text-sm text-gray-700 focus:border-blue-400" />
+                    </div>
+
+                    <div class="flex justify-between items-center text-sm">
+                        <p class="text-gray-600">Diskon Transaksi (Rp)</p>
+                        <p class="font-medium" x-text="formatRupiah(diskon_trans_nominal)"></p>
                     </div>
 
                     <div class="flex justify-between items-center text-lg font-bold bg-blue-50 p-2 rounded-lg">
@@ -193,7 +209,7 @@
                     <div class="flex items-center gap-3">
                         <label for="jumlah_bayar" class="text-sm text-gray-600 w-24">Bayar (Rp) <span
                                 class="text-red-500">*</span></label>
-                        <input type="number" id="jumlah_bayar" x-model="jumlahBayar" @input="calculateTotals"
+                        <input type="number" id="jumlah_bayar" x-model.number="jumlahBayar" @input="calculateTotals"
                             :min="totalBayar"
                             class="w-full rounded-lg border border-gray-300 p-2 text-sm text-gray-700 focus:border-blue-400" />
 
@@ -212,12 +228,13 @@
                     @csrf
 
                     <input type="hidden" name="pelanggan_id" :value="pelanggan_id">
-                    <input type="hidden" name="diskon" :value="diskon">
+                    <input type="hidden" name="diskon_percent" :value="diskon_percent">
+                    <input type="hidden" name="diskon_nominal" :value="diskon_trans_nominal">
                     <input type="hidden" name="total_bayar" :value="totalBayar">
                     <input type="hidden" name="jumlah_bayar" :value="jumlahBayar">
                     <input type="hidden" name="kembalian" :value="kembalian">
-                    <input type="hidden" name="cart_data" :value="JSON.stringify(cart)">
-                    <input type="hidden" name="total_harga" :value="subtotalCart">
+                    <input type="hidden" name="cart_data" :value="JSON.stringify(cartForServer)">
+                    <input type="hidden" name="total_harga" :value="subtotalAfterProductDiscounts">
 
                     <button type="submit" :disabled="!isReadyToPay"
                         :class="{
@@ -247,25 +264,43 @@
                 filteredProduks: data.initialProduks,
                 cart: [],
                 pelanggan_id: data.pelangganUmumId,
-                diskon: 0,
+
+                // Diskon transaksi (persen)
+                diskon_percent: 0,
+                // Nominal diskon transaksi (hanya untuk tampilan)
+                diskon_trans_nominal: 0,
+
                 jumlahBayar: null,
 
-                get subtotalCart() {
-                    return this.cart.reduce((sum, item) => sum + (item.subtotal || 0), 0);
+                // cartForServer adalah versi cart yang dikirim ke server (menyertakan diskon_percent per item)
+                get cartForServer() {
+                    return this.cart.map(item => ({
+                        id: item.id,
+                        qty: item.qty,
+                        diskon_percent: Number(item.diskon_percent || 0)
+                    }));
                 },
+
+                get subtotalAfterProductDiscounts() {
+                    return this.cart.reduce((sum, item) => sum + (Number(item.subtotal) || 0), 0);
+                },
+
                 get totalBayar() {
-                    let total = this.subtotalCart - this.diskon;
+                    let total = this.subtotalAfterProductDiscounts - (this.diskon_trans_nominal || 0);
                     return total > 0 ? total : 0;
                 },
+
                 get kembalian() {
                     if (this.jumlahBayar === null || this.jumlahBayar === '') {
-                        return 0; // kalau belum diisi, kembalian = 0
+                        return 0;
                     }
                     return this.jumlahBayar - this.totalBayar;
                 },
+
                 get isReadyToPay() {
                     return this.cart.length > 0 && this.kembalian >= 0 && this.jumlahBayar >= this.totalBayar;
                 },
+
                 get buttonText() {
                     if (this.cart.length === 0) return 'Tambah Produk Dahulu';
                     if (this.kembalian < 0) return 'Bayar Kurang ' + this.formatRupiah(Math.abs(this.kembalian));
@@ -278,19 +313,37 @@
 
                 formatRupiah(number) {
                     if (number === null || isNaN(number)) return 'Rp 0';
+                    // tampilkan tanpa desimal
                     return 'Rp ' + Math.abs(number).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
                 },
 
                 calculateTotals() {
-                    this.diskon = Math.max(0, this.diskon || 0);
-                    if (this.jumlahBayar !== null && this.jumlahBayar !== '') {
-                        this.jumlahBayar = Math.max(0, this.jumlahBayar || 0);
-                    }
+                    // Validasi sederhana
+                    this.diskon_percent = Math.max(0, Number(this.diskon_percent || 0));
+                    if (this.diskon_percent > 100) this.diskon_percent = 100;
 
                     this.cart.forEach(item => {
-                        const hargaSatuan = parseFloat(item.harga_satuan) || 0;
-                        item.subtotal = item.qty * hargaSatuan;
+                        const hargaSatuan = Number(item.harga_satuan) || 0;
+                        const qty = Number(item.qty) || 0;
+                        const subtotalGross = qty * hargaSatuan;
+
+                        // diskon per-item (persen)
+                        item.diskon_percent = Math.max(0, Number(item.diskon_percent || 0));
+                        if (item.diskon_percent > 100) item.diskon_percent = 100;
+
+                        item.diskon_nominal = Math.round((item.diskon_percent / 100) * subtotalGross);
+                        item.subtotal = Math.round(subtotalGross - item.diskon_nominal);
+                        if (item.subtotal < 0) item.subtotal = 0;
                     });
+
+                    // diskon transaksi nominal (berlaku setelah diskon produk)
+                    const subtotal = this.subtotalAfterProductDiscounts;
+                    this.diskon_trans_nominal = Math.round((this.diskon_percent / 100) * subtotal);
+
+                    // jumlah bayar minimal & kembalian dihitung via getter
+                    if (this.jumlahBayar !== null && this.jumlahBayar !== '') {
+                        this.jumlahBayar = Math.max(0, Number(this.jumlahBayar || 0));
+                    }
                 },
 
                 addToCart(produk) {
@@ -310,7 +363,7 @@
                             alert(`Maksimal stok untuk ${produk.nama_produk} adalah ${produk.stok_produk}!`);
                         }
                     } else {
-                        const hargaJual = parseFloat(produk.harga_jual) || 0;
+                        const hargaJual = Number(produk.harga_jual) || 0;
                         this.cart.push({
                             id: produk.id,
                             nama_produk: produk.nama_produk,
@@ -319,6 +372,8 @@
                             stok_produk: produk.stok_produk,
                             qty: 1,
                             subtotal: hargaJual,
+                            diskon_percent: 0,
+                            diskon_nominal: 0,
                         });
                         this.calculateTotals();
                     }
@@ -359,25 +414,18 @@
                     this.calculateTotals();
                 },
 
-                // Fungsi ini sekarang hanya fokus pada logika Barcode Scanner (menambah ke cart)
-                // Jika tidak cocok, ia akan mengizinkan event enter (submit form) diteruskan.
                 searchProduk(event) {
                     const term = this.$refs.searchInput.value.toLowerCase().trim();
 
-                    // Cari produk berdasarkan kode di data yang sedang ditampilkan (allProduks)
                     const produkByCode = this.allProduks.find(p => p.kode_produk.toLowerCase() === term);
 
                     if (produkByCode) {
-                        // Jika kode produk cocok (kasus Barcode Scanner), tambahkan ke keranjang.
                         this.addToCart(produkByCode);
                         this.$refs.searchInput.value = '';
                         this.searchTerm = '';
-                        // Penting: Hentikan event submit form agar halaman tidak reload setelah Barcode di-scan.
                         event.preventDefault();
                         return;
                     }
-
-                    // Jika kode tidak cocok, biarkan event Enter berlanjut (form submit) untuk melakukan pencarian server-side Laravel.
                 },
             }
         }

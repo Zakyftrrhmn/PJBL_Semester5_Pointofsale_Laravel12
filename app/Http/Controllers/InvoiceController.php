@@ -44,44 +44,79 @@ class InvoiceController extends Controller
     }
 
     /**
-     * Cetak invoice tanpa diskon
+     * Helper: Hitung Total Harga Murni Tanpa Diskon Item
+     * (Harga Satuan * Qty)
+     */
+    protected function calculateSubtotalMurni(Penjualan $penjualan)
+    {
+        return $penjualan->detailPenjualans->sum(fn($d) => $d->qty * $d->harga_satuan);
+    }
+    
+    /**
+     * Helper: Hitung Total Harga Setelah Diskon Item
+     * (Menggunakan kolom total_harga di Penjualan, yang sudah termasuk diskon item)
+     */
+    protected function calculateSubtotalAfterItemDiscount(Penjualan $penjualan)
+    {
+        return $penjualan->total_harga; // total_harga adalah total setelah diskon item, sebelum diskon transaksi
+    }
+
+
+    /**
+     * Cetak invoice TANPA diskon (Harga Murni).
+     * Item: Harga Satuan * Qty (Diskon item diabaikan).
+     * Transaksi: Diskon transaksi diabaikan.
      */
     public function printNoDiscount(Penjualan $penjualan)
     {
         $penjualan->load('pelanggan', 'user', 'detailPenjualans.produk.satuan');
-        $isDiscountApplied = false;
+        $isDiscountApplied = false; 
 
-        $subTotalAwal = $penjualan->detailPenjualans->sum(fn($d) => $d->qty * $d->harga_satuan);
-        $totalTanpaDiskon = $subTotalAwal;
+        // TOTAL MURNI UNTUK INVOICE
+        $subTotalAwal = $this->calculateSubtotalMurni($penjualan); 
+        $totalFinal = $subTotalAwal; // Total murni semua item
+
         $bayar = $penjualan->jumlah_bayar;
-        $kembalian = $bayar - $totalTanpaDiskon;
+        $kembalian = $bayar - $totalFinal;
+        
+        // Tambahkan variabel item_total_type untuk mengontrol di view
+        $item_total_type = 'MURNI'; 
 
-        $data = compact('penjualan', 'isDiscountApplied', 'subTotalAwal', 'totalTanpaDiskon', 'bayar', 'kembalian');
+        $data = compact('penjualan', 'isDiscountApplied', 'subTotalAwal', 'totalFinal', 'bayar', 'kembalian', 'item_total_type');
 
         $pdf = Pdf::loadView('pages.invoice.print-template', $data)
-            ->setPaper([0, 0, 680, 400], 'portrait') // ukuran ±24cm x 14cm (half continuous form)
+            ->setPaper([0, 0, 680, 400], 'portrait')
             ->setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true, 'chroot' => public_path(),]);
 
         return $pdf->stream('Invoice-' . $penjualan->kode_penjualan . '-TanpaDiskon.pdf');
     }
 
     /**
-     * Cetak invoice dengan diskon
+     * Cetak invoice DENGAN diskon.
+     * Item: Subtotal (Diskon item diperhitungkan).
+     * Transaksi: Diskon transaksi diperhitungkan.
      */
     public function printWithDiscount(Penjualan $penjualan)
     {
         $penjualan->load('pelanggan', 'user', 'detailPenjualans.produk.satuan');
-        $isDiscountApplied = true;
+        $isDiscountApplied = true; 
 
-        $subTotalAwal = $penjualan->detailPenjualans->sum(fn($d) => $d->qty * $d->harga_satuan);
-        $totalDenganDiskon = $penjualan->total_bayar;
+        // TOTAL SETELAH DISKON ITEM (menggunakan total_harga dari database)
+        $subTotalAwal = $this->calculateSubtotalAfterItemDiscount($penjualan); 
+        
+        // Total Final adalah total_bayar dari database (setelah diskon transaksi)
+        $totalFinal = $penjualan->total_bayar; 
+        
         $bayar = $penjualan->jumlah_bayar;
-        $kembalian = $bayar - $totalDenganDiskon;
+        $kembalian = $bayar - $totalFinal;
+        
+        // Tambahkan variabel item_total_type untuk mengontrol di view
+        $item_total_type = 'DISKON'; // Subtotal item yang sudah terdiskon
 
-        $data = compact('penjualan', 'isDiscountApplied', 'subTotalAwal', 'totalDenganDiskon', 'bayar', 'kembalian');
+        $data = compact('penjualan', 'isDiscountApplied', 'subTotalAwal', 'totalFinal', 'bayar', 'kembalian', 'item_total_type');
 
         $pdf = Pdf::loadView('pages.invoice.print-template', $data)
-            ->setPaper([0, 0, 680, 400], 'portrait') // ukuran ±24cm x 14cm (half continuous form)
+            ->setPaper([0, 0, 680, 400], 'portrait')
             ->setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true, 'chroot' => public_path(),]);
 
         return $pdf->stream('Invoice-' . $penjualan->kode_penjualan . '-DenganDiskon.pdf');

@@ -257,9 +257,22 @@
 <body>
     <div class="wrapper">
 
+        @php
+            $page =
+                $page ??
+                (object) [
+                    'logo_sidebar' => 'logo/logo-sidebar.png',
+                    'nama_toko' => 'INTI PERAGA MANDIRI',
+                    'jalan' => 'Jl. Jend. Ahmad Yani No.157, Tanah Datar',
+                    'kota' => 'Pekanbaru',
+                    'telepon' => '0813-7586-6604',
+                    'nama_pemilik' => 'Pemilik Toko',
+                ];
+        @endphp
+
         {{-- === KOP SURAT === --}}
         <div class="kop-surat">
-            {{-- Container Logo (Dibuat lebih rapi) --}}
+            {{-- Container Logo --}}
             <div class="kop-surat-logo-container">
                 @php
                     $path = storage_path('app/public/' . ($page->logo_sidebar ?? 'logo/logo-sidebar.png'));
@@ -274,7 +287,6 @@
                     <img src="{{ public_path('assets/images/logo/logo-sidebar.png') }}" class="kop-surat-logo"
                         alt="Logo Toko">
                 @endif
-
             </div>
             {{-- Container Info Perusahaan --}}
             <div class="kop-surat-info">
@@ -289,6 +301,7 @@
 
         {{-- === HEADER FAKTUR === --}}
         <div class="header">
+            {{-- Tambahkan keterangan yang sesuai --}}
             <h2>FAKTUR PENJUALAN</h2>
             <p>No. {{ $penjualan->kode_penjualan }}</p>
         </div>
@@ -305,45 +318,76 @@
 
         {{-- === DAFTAR PEMBELIAN === --}}
         <div class="section-title">DAFTAR PEMBELIAN</div>
+
         <table class="daftar">
             <thead>
                 <tr>
-                    <th style="width: 18%;">Kode</th>
-                    <th style="width: 42%;">Nama Produk</th>
-                    <th style="width: 14%;">Harga</th>
+                    <th style="width: 15%;">Kode</th>
+                    <th style="width: 35%;">Nama Produk</th>
+                    <th style="width: 15%;">Harga Satuan</th>
                     <th style="width: 10%;">Qty</th>
-                    <th style="width: 16%;">Total</th>
+                    {{-- HANYA TAMPILKAN KOLOM DISKON JIKA isDiscountApplied=true --}}
+                    @if ($isDiscountApplied)
+                        <th style="width: 10%;">Diskon Item (%)</th>
+                    @endif
+                    {{-- Sesuaikan lebar kolom Total --}}
+                    <th style="width: {{ $isDiscountApplied ? '15%' : '25%' }};">Total Item</th>
                 </tr>
             </thead>
+
             <tbody>
                 @foreach ($penjualan->detailPenjualans as $detail)
+                    @php
+                        // Total Item Murni: Harga Satuan * Qty
+                        $totalItemMurni = $detail->harga_satuan * $detail->qty;
+
+                        // Tentukan nilai total yang akan ditampilkan berdasarkan tipe cetak
+                        $totalItemDisplay =
+                            $item_total_type == ''
+                                ? $totalItemMurni // Jika Cetak Tanpa Diskon (Harga Murni)
+                                : $detail->subtotal; // Jika Cetak Dengan Diskon (Subtotal terdiskon item)
+                    @endphp
                     <tr>
                         <td>{{ $detail->produk->kode_produk ?? '-' }}</td>
                         <td>{{ $detail->produk->nama_produk }}</td>
                         <td class="text-right">Rp {{ number_format($detail->harga_satuan, 0, ',', '.') }}</td>
                         <td class="text-center">{{ $detail->qty }}</td>
-                        <td class="text-right">Rp {{ number_format($detail->subtotal, 0, ',', '.') }}</td>
+
+                        {{-- HANYA TAMPILKAN DATA DISKON JIKA isDiscountApplied=true --}}
+                        @if ($isDiscountApplied)
+                            <td class="text-center">{{ $detail->diskon_percent ?? 0 }}%</td>
+                        @endif
+
+                        {{-- Tampilkan Total Item Sesuai Logika Cetak --}}
+                        <td class="text-right">Rp {{ number_format($totalItemDisplay, 0, ',', '.') }}</td>
                     </tr>
                 @endforeach
+
             </tbody>
         </table>
 
         {{-- === TOTAL & DISKON === --}}
         <table class="total-section">
             <tr>
-                <td>Subtotal</td>
+                {{-- Label menyesuaikan dengan Total Harga Awal yang dikirim Controller --}}
+                <td>Total Harga</td>
                 <td class="text-right">Rp {{ number_format($subTotalAwal, 0, ',', '.') }}</td>
             </tr>
-            <tr>
-                <td>Diskon</td>
-                <td class="text-right">Rp
-                    {{ $isDiscountApplied ? number_format($penjualan->diskon, 0, ',', '.') : '0' }}</td>
-            </tr>
+
+            {{-- HANYA TAMPILKAN DISKON TRANSAKSI jika isDiscountApplied=true DAN diskon nominal > 0 --}}
+            @if ($isDiscountApplied && $penjualan->diskon_nominal > 0)
+                <tr>
+                    <td>Diskon Transaksi ({{ number_format($penjualan->diskon_percent ?? 0, 0) }}%)</td>
+                    <td class="text-right">- Rp {{ number_format($penjualan->diskon_nominal, 0, ',', '.') }}</td>
+                </tr>
+            @endif
+
+
             <tr>
                 <td>TOTAL BAYAR</td>
                 <td class="text-right">
                     Rp
-                    {{ $isDiscountApplied ? number_format($totalDenganDiskon, 0, ',', '.') : number_format($totalTanpaDiskon, 0, ',', '.') }}
+                    {{ number_format($totalFinal, 0, ',', '.') }}
                 </td>
             </tr>
         </table>
@@ -351,7 +395,7 @@
         {{-- === TERBILANG === --}}
         <p class="terbilang">
             Terbilang:
-            *{{ ucwords(\App\Helpers\Terbilang::make($isDiscountApplied ? $totalDenganDiskon : $totalTanpaDiskon, ' Rupiah')) }}*
+            *{{ ucwords(\App\Helpers\Terbilang::make($totalFinal, ' Rupiah')) }}*
         </p>
 
         {{-- === CATATAN === --}}

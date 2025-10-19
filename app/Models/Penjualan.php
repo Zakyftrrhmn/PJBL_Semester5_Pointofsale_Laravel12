@@ -20,7 +20,8 @@ class Penjualan extends Model
         'kode_penjualan',
         'tanggal_penjualan',
         'total_harga',
-        'diskon',
+        'diskon_percent', // <-- GANTI DENGAN INI
+        'diskon_nominal', // <-- DAN INI
         'total_bayar',
         'jumlah_bayar',
         'kembalian',

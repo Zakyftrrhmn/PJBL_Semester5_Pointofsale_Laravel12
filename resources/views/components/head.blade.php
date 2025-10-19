@@ -7,7 +7,7 @@
     <link rel="icon" type="image/png"
         href="{{ $page && $page->favicon ? asset('storage/' . $page->favicon) : asset('assets/images/logo/favicon.png') }}">
     <title>
-        Peraga Inti Mandiri | Point of Sale
+        Inti Peraga Mandiri | Point of Sale
     </title>
     @vite('resources/css/app.css')
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>

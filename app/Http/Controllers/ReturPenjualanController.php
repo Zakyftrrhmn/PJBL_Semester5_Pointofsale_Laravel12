@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
+
 class ReturPenjualanController extends Controller
 {
     public function __construct()
@@ -44,44 +45,48 @@ class ReturPenjualanController extends Controller
         return view('pages.retur_penjualan.create', compact('penjualans'));
     }
 
+    /**
+     * Mengambil produk dari transaksi dan menghitung harga per unit netto sesuai diskon transaksi.
+     */
     public function getProdukByPenjualan(Request $request)
     {
         $penjualanId = $request->query('penjualan_id');
-
         if (!$penjualanId) return response()->json([]);
 
-        $penjualan = Penjualan::find($penjualanId);
+        $penjualan = Penjualan::with('detailPenjualans.produk')->find($penjualanId);
         if (!$penjualan) return response()->json([]);
 
-        $details = DetailPenjualan::with('produk')->where('penjualan_id', $penjualanId)->get();
+        // Ambil rate diskon transaksi
+        $totalHargaAfterItemDiscount = $penjualan->total_harga ?? 0;
+        $diskonTransaksiNominal = $penjualan->diskon_nominal ?? 0;
+        $diskonRateTransaksi = ($totalHargaAfterItemDiscount > 0)
+            ? ($diskonTransaksiNominal / $totalHargaAfterItemDiscount)
+            : 0;
+
         $produkList = [];
 
-        $totalHargaGross = $penjualan->total_harga; // total sebelum diskon
-        $totalDiskon = $penjualan->diskon;
-        $diskonRate = ($totalHargaGross > 0) ? $totalDiskon / $totalHargaGross : 0;
-        $isDiskonApplied = $totalDiskon > 0;
-
-        foreach ($details as $detail) {
+        foreach ($penjualan->detailPenjualans as $detail) {
             $totalReturSebelumnya = ReturPenjualan::where('penjualan_id', $penjualanId)
                 ->where('produk_id', $detail->produk_id)
                 ->sum('jumlah_retur');
 
             $sisaRetur = $detail->qty - $totalReturSebelumnya;
+            if ($sisaRetur <= 0) continue;
 
-            $hargaSatuanNetto = $detail->harga_satuan * (1 - $diskonRate);
+            // Harga per unit setelah diskon item
+            $hargaPerUnit = $detail->qty > 0 ? ($detail->subtotal / $detail->qty) : $detail->harga_satuan;
 
-            if ($sisaRetur > 0) {
-                $produkList[] = [
-                    'id' => $detail->produk_id,
-                    'nama_produk' => $detail->produk->nama_produk,
-                    'kode_produk' => $detail->produk->kode_produk,
-                    'harga_satuan' => round($hargaSatuanNetto, 2), // harga bersih (netto)
-                    'harga_awal' => $detail->harga_satuan,
-                    'qty_dijual' => $detail->qty,
-                    'sisa_retur' => $sisaRetur,
-                    'diskon_diterapkan' => $isDiskonApplied,
-                ];
-            }
+            // Terapkan diskon transaksi secara proporsional
+            $hargaNettoPerUnit = $hargaPerUnit * (1 - $diskonRateTransaksi);
+
+            $produkList[] = [
+                'id' => $detail->produk_id,
+                'kode_produk' => $detail->produk->kode_produk ?? null,
+                'nama_produk' => $detail->produk->nama_produk ?? 'Produk tidak ditemukan',
+                'qty_dijual' => $detail->qty,
+                'sisa_retur' => (int) $sisaRetur,
+                'harga_satuan' => (float) round($hargaNettoPerUnit, 2),
+            ];
         }
 
         return response()->json($produkList);
@@ -89,67 +94,99 @@ class ReturPenjualanController extends Controller
 
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
+        $validated = $request->validate([
             'tanggal_retur' => 'required|date|before_or_equal:today',
             'penjualan_id' => 'required|uuid|exists:penjualans,id',
-            'produk_id' => 'required|uuid|exists:produks,id',
-            'jumlah_retur' => 'required|integer|min:1',
-            'harga_satuan' => 'required|numeric|min:0',
-            'alasan_retur' => 'required|string|max:255',
+            'retur_items' => 'required|array|min:1',
+            'retur_items.*.produk_id' => 'required|uuid|exists:produks,id',
+            'retur_items.*.jumlah_retur' => 'required|integer|min:1',
+            'retur_items.*.harga_satuan' => 'required|numeric|min:0',
+            'retur_items.*.alasan_retur' => 'required|string|max:255',
         ]);
-
-        $nilaiRetur = $validatedData['jumlah_retur'] * $validatedData['harga_satuan'];
-
-        $existingReturs = ReturPenjualan::where('penjualan_id', $validatedData['penjualan_id'])
-            ->where('produk_id', $validatedData['produk_id'])
-            ->sum('jumlah_retur');
-
-        $detailPenjualan = DetailPenjualan::where('penjualan_id', $validatedData['penjualan_id'])
-            ->where('produk_id', $validatedData['produk_id'])
-            ->first();
-
-        if (!$detailPenjualan || ($detailPenjualan->qty - $existingReturs) < $validatedData['jumlah_retur']) {
-            return back()->with('error', 'Jumlah retur melebihi batas maksimal.')->withInput();
-        }
 
         DB::beginTransaction();
         try {
-            $kodeRetur = $this->generateKodeRetur();
+            $penjualan = Penjualan::findOrFail($validated['penjualan_id']);
+            $kodeRetur = $this->generateKodeRetur(); // hanya sekali per transaksi retur
 
-            ReturPenjualan::create([
-                'kode_retur' => $kodeRetur,
-                'tanggal_retur' => $validatedData['tanggal_retur'],
-                'penjualan_id' => $validatedData['penjualan_id'],
-                'produk_id' => $validatedData['produk_id'],
-                'jumlah_retur' => $validatedData['jumlah_retur'],
-                'alasan_retur' => $validatedData['alasan_retur'],
-                'nilai_retur' => $nilaiRetur,
-                'user_id' => Auth::id(),
-            ]);
+            $totalNilaiRetur = 0;
 
-            $produk = Produk::lockForUpdate()->find($validatedData['produk_id']);
-            if (!$produk) {
-                DB::rollBack();
-                return back()->with('error', 'Produk tidak ditemukan.')->withInput();
+            foreach ($validated['retur_items'] as $item) {
+                $detail = DetailPenjualan::where('penjualan_id', $penjualan->id)
+                    ->where('produk_id', $item['produk_id'])
+                    ->first();
+
+                if (!$detail) continue;
+
+                $existingRetur = ReturPenjualan::where('penjualan_id', $penjualan->id)
+                    ->where('produk_id', $item['produk_id'])
+                    ->sum('jumlah_retur');
+
+                $sisa = $detail->qty - $existingRetur;
+                if ($item['jumlah_retur'] > $sisa) {
+                    DB::rollBack();
+                    return back()->with('error', "Jumlah retur untuk produk {$detail->produk->nama_produk} melebihi batas.")->withInput();
+                }
+
+                $nilaiRetur = $item['jumlah_retur'] * $item['harga_satuan'];
+                $totalNilaiRetur += $nilaiRetur;
+
+                // Simpan retur produk (masih 1 kode_retur yang sama)
+                ReturPenjualan::create([
+                    'kode_retur' => $kodeRetur,
+                    'tanggal_retur' => $validated['tanggal_retur'],
+                    'penjualan_id' => $penjualan->id,
+                    'produk_id' => $item['produk_id'],
+                    'jumlah_retur' => $item['jumlah_retur'],
+                    'alasan_retur' => $item['alasan_retur'],
+                    'nilai_retur' => $nilaiRetur,
+                    'user_id' => Auth::id(),
+                ]);
+
+                // Update stok
+                $produk = Produk::lockForUpdate()->find($item['produk_id']);
+                if ($produk) {
+                    $produk->stok_produk += $item['jumlah_retur'];
+                    $produk->save();
+                }
             }
 
-            $produk->stok_produk += $validatedData['jumlah_retur'];
-            $produk->save();
+            // Cek total nilai retur
+            if ($totalNilaiRetur > $penjualan->total_bayar) {
+                DB::rollBack();
+                return back()->with('error', 'Total nilai retur melebihi total pembayaran penjualan!')->withInput();
+            }
 
             DB::commit();
+
             return redirect()->route('retur-penjualan.index')
-                ->with('success', "Retur $kodeRetur berhasil disimpan. Nilai kembali: Rp " . number_format($nilaiRetur, 0, ',', '.'));
+                ->with('success', "Retur {$kodeRetur} berhasil disimpan dengan total: Rp " . number_format($totalNilaiRetur, 0, ',', '.'));
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Gagal menyimpan retur: ' . $e->getMessage())->withInput();
         }
     }
 
+
     private function generateKodeRetur()
     {
-        $prefix = 'RPJ' . Carbon::now()->format('Ym');
-        $latest = ReturPenjualan::where('kode_retur', 'like', $prefix . '%')->latest('kode_retur')->first();
-        $number = $latest ? ((int) substr($latest->kode_retur, -5)) + 1 : 1;
-        return $prefix . str_pad($number, 5, '0', STR_PAD_LEFT);
+        $prefix = 'RPJ' . date('Ym'); // contoh: RPJ202510
+
+        // Ambil kode terakhir yang paling besar dari database
+        $latestKode = DB::table('retur_penjualans')
+            ->where('kode_retur', 'like', $prefix . '%')
+            ->orderByDesc('kode_retur')
+            ->value('kode_retur'); // ambil langsung nilainya
+
+        if ($latestKode) {
+            // Ambil 5 digit terakhir sebagai angka urut
+            $lastNumber = intval(substr($latestKode, -5));
+            $newNumber = $lastNumber + 1;
+        } else {
+            $newNumber = 1;
+        }
+
+        // Kembalikan kode baru
+        return $prefix . str_pad($newNumber, 5, '0', STR_PAD_LEFT);
     }
 }

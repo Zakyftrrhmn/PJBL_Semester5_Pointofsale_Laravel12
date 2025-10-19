@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('retur_penjualans', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('kode_retur', 30)->unique(); // Contoh: RPJ20240001
+            $table->string('kode_retur', 30); // Contoh: RPJ20240001
             $table->date('tanggal_retur');
 
             // Relasi ke Penjualan
