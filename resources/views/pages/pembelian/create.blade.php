@@ -112,11 +112,17 @@
                                                 :value="produk.id">
                                         </td>
                                         <td class="whitespace-nowrap px-4 py-3 text-gray-700">
-                                            <input type="number" :name="'produk[' + index + '][harga_beli]'"
-                                                x-model.number="produk.harga_beli" @change="hitungUlang"
-                                                class="w-full rounded-lg border border-gray-200 p-2 text-sm text-gray-700 placeholder-gray-400 shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                                                min="1" required>
+                                            <div class="flex flex-col">
+                                                <input type="number" :name="'produk[' + index + '][harga_beli]'"
+                                                    x-model.number="produk.harga_beli" @change="hitungUlang"
+                                                    class="w-full rounded-lg border border-gray-200 p-2 text-sm text-gray-700 bg-gray-100 shadow-sm"
+                                                    min="1" readonly>
+                                                <span class="text-xs text-gray-500 italic">
+                                                    Harga beli hanya dapat diubah melalui fitur Produk.
+                                                </span>
+                                            </div>
                                         </td>
+
                                         <td class="whitespace-nowrap px-4 py-3 text-gray-700">
                                             <input type="number" :name="'produk[' + index + '][jumlah]'"
                                                 x-model.number="produk.jumlah" @change="hitungUlang"
@@ -159,7 +165,7 @@
                                 <div class="flex justify-between items-center">
                                     <label for="diskon" class="text-sm text-gray-600">Diskon (Rp):</label>
                                     <input type="number" id="diskon" name="diskon" x-model.number="diskon"
-                                        min="0" @change="hitungTotalBayar"
+                                        min="0" :max="totalHargaBruto" @input="validasiDiskon"
                                         class="w-32 rounded-lg border border-gray-200 p-2 text-sm text-gray-700 shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100">
                                     @error('diskon')
                                         <p class="text-xs text-red-500">{{ $message }}</p>
@@ -274,10 +280,21 @@
                     this.hitungTotalBayar();
                 },
 
+
                 hitungTotalBayar() {
                     let total = this.totalHargaBruto - this.diskon + this.ppn;
                     this.totalBayar = Math.max(0, total); // Pastikan total tidak minus
                 },
+
+                validasiDiskon() {
+                    if (this.diskon < 0) {
+                        this.diskon = 0;
+                    } else if (this.diskon > this.totalHargaBruto) {
+                        this.diskon = this.totalHargaBruto;
+                    }
+                    this.hitungTotalBayar();
+                },
+
 
                 formatRupiah(angka) {
                     return 'Rp ' + (angka ?? 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");

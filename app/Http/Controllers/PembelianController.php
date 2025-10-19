@@ -28,7 +28,7 @@ class PembelianController extends Controller
     public function create()
     {
         $pemasoks = Pemasok::orderBy('nama_pemasok')->get();
-        $produks  = Produk::where('is_active', 'active')->orderBy('nama_produk')->get();
+        $produks  = Produk::orderBy('nama_produk')->get();
         return view('pages.pembelian.create', compact('pemasoks', 'produks'));
     }
 

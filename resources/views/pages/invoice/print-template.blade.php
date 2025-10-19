@@ -355,7 +355,7 @@
 
                         {{-- HANYA TAMPILKAN DATA DISKON JIKA isDiscountApplied=true --}}
                         @if ($isDiscountApplied)
-                            <td class="text-center">{{ $detail->diskon_percent ?? 0 }}%</td>
+                            <td class="text-center">{{ number_format($detail->diskon_percent ?? 0, 0) }}%</td>
                         @endif
 
                         {{-- Tampilkan Total Item Sesuai Logika Cetak --}}

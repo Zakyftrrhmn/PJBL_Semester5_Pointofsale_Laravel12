@@ -15,9 +15,7 @@ class ReturPembelianController extends Controller
         $this->middleware('permission:retur-pembelian.index')->only('index');
         $this->middleware('permission:retur-pembelian.create')->only(['create', 'store']);
     }
-    /**
-     * Display a listing of the resource (Daftar Retur Pembelian).
-     */
+
     public function index(Request $request)
     {
         $returs = ReturPembelian::with(['pembelian.pemasok', 'produk'])
@@ -34,34 +32,41 @@ class ReturPembelianController extends Controller
         return view('pages.retur_pembelian.index', compact('returs'));
     }
 
-    /**
-     * Show the form for creating a new resource (Form Retur).
-     */
     public function create()
     {
         $pembelians = Pembelian::orderBy('kode_pembelian', 'desc')->get();
         return view('pages.retur_pembelian.create', compact('pembelians'));
     }
 
-    /**
-     * Get detail produk yang ada di transaksi pembelian
-     */
     public function getProdukByPembelian($pembelianId)
     {
         $pembelian = Pembelian::with('detailPembelians.produk')->findOrFail($pembelianId);
-        return response()->json($pembelian->detailPembelians->map(function ($detail) {
+
+        $totalDiskon = $pembelian->diskon ?? 0;
+        $totalHargaBruto = $pembelian->total_harga_bruto ?? $pembelian->detailPembelians->sum(function ($d) {
+            return ($d->subtotal ?? ($d->harga_beli * $d->jumlah));
+        });
+
+        $data = $pembelian->detailPembelians->map(function ($detail) use ($totalDiskon, $totalHargaBruto, $pembelianId) {
+            $detailSubtotal = $detail->subtotal ?? ($detail->harga_beli * $detail->jumlah);
+            $diskonPerProduk = $totalHargaBruto > 0 ? ($detailSubtotal / $totalHargaBruto) * $totalDiskon : 0;
+            $hargaBersihPerUnit = $detail->jumlah > 0 ? (($detailSubtotal - $diskonPerProduk) / $detail->jumlah) : 0;
+            $sudahDiretur = ReturPembelian::where('pembelian_id', $pembelianId)
+                ->where('produk_id', $detail->produk->id)
+                ->sum('jumlah_retur');
+            $maxRetur = max(0, ($detail->jumlah ?? 0) - $sudahDiretur);
+
             return [
-                'id'         => $detail->produk->id,
+                'id' => $detail->produk->id,
                 'nama_produk' => $detail->produk->nama_produk,
-                'harga_beli' => $detail->harga_beli,
-                'max_retur'  => $detail->jumlah, // jumlah produk yang dibeli
+                'harga_beli' => round($hargaBersihPerUnit, 2),
+                'max_retur' => (int) $maxRetur,
             ];
-        }));
+        });
+
+        return response()->json($data);
     }
 
-    /**
-     * Store a newly created resource in storage (Simpan Retur).
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -70,15 +75,41 @@ class ReturPembelianController extends Controller
             'produk_id'     => 'required|exists:produks,id',
             'jumlah_retur'  => 'required|integer|min:1',
             'alasan_retur'  => 'required|string|max:255',
-            'harga_beli'    => 'required|numeric|min:0',
         ]);
 
+        DB::beginTransaction();
         try {
-            DB::beginTransaction();
+            $detail = DB::table('detail_pembelians')
+                ->where('pembelian_id', $request->pembelian_id)
+                ->where('produk_id', $request->produk_id)
+                ->first();
 
-            $nilaiRetur = $request->harga_beli * $request->jumlah_retur;
+            if (!$detail) {
+                DB::rollBack();
+                return back()->withInput()->with('error', 'Produk tidak ditemukan dalam transaksi pembelian ini.');
+            }
 
-            // 1. Buat Data Retur Pembelian
+            $totalReturSebelumnya = ReturPembelian::where('pembelian_id', $request->pembelian_id)
+                ->where('produk_id', $request->produk_id)
+                ->sum('jumlah_retur');
+
+            if ($totalReturSebelumnya + $request->jumlah_retur > $detail->jumlah) {
+                DB::rollBack();
+                return back()->withInput()->with('error', 'Jumlah retur melebihi jumlah produk yang dibeli.');
+            }
+
+            $pembelian = Pembelian::with('detailPembelians')->findOrFail($request->pembelian_id);
+            $totalDiskon = $pembelian->diskon ?? 0;
+            $totalHargaBruto = $pembelian->total_harga_bruto ?? $pembelian->detailPembelians->sum(function ($d) {
+                return ($d->subtotal ?? ($d->harga_beli * $d->jumlah));
+            });
+
+            $detailModel = collect($pembelian->detailPembelians)->firstWhere('produk_id', $request->produk_id);
+            $detailSubtotal = $detailModel->subtotal ?? ($detailModel->harga_beli * $detailModel->jumlah);
+            $diskonPerProduk = $totalHargaBruto > 0 ? ($detailSubtotal / $totalHargaBruto) * $totalDiskon : 0;
+            $hargaBersihPerUnit = $detailModel->jumlah > 0 ? ($detailSubtotal - $diskonPerProduk) / $detailModel->jumlah : 0;
+            $nilaiRetur = $hargaBersihPerUnit * $request->jumlah_retur;
+
             ReturPembelian::create([
                 'tanggal_retur' => $request->tanggal_retur,
                 'pembelian_id'  => $request->pembelian_id,
@@ -88,13 +119,11 @@ class ReturPembelianController extends Controller
                 'nilai_retur'   => $nilaiRetur,
             ]);
 
-            // 2. Kurangi Stok Produk
             $produk = Produk::find($request->produk_id);
-            $produk->stok_produk -= $request->jumlah_retur;
+            $produk->stok_produk = max(0, ($produk->stok_produk ?? 0) - $request->jumlah_retur);
             $produk->save();
 
             DB::commit();
-
             return redirect()->route('retur-pembelian.index')->with('success', 'Retur Pembelian berhasil disimpan dan stok produk telah dikurangi!');
         } catch (\Exception $e) {
             DB::rollBack();
