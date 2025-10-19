@@ -56,6 +56,7 @@ class DashboardController extends Controller
 
         // =================================================================
         // 3. WARNING STOK (Low Stock Products)
+        // (tidak mengubah nama kolom; menggunakan kolom yang ada di DB kamu)
         // =================================================================
 
         $stokHampirHabis = Produk::whereColumn('stok_produk', '<=', 'pengingat_stok')
@@ -65,7 +66,7 @@ class DashboardController extends Controller
         $countStokHampirHabis = Produk::whereColumn('stok_produk', '<=', 'pengingat_stok')->count();
 
         // =================================================================
-        // 4. TOP SELLING PRODUCTS (***PERBAIKAN TERAKHIR DI SINI***)
+        // 4. TOP SELLING PRODUCTS (tetap seperti sebelumnya)
         // =================================================================
 
         $topSellingProducts = Penjualan::join('detail_penjualans', 'penjualans.id', '=', 'detail_penjualans.penjualan_id')
@@ -74,12 +75,30 @@ class DashboardController extends Controller
                 'produks.id',
                 'produks.nama_produk',
                 'produks.harga_jual',
-                // UBAH DARI SUM(detail_penjualans.jumlah)
-                DB::raw('SUM(detail_penjualans.qty) as total_terjual') // <-- ASUMSI: Nama kolom kuantitas adalah 'qty'
+                DB::raw('SUM(detail_penjualans.qty) as total_terjual')
             )
             ->where('penjualans.created_at', '>=', $startDate)
             ->groupBy('produks.id', 'produks.nama_produk', 'produks.harga_jual')
             ->orderByDesc('total_terjual')
+            ->take(5)
+            ->get();
+
+        // =================================================================
+        // 4B. TOP CUSTOMERS (BARU) — berdasarkan total pembelian
+        // =================================================================
+
+        $topCustomers = Penjualan::join('pelanggans', 'penjualans.pelanggan_id', '=', 'pelanggans.id')
+            ->select(
+                'pelanggans.id',
+                'pelanggans.nama_pelanggan',
+                'pelanggans.telp as nomor_hp',
+                'pelanggans.photo_pelanggan',
+                DB::raw('SUM(penjualans.total_bayar) as total_belanja'),
+                DB::raw('COUNT(penjualans.id) as total_transaksi')
+            )
+            ->where('penjualans.created_at', '>=', $startDate)
+            ->groupBy('pelanggans.id', 'pelanggans.nama_pelanggan', 'pelanggans.telp', 'pelanggans.photo_pelanggan')
+            ->orderByDesc('total_belanja')
             ->take(5)
             ->get();
 
@@ -126,7 +145,6 @@ class DashboardController extends Controller
             $netSalesData[] = $net;
         }
 
-
         return view('pages.dashboard.index', [
             'filter' => $filter,
             'totalPenjualan' => $totalPenjualan,
@@ -143,6 +161,7 @@ class DashboardController extends Controller
             'stokHampirHabis' => $stokHampirHabis,
             'countStokHampirHabis' => $countStokHampirHabis,
             'topSellingProducts' => $topSellingProducts,
+            'topCustomers' => $topCustomers, // <-- data baru untuk view
             'chartLabels' => $labels,
             'chartData' => $netSalesData,
         ]);

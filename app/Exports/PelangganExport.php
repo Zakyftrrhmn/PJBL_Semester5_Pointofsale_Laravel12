@@ -10,7 +10,7 @@ class PelangganExport implements FromCollection, WithHeadings
 {
     public function collection()
     {
-        return Pelanggan::select('nama_pelanggan', 'telp', 'email')->get();
+        return Pelanggan::whereRaw('LOWER(nama_pelanggan) != ?', ['umum'])->select('nama_pelanggan', 'telp', 'email')->get();
     }
 
     public function headings(): array

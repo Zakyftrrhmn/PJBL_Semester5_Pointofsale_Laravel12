@@ -26,7 +26,7 @@ class PelangganController extends Controller
      */
     public function index(Request $request)
     {
-        $pelanggans = Pelanggan::when($request->search, function ($query, $search) {
+        $pelanggans = Pelanggan::whereRaw('LOWER(nama_pelanggan) != ?', ['umum'])->when($request->search, function ($query, $search) {
             $query->where('nama_pelanggan', 'like', "%{$search}%");
         })->latest()->paginate(15)->withQueryString();
         return view('pages.pelanggan.index', compact('pelanggans'));
@@ -77,6 +77,11 @@ class PelangganController extends Controller
      */
     public function edit(Pelanggan $pelanggan)
     {
+        // Cegah edit pelanggan bernama 'Umum'
+        if (strtolower($pelanggan->nama_pelanggan) === 'umum') {
+            return redirect()->route('pelanggan.index')->with('error', 'Pelanggan "Umum" tidak dapat diedit.');
+        }
+
         return view('pages.pelanggan.edit', compact('pelanggan'));
     }
 
@@ -112,6 +117,11 @@ class PelangganController extends Controller
      */
     public function destroy(Pelanggan $pelanggan)
     {
+        // Cegah hapus pelanggan bernama 'Umum'
+        if (strtolower($pelanggan->nama_pelanggan) === 'umum') {
+            return redirect()->route('pelanggan.index')->with('error', 'Pelanggan "Umum" tidak dapat dihapus.');
+        }
+
         if ($pelanggan->photo_pelanggan && Storage::disk('public')->exists($pelanggan->photo_pelanggan)) {
             Storage::disk('public')->delete($pelanggan->photo_pelanggan);
         }
@@ -131,7 +141,8 @@ class PelangganController extends Controller
         ini_set('memory_limit', '1024M');
         set_time_limit(600);
 
-        $pelanggans = Pelanggan::all();
+        $pelanggans = Pelanggan::whereRaw('LOWER(nama_pelanggan) != ?', ['umum'])->get();
+
         $pdf = Pdf::loadView('pages.pelanggan.pdf', compact('pelanggans'));
         return $pdf->download('pelanggan.pdf');
     }

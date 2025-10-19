@@ -221,6 +221,77 @@
                     <p class="text-gray-500 text-center py-4">Semua stok berada di atas batas pengingat.</p>
                 @endif
             </div>
+            {{-- === TOP CUSTOMERS (Pelanggan Teratas) === --}}
+            <div class="rounded-xl border border-gray-200 bg-white shadow-md p-6 mt-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                        <i class='bx bxs-user-detail text-xl mr-2 text-blue-500'></i> Top Customers
+                    </h3>
+                    <span class="text-sm text-gray-500">Periode: {{ ucfirst($filter) }}</span>
+                </div>
+
+                @if ($topCustomers->isEmpty())
+                    <p class="text-gray-500 text-center py-4">Belum ada data pelanggan pada periode ini.</p>
+                @else
+                    <ul class="divide-y divide-gray-100">
+                        @foreach ($topCustomers as $index => $customer)
+                            <li class="flex items-center justify-between py-3">
+                                <div class="flex items-center space-x-3">
+                                    {{-- Avatar bulat --}}
+                                    <div
+                                        class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold">
+                                        {{ strtoupper(substr($customer->nama_pelanggan, 0, 1)) }}
+                                    </div>
+
+                                    <div class="text-sm">
+                                        <div class="flex items-center gap-2">
+                                            <p class="font-medium text-gray-900">{{ $customer->nama_pelanggan }}</p>
+
+                                            {{-- 🏆 Gelar Berdasarkan Ranking --}}
+                                            @switch($index)
+                                                @case(0)
+                                                    <span
+                                                        class="text-xs font-semibold text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded-full">
+                                                        🏆 Top 1
+                                                    </span>
+                                                @break
+
+                                                @case(1)
+                                                    <span
+                                                        class="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
+                                                        🥈 Top 2
+                                                    </span>
+                                                @break
+
+                                                @case(2)
+                                                    <span
+                                                        class="text-xs font-semibold text-orange-600 bg-orange-100 px-2 py-0.5 rounded-full">
+                                                        🥉 Top 3
+                                                    </span>
+                                                @break
+
+                                                @default
+                                                    <span
+                                                        class="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
+                                                        Top {{ $index + 1 }}
+                                                    </span>
+                                            @endswitch
+                                        </div>
+
+                                        <p class="text-gray-500 text-xs">Transaksi: {{ $customer->total_transaksi }}x</p>
+                                    </div>
+                                </div>
+
+                                {{-- Total Belanja --}}
+                                <span class="text-sm font-bold text-green-600 bg-green-50 px-2.5 py-0.5 rounded-full">
+                                    Rp {{ number_format($customer->total_belanja, 0, ',', '.') }}
+                                </span>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
+
         </div>
 
         {{-- === BAGIAN GRAFIK PENJUALAN BERSIH === --}}
