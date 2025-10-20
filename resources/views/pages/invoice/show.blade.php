@@ -120,7 +120,9 @@
                         <i class='bx bx-printer mr-2 text-lg'></i> Cetak (Tanpa Diskon)
                     </a>
 
-                    @if ($penjualan->diskon_nominal > 0)
+                    @if (
+                        $penjualan->diskon_nominal > 0 ||
+                            $penjualan->detailPenjualans->contains(fn($detail) => ($detail->diskon_percent ?? 0) > 0))
                         <a href="{{ route('invoice.print.diskon', $penjualan->id) }}" target="_blank"
                             class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700">
                             <i class='bx bx-printer mr-2 text-lg'></i> Cetak (Dengan Diskon)

@@ -155,7 +155,7 @@ class POSController extends Controller
             $jumlahBayar = $cleanCurrency($request->jumlah_bayar);
 
             // Toleransi selisih 1 rupiah
-            if (abs($jumlahBayar - $totalBayarComputed) > 1) {
+            if ($jumlahBayar < $totalBayarComputed) {
                 DB::rollBack();
                 return redirect()->back()
                     ->with('error', 'Jumlah bayar tidak mencukupi. Total yang harus dibayar: Rp ' . number_format($totalBayarComputed, 0, ',', '.'))

@@ -338,32 +338,36 @@
             <tbody>
                 @foreach ($penjualan->detailPenjualans as $detail)
                     @php
-                        // Total Item Murni: Harga Satuan * Qty
+                        // Hitung total tanpa diskon
                         $totalItemMurni = $detail->harga_satuan * $detail->qty;
 
-                        // Tentukan nilai total yang akan ditampilkan berdasarkan tipe cetak
-                        $totalItemDisplay =
-                            $item_total_type == ''
-                                ? $totalItemMurni // Jika Cetak Tanpa Diskon (Harga Murni)
-                                : $detail->subtotal; // Jika Cetak Dengan Diskon (Subtotal terdiskon item)
+                        // Kalau print MURNI -> pakai total asli
+                        if ($item_total_type === 'MURNI') {
+                            $totalItemDisplay = $totalItemMurni;
+                        } else {
+                            // Kalau print DISKON, hitung total setelah diskon
+                            $diskonPersen = $detail->diskon_percent ?? 0;
+                            $diskonNilai = ($diskonPersen / 100) * $totalItemMurni;
+                            $totalItemDisplay = $totalItemMurni - $diskonNilai;
+                        }
                     @endphp
+
                     <tr>
                         <td>{{ $detail->produk->kode_produk ?? '-' }}</td>
                         <td>{{ $detail->produk->nama_produk }}</td>
                         <td class="text-right">Rp {{ number_format($detail->harga_satuan, 0, ',', '.') }}</td>
                         <td class="text-center">{{ $detail->qty }}</td>
 
-                        {{-- HANYA TAMPILKAN DATA DISKON JIKA isDiscountApplied=true --}}
+                        {{-- Tampilkan kolom diskon hanya jika ada diskon --}}
                         @if ($isDiscountApplied)
                             <td class="text-center">{{ number_format($detail->diskon_percent ?? 0, 0) }}%</td>
                         @endif
 
-                        {{-- Tampilkan Total Item Sesuai Logika Cetak --}}
                         <td class="text-right">Rp {{ number_format($totalItemDisplay, 0, ',', '.') }}</td>
                     </tr>
                 @endforeach
-
             </tbody>
+
         </table>
 
         {{-- === TOTAL & DISKON === --}}
