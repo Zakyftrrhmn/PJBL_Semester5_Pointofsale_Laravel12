@@ -260,6 +260,16 @@
             margin: 2px 0;
             line-height: 1.4;
         }
+
+        .status-partial-retur {
+            color: #e67e22;
+            /* Orange color */
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 8pt;
+            font-weight: bold;
+            display: inline-block;
+        }
     </style>
 </head>
 
@@ -338,11 +348,15 @@
                     <td>{{ $pembelian->kode_pembelian }}</td>
                     {{-- PASTIKAN Menggunakan relasi 'pemasok' dan null coalescing untuk menghindari error --}}
                     <td>{{ $pembelian->pemasok->nama_pemasok ?? '-' }}</td>
-                    <td class="text-right">Rp{{ number_format($pembelian->total_bayar, 0, ',', '.') }}</td>
+                    <td class="text-right">Rp{{ number_format($pembelian->sisa_total_bayar, 0, ',', '.') }}</td>
                     <td class="text-center">
-                        @if ($pembelian->returPembelians->isNotEmpty())
+                        @if ($pembelian->total_nilai_retur >= $pembelian->total_bayar)
                             <span class="status-retur">
-                                Retur
+                                Retur Penuh
+                            </span>
+                        @elseif ($pembelian->total_nilai_retur > 0)
+                            <span class="status-partial-retur">
+                                Retur Sebagian
                             </span>
                         @else
                             <span class="status-complete">

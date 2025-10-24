@@ -96,7 +96,9 @@ class LaporanController extends Controller
             ->withQueryString();
 
         // Query untuk Total Bayar Keseluruhan (tanpa pagination)
-        $total_bayar_all = Pembelian::whereBetween('tanggal_pembelian', [$startDate, $endDate])
+        // KODE DIPERBAIKI: Harus ambil data dan menggunakan accessor 'sisa_total_bayar'
+        $totalBayarNettoCollection = Pembelian::with('returPembelians') // Load relasi retur untuk accessor
+            ->whereBetween('tanggal_pembelian', [$startDate, $endDate])
             ->when($status !== 'all', function ($query) use ($status) {
                 if ($status === 'completed') {
                     return $query->doesntHave('returPembelians');
@@ -104,7 +106,9 @@ class LaporanController extends Controller
                     return $query->has('returPembelians');
                 }
             })
-            ->sum('total_bayar');
+            ->get();
+
+        $total_bayar_all = $totalBayarNettoCollection->sum('sisa_total_bayar'); // <-- MENGGUNAKAN NETTO
 
         return view('pages.laporan.pembelian.index', [
             'pembelians' => $pembelians,
@@ -136,8 +140,8 @@ class LaporanController extends Controller
         $periode = Carbon::parse($startDate)->format('d F Y') . ' s/d ' . Carbon::parse($endDate)->format('d F Y');
 
         $statusLabel = match ($status) {
-            'completed' => 'Completed',
-            'return' => 'Retur',
+            'completed' => 'Completed (Tidak Ada Retur)',
+            'return' => 'Retur (Sebagian/Penuh)',
             default => 'Semua Status',
         };
 
@@ -154,14 +158,15 @@ class LaporanController extends Controller
                 }
             })
             ->orderBy('tanggal_pembelian', 'asc')
-            ->chunk(500, function ($rows) use ($pembelians) {
+            ->chunk(500, function ($rows) use (&$pembelians) {
                 foreach ($rows as $row) {
                     $pembelians->push($row);
                 }
             });
         // --- end chunk ---
 
-        $total_bayar_all = $pembelians->sum('total_bayar');
+        // KODE DIPERBAIKI: Summing 'sisa_total_bayar' (Netto)
+        $total_bayar_all = $pembelians->sum('sisa_total_bayar'); // <-- MENGGUNAKAN NETTO
         $filename = 'Laporan_Pembelian_' . str_replace([' ', '/', '(', ')'], '_', $periode) . '.pdf';
 
         $pdf = Pdf::setPaper('a4', 'portrait');
@@ -240,7 +245,7 @@ class LaporanController extends Controller
         // --- ISI DATA ---
         $row = 6;
         $index = 1;
-        $total_bayar_all = 0;
+        $total_bayar_all = 0; // Inisialisasi total Netto
 
         Pembelian::with(['returPembelians', 'pemasok'])
             ->whereBetween('tanggal_pembelian', [$startDate, $endDate])
@@ -254,13 +259,24 @@ class LaporanController extends Controller
             ->orderBy('tanggal_pembelian', 'asc')
             ->chunk(500, function ($rows) use (&$sheet, &$row, &$index, &$total_bayar_all) {
                 foreach ($rows as $pembelian) {
+
+                    // KODE DIPERBAIKI: Menggunakan accessor sisa_total_bayar (Netto)
+                    $bayarNetto = $pembelian->sisa_total_bayar;
+
                     $sheet->setCellValue('A' . $row, $index++);
                     $sheet->setCellValue('B' . $row, Carbon::parse($pembelian->tanggal_pembelian)->format('d/m/Y'));
                     $sheet->setCellValue('C' . $row, $pembelian->kode_transaksi);
                     $sheet->setCellValue('D' . $row, $pembelian->pemasok->nama ?? '-');
-                    $sheet->setCellValue('E' . $row, $pembelian->total_bayar);
+                    $sheet->setCellValue('E' . $row, $bayarNetto); // <-- MENAMPILKAN NETTO
 
-                    $status_display = $pembelian->returPembelians->isNotEmpty() ? 'Retur' : 'Completed';
+                    // Logika Status
+                    if ($pembelian->total_nilai_retur >= $pembelian->total_bayar) {
+                        $status_display = 'Retur Penuh';
+                    } elseif ($pembelian->total_nilai_retur > 0) {
+                        $status_display = 'Retur Sebagian';
+                    } else {
+                        $status_display = 'Completed';
+                    }
                     $sheet->setCellValue('F' . $row, $status_display);
 
                     $sheet->getStyle('A' . $row . ':F' . $row)->applyFromArray([
@@ -274,7 +290,8 @@ class LaporanController extends Controller
                     $sheet->getStyle('F' . $row)->getAlignment()
                         ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
 
-                    $total_bayar_all += $pembelian->total_bayar;
+                    // KODE DIPERBAIKI: Mengakumulasi 'sisa_total_bayar' (Netto)
+                    $total_bayar_all += $bayarNetto;
                     $row++;
                 }
             });
@@ -283,7 +300,7 @@ class LaporanController extends Controller
         $sheet->mergeCells('A' . $row . ':D' . $row);
         $sheet->setCellValue('A' . $row, 'TOTAL KESELURUHAN:');
         $sheet->getStyle('A' . $row)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
-        $sheet->setCellValue('E' . $row, $total_bayar_all);
+        $sheet->setCellValue('E' . $row, $total_bayar_all); // <-- MENAMPILKAN TOTAL NETTO
         $sheet->getStyle('E' . $row)->getNumberFormat()->setFormatCode('\"Rp\"#,##0');
         $sheet->getStyle('A' . $row . ':F' . $row)->getFont()->setBold(true);
         $sheet->getStyle('A' . $row . ':F' . $row)->getFill()

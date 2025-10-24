@@ -88,7 +88,6 @@ class DashboardController extends Controller
             ->get();
 
 
-
         // =================================================================
         // 4B. TOP CUSTOMERS
         // =================================================================
@@ -107,6 +106,56 @@ class DashboardController extends Controller
             ->orderByDesc('total_belanja')
             ->take(5)
             ->get();
+
+        // =================================================================
+        // 4C. TOP SUPPLIERS (FINAL FIX: Menggunakan Subquery untuk Pembelian Bersih - NET VALUE)
+        // =================================================================
+
+        $topSuppliers = Pemasok::select('id', 'nama_pemasok')
+
+            // 1. Ambil Total Pembelian Bruto (Dari kolom total_bayar yang menyimpan nilai awal/bruto)
+            ->addSelect([
+                'gross_value' => Pembelian::selectRaw('COALESCE(SUM(total_bayar), 0)')
+                    ->whereColumn('pemasok_id', 'pemasoks.id')
+                    ->where('created_at', '>=', $startDate),
+            ])
+
+            // 2. Ambil Total Nilai Retur (Menggunakan Subquery untuk menghindari duplikasi/fanout)
+            ->addSelect([
+                'retur_value' => ReturPembelian::join('pembelians', 'retur_pembelians.pembelian_id', '=', 'pembelians.id')
+                    ->selectRaw('COALESCE(SUM(retur_pembelians.nilai_retur), 0)')
+                    ->whereColumn('pembelians.pemasok_id', 'pemasoks.id')
+                    // Filter tanggal pada transaksi pembelian yang terkait
+                    ->where('pembelians.created_at', '>=', $startDate),
+            ])
+
+            // 3. Ambil Total Transaksi (Count)
+            ->addSelect([
+                'total_transaksi' => Pembelian::selectRaw('COUNT(id)')
+                    ->whereColumn('pemasok_id', 'pemasoks.id')
+                    ->where('created_at', '>=', $startDate),
+            ])
+
+            // 4. Filter Utama: Hanya tampilkan Pemasok yang memiliki transaksi pada periode ini
+            // Menggunakan whereIn untuk menghindari error relasi Pemasok::pembelians()
+            ->whereIn('id', function ($query) use ($startDate) {
+                $query->select('pemasok_id')
+                    ->from('pembelians')
+                    ->where('created_at', '>=', $startDate);
+            })
+            ->get()
+
+            // 5. Hitung Nilai Bersih (Net Purchase Value) di PHP (Collection)
+            ->map(function ($supplier) {
+                // total_pembelian = Gross Value - Retur Value (Nilai yang akan dibaca di Blade)
+                $supplier->total_pembelian = $supplier->gross_value - $supplier->retur_value;
+                return $supplier;
+            })
+
+            // 6. Urutkan kembali berdasarkan Nilai Bersih dan Ambil 5 Teratas
+            ->sortByDesc('total_pembelian')
+            ->take(5)
+            ->values();
 
         // =================================================================
         // 5. DATA UNTUK CHART PENJUALAN BERSIH
@@ -170,6 +219,7 @@ class DashboardController extends Controller
             'countStokHampirHabis' => $countStokHampirHabis,
             'topSellingProducts' => $topSellingProducts,
             'topCustomers' => $topCustomers,
+            'topSuppliers' => $topSuppliers, // <-- Variabel baru yang ditambahkan
             'chartLabels' => $labels,
             'chartData' => $netSalesData,
         ]);

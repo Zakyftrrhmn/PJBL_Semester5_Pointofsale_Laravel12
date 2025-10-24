@@ -72,9 +72,51 @@
                     </table>
                 </div>
 
-                {{-- Ringkasan Total --}}
+                {{-- BARU: Detail Retur Pembelian --}}
+                @if ($pembelian->total_nilai_retur > 0 && $pembelian->returPembelians->isNotEmpty())
+                    <h3 class="text-lg font-semibold text-red-600 mb-2 border-t pt-4">Detail Barang yang Diretur</h3>
+                    <div class="overflow-x-auto rounded-lg border border-red-300">
+                        <table class="min-w-full divide-y divide-red-200 text-sm">
+                            <thead class="bg-red-50">
+                                <tr>
+                                    <th class="whitespace-nowrap px-4 py-3 text-left font-medium text-red-800">Produk</th>
+                                    <th class="whitespace-nowrap px-4 py-3 text-left font-medium text-red-800">Jumlah Retur
+                                    </th>
+                                    <th class="whitespace-nowrap px-4 py-3 text-left font-medium text-red-800">Alasan Retur
+                                    </th>
+                                    <th class="whitespace-nowrap px-4 py-3 text-left font-medium text-red-800">Nilai Retur
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-red-200">
+                                @foreach ($pembelian->returPembelians as $retur)
+                                    <tr>
+                                        <td class="whitespace-nowrap px-4 py-3 text-red-700">
+                                            {{ $retur->produk->nama_produk ?? 'Produk Tidak Ditemukan' }}
+                                            <p class="text-xs text-red-400 font-mono">
+                                                ({{ $retur->produk->kode_produk ?? 'N/A' }})</p>
+                                        </td>
+                                        <td class="whitespace-nowrap px-4 py-3 text-red-700">
+                                            {{ $retur->jumlah_retur }}
+                                        </td>
+                                        <td class="whitespace-nowrap px-4 py-3 text-red-700">
+                                            {{ $retur->alasan_retur }}
+                                        </td>
+                                        <td class="whitespace-nowrap px-4 py-3 font-semibold text-red-900">
+                                            - Rp {{ number_format($retur->nilai_retur, 0, ',', '.') }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+                {{-- Akhir Detail Retur Pembelian BARU --}}
+
+                {{-- Ringkasan Total BARU (dengan Retur) --}}
                 <div class="mt-6 flex justify-end">
                     <div class="w-full max-w-sm space-y-2">
+                        {{-- Total Bruto, Diskon, PPN, dan Total Bayar Awal tetap sebagai record transaksi --}}
                         <div class="flex justify-between items-center text-sm">
                             <span class="text-gray-600">Total Harga Bruto:</span>
                             <span class="font-medium text-gray-800">Rp
@@ -90,15 +132,32 @@
                             <span class="font-medium text-gray-800">+ Rp
                                 {{ number_format($pembelian->ppn, 0, ',', '.') }}</span>
                         </div>
-                        <div class="flex justify-between items-center border-t pt-2">
-                            <span class="text-lg font-bold text-gray-800">TOTAL BAYAR:</span>
-                            <span class="text-xl font-extrabold text-indigo-600">
+                        <div class="flex justify-between items-center border-t border-dashed pt-2">
+                            <span class="text-base font-bold text-gray-800">Total Bayar Awal:</span>
+                            <span class="text-lg font-bold text-gray-900">
                                 Rp {{ number_format($pembelian->total_bayar, 0, ',', '.') }}
+                            </span>
+                        </div>
+
+                        {{-- Logika Retur --}}
+                        @if ($pembelian->total_nilai_retur > 0)
+                            <div class="flex justify-between items-center text-sm border-t pt-2">
+                                <span class="text-red-600 font-semibold">Total Nilai Retur:</span>
+                                <span class="font-bold text-red-600">- Rp
+                                    {{ number_format($pembelian->total_nilai_retur, 0, ',', '.') }}
+                                </span>
+                            </div>
+                        @endif
+
+                        {{-- Sisa Total Bayar Akhir --}}
+                        <div class="flex justify-between items-center border-t border-double pt-2">
+                            <span class="text-xl font-bold text-gray-800">SISA TOTAL BAYAR:</span>
+                            <span class="text-2xl font-extrabold text-indigo-600">
+                                Rp {{ number_format($pembelian->sisa_total_bayar, 0, ',', '.') }}
                             </span>
                         </div>
                     </div>
                 </div>
-
 
                 {{-- Tombol Aksi --}}
                 <div class="flex justify-end mt-6 gap-3 border-t pt-6">

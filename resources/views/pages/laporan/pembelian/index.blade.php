@@ -173,15 +173,30 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     {{ $pembelian->pemasok->nama_pemasok ?? '-' }}
                                 </td>
+
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                                    Rp{{ number_format($pembelian->total_bayar, 0, ',', '.') }}
+                                    {{-- Tampilkan Sisa Total Bayar (Setelah Retur) --}}
+                                    <span class="text-gray-900 font-semibold">
+                                        Rp{{ number_format($pembelian->sisa_total_bayar, 0, ',', '.') }}
+                                    </span>
+                                    {{-- Tampilkan detail retur jika ada --}}
+                                    @if ($pembelian->total_nilai_retur > 0)
+                                        <p class="text-xs text-red-500 italic">
+                                            (Retur: Rp {{ number_format($pembelian->total_nilai_retur, 0, ',', '.') }})
+                                        </p>
+                                    @endif
                                 </td>
 
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                    @if ($pembelian->returPembelians->isNotEmpty())
+                                    @if ($pembelian->total_nilai_retur >= $pembelian->total_bayar)
                                         <span
                                             class="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                            <i class='bx bxs-x-circle mr-1'></i> Retur
+                                            <i class='bx bxs-x-circle mr-1'></i> Retur Penuh
+                                        </span>
+                                    @elseif ($pembelian->total_nilai_retur > 0)
+                                        <span
+                                            class="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                            <i class='bx bxs-refresh mr-1'></i> Retur Sebagian
                                         </span>
                                     @else
                                         <span

@@ -10,8 +10,8 @@ class Pemasok extends Model
 {
     use HasFactory, HasUuids;
 
-    public $incrementing = false; 
-    protected $keyType = 'string'; 
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     protected $fillable = [
         'nama_pemasok',
@@ -20,4 +20,10 @@ class Pemasok extends Model
         'alamat',
         'photo_pemasok',
     ];
+
+    public function pembelians()
+    {
+        // Pemasok memiliki banyak Pembelian
+        return $this->hasMany(Pembelian::class, 'pemasok_id');
+    }
 }

@@ -72,12 +72,48 @@ class Pembelian extends Model
         return $this->hasMany(ReturPembelian::class);
     }
 
-    public function getStatusAttribute()
+    public function getStatusAttribute(): string
     {
-        if ($this->returPembelians()->exists()) {
-            return 'Returned';
+        // 1. Hitung total kuantitas produk yang dibeli dalam transaksi ini
+        // Memastikan relasi detailPembelians dimuat untuk menghitung total pembelian.
+        $totalBeli = $this->detailPembelians()->sum('jumlah');
+
+        if ($totalBeli === 0) {
+            return 'Completed';
         }
 
-        return 'Completed';
+        // 2. Hitung total kuantitas produk yang sudah diretur untuk transaksi ini
+        // Memastikan relasi returPembelians dimuat untuk menghitung total retur.
+        $totalRetur = $this->returPembelians()->sum('jumlah_retur');
+
+        // 3. Tentukan status
+        if ($totalRetur >= $totalBeli) {
+            // Diretur Sepenuhnya
+            return 'Returned';
+        } elseif ($totalRetur > 0 && $totalRetur < $totalBeli) {
+            // Diretur Sebagian
+            return 'Partially Returned';
+        } else {
+            // Tidak ada retur
+            return 'Completed';
+        }
+    }
+
+    public function getSisaTotalBayarAttribute(): float
+    {
+        // 1. Ambil nilai retur kumulatif untuk pembelian ini
+        // Nilai retur dihitung dan disimpan di ReturPembelianController::store()
+        $totalNilaiRetur = $this->returPembelians()->sum('nilai_retur');
+
+        // 2. Kurangi Total Bayar awal dengan Total Nilai Retur
+        // max(0, ...) untuk memastikan sisa pembayaran tidak negatif
+        $sisaBayar = max(0, $this->total_bayar - $totalNilaiRetur);
+
+        return $sisaBayar;
+    }
+
+    public function getTotalNilaiReturAttribute(): float
+    {
+        return $this->returPembelians()->sum('nilai_retur');
     }
 }

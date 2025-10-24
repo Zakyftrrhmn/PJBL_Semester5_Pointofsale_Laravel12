@@ -110,6 +110,7 @@ class ReturPembelianController extends Controller
             $hargaBersihPerUnit = $detailModel->jumlah > 0 ? ($detailSubtotal - $diskonPerProduk) / $detailModel->jumlah : 0;
             $nilaiRetur = $hargaBersihPerUnit * $request->jumlah_retur;
 
+            // 1. Buat data Retur Pembelian
             ReturPembelian::create([
                 'tanggal_retur' => $request->tanggal_retur,
                 'pembelian_id'  => $request->pembelian_id,
@@ -119,9 +120,14 @@ class ReturPembelianController extends Controller
                 'nilai_retur'   => $nilaiRetur,
             ]);
 
+            // 2. Kurangi Stok Produk
             $produk = Produk::find($request->produk_id);
             $produk->stok_produk = max(0, ($produk->stok_produk ?? 0) - $request->jumlah_retur);
             $produk->save();
+
+            // CATATAN: Logika pembaruan status Pembelian (Completed/Partially Returned/Returned)
+            // telah dipindahkan ke Pembelian Model sebagai Accessor (getStatusAttribute)
+            // untuk mendapatkan status secara dinamis.
 
             DB::commit();
             return redirect()->route('retur-pembelian.index')->with('success', 'Retur Pembelian berhasil disimpan dan stok produk telah dikurangi!');

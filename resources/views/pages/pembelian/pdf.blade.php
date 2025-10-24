@@ -141,7 +141,6 @@
         </tbody>
     </table>
 
-    {{-- === RINGKASAN TOTAL === --}}
     <div class="summary">
         <div>
             <span>Total Harga Bruto:</span>
@@ -155,9 +154,25 @@
             <span>PPN:</span>
             <span>+ Rp {{ number_format($pembelian->ppn, 0, ',', '.') }}</span>
         </div>
-        <div class="total">
-            <span>TOTAL BAYAR:</span>
+
+        {{-- Total Bayar Awal --}}
+        <div style="border-top: 1px dashed #aaa; padding-top: 5px;">
+            <span>Total Bayar Awal:</span>
             <span>Rp {{ number_format($pembelian->total_bayar, 0, ',', '.') }}</span>
+        </div>
+
+        {{-- Retur --}}
+        @if ($pembelian->total_nilai_retur > 0)
+            <div style="color: red;">
+                <span>Total Nilai Retur:</span>
+                <span>- Rp {{ number_format($pembelian->total_nilai_retur, 0, ',', '.') }}</span>
+            </div>
+        @endif
+
+        {{-- Total Bayar Akhir --}}
+        <div class="total">
+            <span>SISA TOTAL BAYAR:</span>
+            <span>Rp {{ number_format($pembelian->sisa_total_bayar, 0, ',', '.') }}</span>
         </div>
     </div>
 

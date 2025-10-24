@@ -89,13 +89,23 @@
                                     {{ $pembelian->pemasok->nama_pemasok ?? '-' }}
                                 </td>
                                 <td class="whitespace-nowrap px-4 py-3 text-gray-700 font-semibold">
-                                    Rp {{ number_format($pembelian->total_bayar, 0, ',', '.') }}
+                                    Rp {{ number_format($pembelian->sisa_total_bayar, 0, ',', '.') }}
+                                    @if ($pembelian->total_bayar != $pembelian->sisa_total_bayar)
+                                        <p class="text-xs text-red-500 italic">
+                                            (Awal: Rp {{ number_format($pembelian->total_bayar, 0, ',', '.') }})
+                                        </p>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
                                     @if ($pembelian->status === 'Returned')
                                         <span
                                             class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                            Returned
+                                            Dikembalikan Penuh
+                                        </span>
+                                    @elseif ($pembelian->status === 'Partially Returned')
+                                        <span
+                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                            Sebagian Dikembalikan
                                         </span>
                                     @else
                                         <span
@@ -103,6 +113,7 @@
                                             Completed
                                         </span>
                                     @endif
+
                                 </td>
                                 <td class="whitespace-nowrap px-4 py-3 flex items-center gap-2">
                                     <a href="{{ route('pesanan-pembelian.show', $pembelian->id) }}"
