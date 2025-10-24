@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Models\Penjualan;
 use App\Models\Pembelian;
-use App\Models\ReturPenjualan;
+// use App\Models\ReturPenjualan; // <-- dikomentar karena retur penjualan
 use App\Models\ReturPembelian;
 use App\Models\Produk;
 use App\Models\Pelanggan;
@@ -38,8 +38,12 @@ class DashboardController extends Controller
         // =================================================================
 
         $totalPenjualan = Penjualan::where('created_at', '>=', $startDate)->sum('total_bayar');
-        $totalReturPenjualan = ReturPenjualan::where('created_at', '>=', $startDate)->sum('nilai_retur');
-        $penjualanBersih = $totalPenjualan - $totalReturPenjualan;
+
+        // $totalReturPenjualan = ReturPenjualan::where('created_at', '>=', $startDate)->sum('nilai_retur'); // dikomentar
+        // $penjualanBersih = $totalPenjualan - $totalReturPenjualan; // dikomentar
+
+        $penjualanBersih = $totalPenjualan; // sebagai pengganti biar tidak error
+
         $totalPembelian = Pembelian::where('created_at', '>=', $startDate)->sum('total_bayar');
         $totalReturPembelian = ReturPembelian::where('created_at', '>=', $startDate)->sum('nilai_retur');
         $labaBersih = $penjualanBersih - ($totalPembelian - $totalReturPembelian);
@@ -55,8 +59,7 @@ class DashboardController extends Controller
         $jumlahInvoice = Penjualan::count();
 
         // =================================================================
-        // 3. WARNING STOK (Low Stock Products)
-        // (tidak mengubah nama kolom; menggunakan kolom yang ada di DB kamu)
+        // 3. WARNING STOK
         // =================================================================
 
         $stokHampirHabis = Produk::whereColumn('stok_produk', '<=', 'pengingat_stok')
@@ -66,7 +69,7 @@ class DashboardController extends Controller
         $countStokHampirHabis = Produk::whereColumn('stok_produk', '<=', 'pengingat_stok')->count();
 
         // =================================================================
-        // 4. TOP SELLING PRODUCTS (tetap seperti sebelumnya)
+        // 4. TOP SELLING PRODUCTS
         // =================================================================
 
         $topSellingProducts = Penjualan::join('detail_penjualans', 'penjualans.id', '=', 'detail_penjualans.penjualan_id')
@@ -84,7 +87,7 @@ class DashboardController extends Controller
             ->get();
 
         // =================================================================
-        // 4B. TOP CUSTOMERS (BARU) — berdasarkan total pembelian
+        // 4B. TOP CUSTOMERS
         // =================================================================
 
         $topCustomers = Penjualan::join('pelanggans', 'penjualans.pelanggan_id', '=', 'pelanggans.id')
@@ -116,22 +119,24 @@ class DashboardController extends Controller
             ->get()
             ->keyBy('tanggal');
 
-        $dataRetur = ReturPenjualan::select(
-            DB::raw('DATE(created_at) as tanggal'),
-            DB::raw('SUM(nilai_retur) as total_retur')
-        )
-            ->where('created_at', '>=', $startDate)
-            ->groupBy('tanggal')
-            ->get()
-            ->keyBy('tanggal');
+        // $dataRetur = ReturPenjualan::select(
+        //     DB::raw('DATE(created_at) as tanggal'),
+        //     DB::raw('SUM(nilai_retur) as total_retur')
+        // )
+        //     ->where('created_at', '>=', $startDate)
+        //     ->groupBy('tanggal')
+        //     ->get()
+        //     ->keyBy('tanggal');
 
         $labels = [];
         $netSalesData = [];
-        $allDates = $dataChart->keys()->merge($dataRetur->keys())->unique()->sort();
+        // $allDates = $dataChart->keys()->merge($dataRetur->keys())->unique()->sort(); // dikomentar
+        $allDates = $dataChart->keys(); // pengganti
 
         foreach ($allDates as $date) {
             $bruto = $dataChart->get($date)['total_penjualan_bruto'] ?? 0;
-            $retur = $dataRetur->get($date)['total_retur'] ?? 0;
+            // $retur = $dataRetur->get($date)['total_retur'] ?? 0; // dikomentar
+            $retur = 0; // placeholder
             $net = $bruto - $retur;
 
             if ($filter == 'daily' || $filter == 'all') {
@@ -148,7 +153,7 @@ class DashboardController extends Controller
         return view('pages.dashboard.index', [
             'filter' => $filter,
             'totalPenjualan' => $totalPenjualan,
-            'totalReturPenjualan' => $totalReturPenjualan,
+            // 'totalReturPenjualan' => $totalReturPenjualan, // dikomentar
             'penjualanBersih' => $penjualanBersih,
             'totalPembelian' => $totalPembelian,
             'totalReturPembelian' => $totalReturPembelian,
@@ -161,7 +166,7 @@ class DashboardController extends Controller
             'stokHampirHabis' => $stokHampirHabis,
             'countStokHampirHabis' => $countStokHampirHabis,
             'topSellingProducts' => $topSellingProducts,
-            'topCustomers' => $topCustomers, // <-- data baru untuk view
+            'topCustomers' => $topCustomers,
             'chartLabels' => $labels,
             'chartData' => $netSalesData,
         ]);

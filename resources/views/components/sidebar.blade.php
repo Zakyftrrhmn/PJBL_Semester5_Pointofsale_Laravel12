@@ -147,7 +147,8 @@
                     </ul>
                 @endcanany
 
-                @canany(['invoice.index', 'retur-penjualan.index'])
+                @canany(['invoice.index'])
+                    {{-- 'retur-penjualan.index' --}}
                     <hr class="w-full mb-2 bg-indigo-900 opacity-70">
                     <h3 class="mb-2 text-xs text-indigo-900 flex items-center justify-between text-lg font-medium">
                         <span class="menu-group-title" :class="sidebarToggle ? 'lg:hidden' : ''">Penjualan</span>
@@ -167,7 +168,7 @@
                             </li>
                         @endcan
 
-                        @can('retur-penjualan.index')
+                        {{-- @can('retur-penjualan.index')
                             <li>
                                 <a href="{{ route('retur-penjualan.index') }}"
                                     class="menu-item group hover:menu-item-active {{ request()->is('admin/retur-penjualan*') ? 'menu-item-active' : 'text-gray-800' }}">
@@ -176,7 +177,7 @@
                                         Penjualan</span>
                                 </a>
                             </li>
-                        @endcan
+                        @endcan --}}
                     </ul>
                 @endcanany
 

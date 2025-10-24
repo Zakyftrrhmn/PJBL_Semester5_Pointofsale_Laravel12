@@ -59,9 +59,17 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
     // <<< TAMBAHKAN ROUTE INI UNTUK AJAX PAGINATION >>>
     Route::get('pos/more-produk', [POSController::class, 'getMoreProduk'])->name('pos.more_produk');
 
+    
     Route::prefix('invoice')->group(function () {
         Route::get('/', [InvoiceController::class, 'index'])->name('invoice.index');
         Route::get('/{penjualan}', [InvoiceController::class, 'show'])->name('invoice.show');
+
+        // START: Route Edit dan Hapus (Ditambahkan)
+        Route::get('/{penjualan}/edit', [InvoiceController::class, 'edit'])->name('invoice.edit');
+        Route::put('/{penjualan}', [InvoiceController::class, 'update'])->name('invoice.update'); // Diperlukan untuk proses menyimpan perubahan
+        Route::delete('/{penjualan}', [InvoiceController::class, 'destroy'])->name('invoice.destroy');
+        // END: Route Edit dan Hapus
+
         Route::get('/print/no-diskon/{penjualan}', [InvoiceController::class, 'printNoDiscount'])->name('invoice.print.no-diskon');
         Route::get('/print/diskon/{penjualan}', [InvoiceController::class, 'printWithDiscount'])->name('invoice.print.diskon');
     });
@@ -91,8 +99,8 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
     // User Management
     Route::resource('user', UserController::class)->except(['show']);
 
-    Route::resource('retur-penjualan', ReturPenjualanController::class)->except(['show', 'edit', 'update', 'destroy']);
-    Route::get('retur-penjualan/get-produk', [ReturPenjualanController::class, 'getProdukByPenjualan'])->name('retur-penjualan.get-produk');
+    // Route::resource('retur-penjualan', ReturPenjualanController::class)->except(['show', 'edit', 'update', 'destroy']);
+    // Route::get('retur-penjualan/get-produk', [ReturPenjualanController::class, 'getProdukByPenjualan'])->name('retur-penjualan.get-produk');
 
     // Role & Permission Management
     Route::resource('role', RoleController::class);

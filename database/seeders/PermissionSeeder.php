@@ -97,8 +97,10 @@ class PermissionSeeder extends Seeder
             // INVENTORY - Riwayat Penjualan (Invoice)
             ['name' => 'invoice.index', 'group' => 'Penjualan', 'description' => 'Melihat riwayat penjualan (invoice)'],
             ['name' => 'invoice.show', 'group' => 'Penjualan', 'description' => 'Melihat detail invoice'],
+            ['name' => 'invoice.edit', 'group' => 'Penjualan', 'description' => 'Mengubah data transaksi penjualan'],
+            ['name' => 'invoice.destroy', 'group' => 'Penjualan', 'description' => 'Menghapus data transaksi penjualan'],
             ['name' => 'invoice.export', 'group' => 'Penjualan', 'description' => 'Export data penjualan/cetak struk'],
-
+            
             // PEMBELIAN
             ['name' => 'pembelian.create', 'group' => 'Pembelian', 'description' => 'Membuat transaksi pembelian baru'],
             ['name' => 'pembelian.index', 'group' => 'Pembelian', 'description' => 'Melihat daftar transaksi pembelian'],
@@ -127,11 +129,11 @@ class PermissionSeeder extends Seeder
             ['name' => 'retur-pembelian.destroy', 'group' => 'Retur Pembelian', 'description' => 'Menghapus retur pembelian'],
 
 
-            // Retur Pembelian
-            ['name' => 'retur-penjualan.index', 'group' => 'Retur penjualan', 'description' => 'Melihat daftar retur penjualan'],
-            ['name' => 'retur-penjualan.create', 'group' => 'Retur penjualan', 'description' => 'Membuat retur penjualan baru'],
-            ['name' => 'retur-penjualan.edit', 'group' => 'Retur penjualan', 'description' => 'Mengubah data retur penjualan'],
-            ['name' => 'retur-penjualan.destroy', 'group' => 'Retur penjualan', 'description' => 'Menghapus retur penjualan'],
+            // Retur Penjualan
+            // ['name' => 'retur-penjualan.index', 'group' => 'Retur penjualan', 'description' => 'Melihat daftar retur penjualan'],
+            // ['name' => 'retur-penjualan.create', 'group' => 'Retur penjualan', 'description' => 'Membuat retur penjualan baru'],
+            // ['name' => 'retur-penjualan.edit', 'group' => 'Retur penjualan', 'description' => 'Mengubah data retur penjualan'],
+            // ['name' => 'retur-penjualan.destroy', 'group' => 'Retur penjualan', 'description' => 'Menghapus retur penjualan'],
 
             // Barcode
             ['name' => 'barcode.index', 'group' => 'Barcode', 'description' => 'Akses halaman cetak barcode'],

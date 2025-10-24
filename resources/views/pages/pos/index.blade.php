@@ -1,13 +1,23 @@
 @extends('layouts.app')
 
-@section('title', 'Kasir (Point of Sale)')
-@section('subtitle', 'Transaksi Penjualan Baru')
-
+@section('title', isset($isEditMode) && $isEditMode ? 'Edit Transaksi Penjualan' : 'Kasir (Point of Sale)')
+@section('subtitle',
+    isset($isEditMode) && $isEditMode
+    ? 'Ubah Transaksi ' . $penjualan->kode_penjualan
+    : 'Transaksi
+    Penjualan Baru')
 @section('content')
 
     @php
         $produksForJs = $produksForJs;
         $pelanggansForJs = $pelanggans;
+        // Data inisialisasi tambahan untuk edit mode
+        $initialCart = $initialCart ?? [];
+        $initialPelangganId = $initialPelangganId ?? ($pelangganUmum->id ?? '');
+        $initialDiskonPercent = $initialDiskonPercent ?? 0;
+        $initialJumlahBayar = $initialJumlahBayar ?? null;
+        $isEditMode = $isEditMode ?? false;
+        $penjualanId = $penjualan->id ?? null;
     @endphp
 
     <div class="space-y-6">
@@ -25,7 +35,14 @@
         <div class="flex flex-col lg:flex-row gap-6" x-data="posData({
             initialProduks: @js($produksForJs),
             initialPelanggans: @js($pelanggansForJs),
-            pelangganUmumId: '{{ $pelangganUmum->id ?? '' }}'
+            pelangganUmumId: '{{ $pelangganUmum->id ?? '' }}',
+            // Data untuk Edit Mode
+            isEditMode: @js($isEditMode),
+            initialCart: @js($initialCart),
+            initialPelangganId: '{{ $initialPelangganId }}',
+            initialDiskonPercent: @js($initialDiskonPercent),
+            initialJumlahBayar: @js($initialJumlahBayar),
+            penjualanId: '{{ $penjualanId }}',
         })">
 
             {{-- Product Panel (Kiri) --}}
@@ -224,8 +241,15 @@
 
                 <hr class="my-4">
 
-                <form action="{{ route('pos.store') }}" method="POST" class="mt-auto">
+                <form
+                    :action="isEditMode ? '{{ route('invoice.update', ['penjualan' => $penjualanId ?? ':id']) }}'.replace(':id',
+                        penjualanId) : '{{ route('pos.store') }}'"
+                    method="POST" class="mt-auto">
                     @csrf
+
+                    <template x-if="isEditMode">
+                        @method('PUT')
+                    </template>
 
                     <input type="hidden" name="pelanggan_id" :value="pelanggan_id">
                     <input type="hidden" name="diskon_percent" :value="diskon_percent">
@@ -260,18 +284,25 @@
                 initialPelanggans: data.initialPelanggans,
                 pelangganUmumId: data.pelangganUmumId,
 
+                isEditMode: data.isEditMode,
+                penjualanId: data.penjualanId,
+                initialCart: data.initialCart,
+                initialPelangganId: data.initialPelangganId,
+                initialDiskonPercent: data.initialDiskonPercent,
+                initialJumlahBayar: data.initialJumlahBayar,
+
                 searchTerm: '',
                 filteredProduks: data.initialProduks,
-                cart: [],
-                pelanggan_id: data.pelangganUmumId,
+                // Inisialisasi cart, pelanggan_id, diskon_percent, dan jumlahBayar dari data edit jika ada
+                cart: data.isEditMode ? data.initialCart : [],
+                pelanggan_id: data.isEditMode ? data.initialPelangganId : data.pelangganUmumId,
 
                 // Diskon transaksi (persen)
-                diskon_percent: 0,
-                // Nominal diskon transaksi (hanya untuk tampilan)
+                diskon_percent: data.isEditMode ? data.initialDiskonPercent :
+                0, // Nominal diskon transaksi (hanya untuk tampilan)
                 diskon_trans_nominal: 0,
 
-                jumlahBayar: null,
-
+                jumlahBayar: data.isEditMode ? data.initialJumlahBayar : null,
                 // cartForServer adalah versi cart yang dikirim ke server (menyertakan diskon_percent per item)
                 get cartForServer() {
                     return this.cart.map(item => ({
@@ -304,7 +335,7 @@
                 get buttonText() {
                     if (this.cart.length === 0) return 'Tambah Produk Dahulu';
                     if (this.kembalian < 0) return 'Bayar Kurang ' + this.formatRupiah(Math.abs(this.kembalian));
-                    return 'Selesaikan Transaksi';
+                    return this.isEditMode ? 'Simpan Perubahan Transaksi' : 'Selesaikan Transaksi'; // Perubahan teks
                 },
 
                 init() {
@@ -364,6 +395,8 @@
                         }
                     } else {
                         const hargaJual = Number(produk.harga_jual) || 0;
+                        // Ketika menambah produk BARU di edit mode, stok produk yang digunakan adalah STOK AKTUAL SAAT INI
+                        // Stok aktual produk di `produk` sudah dihitung saat controller menginisialisasi $produksForJs
                         this.cart.push({
                             id: produk.id,
                             nama_produk: produk.nama_produk,

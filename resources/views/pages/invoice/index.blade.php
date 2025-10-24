@@ -3,6 +3,7 @@
 @section('subtitle', 'Daftar semua transaksi penjualan yang telah dilakukan')
 
 @section('content')
+    {{-- CATATAN: Pastikan Alpine.js diinisialisasi di layout utama Anda, dan variabel 'showModal' serta 'deleteUrl' tersedia dalam scope ini untuk tombol Hapus berfungsi. --}}
     <div class="space-y-6">
         @if (session('success'))
             <div class="p-4 mb-4 text-green-800 rounded-lg bg-green-200">
@@ -40,10 +41,12 @@
                                     Total (Net)</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Kasir</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Status</th>
-                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Aksi</th>
+                                {{-- <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Status</th> --}}
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Aksi
+                                </th> {{-- **REVISI: Ditambah/Diubah menjadi text-center** --}}
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
@@ -66,7 +69,7 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
                                         {{ $penjualan->user->name ?? 'N/A' }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                                    {{-- <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
                                         @if ($penjualan->status === 'Returned')
                                             <span
                                                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
@@ -78,14 +81,38 @@
                                                 Completed
                                             </span>
                                         @endif
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <div class="flex justify-end gap-2">
-                                            <a href="{{ route('invoice.show', $penjualan->id) }}"
-                                                class="text-blue-600 hover:text-blue-900" title="Lihat Detail">
-                                                <i class='bx bx-search text-xl'></i>
-                                            </a>
-                                            {{-- Tambahkan tombol print langsung ke detail untuk pilihan cetak --}}
+                                    </td> --}}
+                                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                        <div class="flex justify-center gap-2"> {{-- **REVISI: Menggunakan justify-center** --}}
+
+                                            @can('invoice.show')
+                                                <a href="{{ route('invoice.show', $penjualan->id) }}"
+                                                    class="p-2 border rounded-lg shadow-sm text-gray-700 border-gray-200"
+                                                    title="Lihat Detail">
+                                                    <i class='bx bx-show text-base'></i>
+                                                </a>
+                                            @endcan
+
+                                            @if ($penjualan->status !== 'Returned')
+                                                @can('invoice.edit')
+                                                    <a href="{{ route('invoice.edit', $penjualan->id) }}"
+                                                        class="p-2 border rounded-lg shadow-sm text-gray-700 border-gray-200 hover:bg-gray-50"
+                                                        title="Edit">
+                                                        <i class="bx bx-edit text-base"></i>
+                                                    </a>
+                                                @endcan
+                                            @endif
+
+                                            @if ($penjualan->status !== 'Returned')
+                                                @can('invoice.destroy')
+                                                    <button
+                                                        @click="showModal = true; deleteUrl = '{{ route('invoice.destroy', $penjualan->id) }}'"
+                                                        class="inline-flex items-center justify-center rounded-lg p-2 border text-xs shadow-sm text-gray-700 border-gray-200"
+                                                        title="Hapus">
+                                                        <i class="bx bx-trash text-base"></i>
+                                                    </button>
+                                                @endcan
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>

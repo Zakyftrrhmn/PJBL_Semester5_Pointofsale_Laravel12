@@ -78,11 +78,11 @@
         {{-- === GRID KARTU METRIK RETUR & MASTER DATA === --}}
         <div class="grid grid-cols-1 gap-5 md:grid-cols-3 lg:grid-cols-6">
             {{-- KARTU 5: Retur Penjualan --}}
-            @include('components.dashboard-card-sm', [
+            {{-- @include('components.dashboard-card-sm', [
                 'title' => 'Retur Jual',
                 'value' => 'Rp ' . number_format($totalReturPenjualan, 0, ',', '.'),
                 'color' => 'text-red-600',
-            ])
+            ]) --}}
 
             {{-- KARTU 6: Retur Pembelian --}}
             @include('components.dashboard-card-sm', [
