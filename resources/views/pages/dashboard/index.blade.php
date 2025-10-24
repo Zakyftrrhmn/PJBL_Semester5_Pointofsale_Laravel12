@@ -76,7 +76,7 @@
         </div>
 
         {{-- === GRID KARTU METRIK RETUR & MASTER DATA === --}}
-        <div class="grid grid-cols-1 gap-5 md:grid-cols-3 lg:grid-cols-6">
+        <div class="grid grid-cols-1 gap-5 md:grid-cols-3 lg:grid-cols-5">
             {{-- KARTU 5: Retur Penjualan --}}
             {{-- @include('components.dashboard-card-sm', [
                 'title' => 'Retur Jual',

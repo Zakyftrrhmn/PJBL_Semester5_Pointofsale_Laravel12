@@ -138,17 +138,17 @@ class ProdukController extends Controller
             'photo_produk'     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        // Update photo jika ada upload baru
         if ($request->hasFile('photo_produk')) {
             // Hapus foto lama
-            if ($produk->photo_produk && Storage::exists('public/produk/' . $produk->photo_produk)) {
-                Storage::delete('public/produk/' . $produk->photo_produk);
+            if ($produk->photo_produk && Storage::exists('public/' . $produk->photo_produk)) {
+                Storage::delete('public/' . $produk->photo_produk);
             }
 
-            $filename = time() . '.' . $request->photo_produk->extension();
-            $request->photo_produk->storeAs('public/produk', $filename);
-            $produk->photo_produk = $filename;
+            // Simpan foto baru
+            $path = $request->file('photo_produk')->store('produk', 'public');
+            $produk->photo_produk = $path;
         }
+
 
         // Update data lainnya
         $produk->nama_produk      = $request->nama_produk;

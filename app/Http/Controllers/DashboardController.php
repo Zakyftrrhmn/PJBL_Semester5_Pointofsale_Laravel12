@@ -78,13 +78,16 @@ class DashboardController extends Controller
                 'produks.id',
                 'produks.nama_produk',
                 'produks.harga_jual',
+                'produks.photo_produk',
                 DB::raw('SUM(detail_penjualans.qty) as total_terjual')
             )
             ->where('penjualans.created_at', '>=', $startDate)
-            ->groupBy('produks.id', 'produks.nama_produk', 'produks.harga_jual')
+            ->groupBy('produks.id', 'produks.nama_produk', 'produks.harga_jual', 'produks.photo_produk')
             ->orderByDesc('total_terjual')
             ->take(5)
             ->get();
+
+
 
         // =================================================================
         // 4B. TOP CUSTOMERS

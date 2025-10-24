@@ -43,10 +43,12 @@
                                     Kasir</th>
                                 {{-- <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Status</th> --}}
-                                <th
-                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Aksi
-                                </th> {{-- **REVISI: Ditambah/Diubah menjadi text-center** --}}
+                                @canany(['invoice.show', 'invoice.edit', 'invoice.destroy'])
+                                    <th
+                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Aksi
+                                    </th> {{-- **REVISI: Ditambah/Diubah menjadi text-center** --}}
+                                @endcanany
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">

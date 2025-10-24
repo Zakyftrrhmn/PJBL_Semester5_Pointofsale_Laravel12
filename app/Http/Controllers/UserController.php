@@ -95,59 +95,49 @@ class UserController extends Controller
     {
         $rules = [
             'name'      => 'required|string|max:255',
-            // Rule::unique di sini sudah benar
             'email'     => ['required', 'email', Rule::unique('users')->ignore($user->id)],
             'password'  => 'nullable|string|min:8|confirmed',
             'photo_user' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ];
 
-        // Logika Keamanan Role:
-        // 1. Cek apakah user yang mengedit adalah 'Super Admin'
         if (auth()->user()->hasRole('Super Admin')) {
-            // Jika Super Admin, mereka harus memilih 1 role
-            $rules['roles'] = 'required|string|exists:roles,name';
-
-            // 2. Cek apakah user yang diedit adalah 'Super Admin'
-            if ($user->hasRole('Super Admin')) {
-                // Jika user yang diedit adalah Super Admin, HILANGKAN VALIDASI ROLE
-                // dan pastikan tidak ada role yang dikirim di request jika user yang diedit adalah Super Admin
-                $request->request->remove('roles'); // Hapus input roles dari request
+            if (!$user->hasRole('Super Admin')) {
+                $rules['roles'] = 'required|string|exists:roles,name';
             }
-        } else {
-            // Jika BUKAN Super Admin, HILANGKAN VALIDASI ROLE dari rules
-            // dan HAPUS input roles dari request, jadi tidak bisa diupdate
-            $request->request->remove('roles');
         }
 
         $request->validate($rules);
 
+        // Data dasar
         $data = $request->only('name', 'email');
 
-        // ... (Logika update password dan foto_user tetap sama)
-        if (!empty($request->password)) {
+        // Password baru (jika diisi)
+        if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
         }
 
+        // ✅ PERBAIKAN DI SINI — logika update foto
         if ($request->hasFile('photo_user')) {
-            // hapus foto lama jika ada
+            // Hapus foto lama jika ada
             if ($user->photo_user && Storage::disk('public')->exists($user->photo_user)) {
                 Storage::disk('public')->delete($user->photo_user);
             }
+
+            // Simpan foto baru ke folder storage/app/public/users
             $data['photo_user'] = $request->file('photo_user')->store('users', 'public');
         }
 
+        // Update user
         $user->update($data);
 
-        // Sinkronkan peran (role) HANYA jika Super Admin mengedit user yang BUKAN Super Admin
+        // Update role jika Super Admin mengedit user lain
         if (auth()->user()->hasRole('Super Admin') && !$user->hasRole('Super Admin')) {
-            // Perubahan: syncRoles dengan single string
             $user->syncRoles($request->input('roles'));
         }
-        // Jika user yang mengedit BUKAN Super Admin, atau user yang diedit adalah Super Admin, syncRoles dilewati.
-
 
         return redirect()->route('user.index')->with('success', 'User berhasil diperbarui!');
     }
+
 
     /**
      * Remove the specified resource from storage (Hapus User).

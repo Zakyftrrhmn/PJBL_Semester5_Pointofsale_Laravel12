@@ -244,9 +244,9 @@
         <div class="info-item">
             <span class="info-label">Periode Laporan: {{ $periode }} ({{ $preset_label }})</span>
         </div>
-        <div class="info-item">
+        {{-- <div class="info-item">
             <span class="info-label">Filter Status: {{ $status_label }}</span>
-        </div>
+        </div> --}}
     </div>
     {{-- /INFORMASI LAPORAN --}}
 

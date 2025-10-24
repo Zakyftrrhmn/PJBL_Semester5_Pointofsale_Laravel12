@@ -71,7 +71,7 @@
             </div>
 
             {{-- Filter Status Group --}}
-            <div class="flex-shrink-0">
+            {{-- <div class="flex-shrink-0">
                 <label for="status" class="block text-sm font-medium text-gray-700">Filter Status Penjualan</label>
                 <select id="status" name="status"
                     class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow-sm">
@@ -79,7 +79,7 @@
                     <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
                     <option value="return" {{ request('status') == 'return' ? 'selected' : '' }}>Retur</option>
                 </select>
-            </div>
+            </div> --}}
 
             {{-- Export Buttons dan Tombol Filter --}}
             <div class="flex space-x-2 flex-shrink-0">
@@ -150,13 +150,13 @@
                                 Pelanggan
                             </th>
                             <th scope="col"
-                                class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Total Bayar
                             </th>
-                            <th scope="col"
+                            {{-- <th scope="col"
                                 class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Status
-                            </th>
+                            </th> --}}
                         </tr>
                     </thead>
 
@@ -175,11 +175,11 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     {{ $penjualan->pelanggan->nama_pelanggan ?? '-' }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
                                     Rp{{ number_format($penjualan->total_bayar, 0, ',', '.') }}
                                 </td>
 
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                {{-- <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
                                     @if ($penjualan->returPenjualans->isNotEmpty())
                                         <span
                                             class="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
@@ -191,7 +191,7 @@
                                             <i class='bx bxs-check-circle mr-1'></i> Completed
                                         </span>
                                     @endif
-                                </td>
+                                </td> --}}
                             </tr>
                         @empty
                             <tr>
