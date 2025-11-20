@@ -15,8 +15,6 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             KategoriSeeder::class,
-            MerekSeeder::class,
-            SatuanSeeder::class,
             ProdukSeeder::class,
             PemasokSeeder::class,
             PermissionSeeder::class,

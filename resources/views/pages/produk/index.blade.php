@@ -49,17 +49,6 @@
                                     </option>
                                 @endforeach
                             </select>
-
-                            <select name="merek_id" onchange="this.form.submit()"
-                                class="h-10 w-40 rounded-lg border border-gray-200 text-sm text-gray-700 shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100">
-                                <option value="">Semua Merek</option>
-                                @foreach ($mereks as $merek)
-                                    <option value="{{ $merek->id }}"
-                                        {{ request('merek_id') == $merek->id ? 'selected' : '' }}>
-                                        {{ $merek->nama_merek }}
-                                    </option>
-                                @endforeach
-                            </select>
                         </div>
                     </form>
                 </div>
@@ -107,8 +96,6 @@
                                     <th class="px-5 py-3 text-left font-medium  whitespace-nowrap">Produk</th>
                                     <th class="px-5 py-3 text-left font-medium  whitespace-nowrap">Status</th>
                                     <th class="px-5 py-3 text-left font-medium  whitespace-nowrap">Kategori</th>
-                                    <th class="px-5 py-3 text-left font-medium  whitespace-nowrap">Merek</th>
-                                    <th class="px-5 py-3 text-left font-medium  whitespace-nowrap">Satuan</th>
                                     <th class="px-5 py-3 text-left font-medium  whitespace-nowrap">Stok</th>
                                     <th class="px-5 py-3 text-left font-medium  whitespace-nowrap">Pengingat Stok</th>
                                     <th class="px-5 py-3 text-left font-medium  whitespace-nowrap">Harga Jual</th>
@@ -156,8 +143,7 @@
                                         </td>
                                         <td class="px-5 py-4  whitespace-nowrap">{{ $produk->kategori->nama_kategori }}
                                         </td>
-                                        <td class="px-5 py-4  whitespace-nowrap">{{ $produk->merek->nama_merek }}</td>
-                                        <td class="px-5 py-4  whitespace-nowrap">{{ $produk->satuan->nama_satuan }}</td>
+
                                         <td class="px-5 py-4 !text-center whitespace-nowrap">{{ $produk->stok_produk }}
                                         </td>
                                         <td class="px-5 py-4 !text-center whitespace-nowrap">{{ $produk->pengingat_stok }}

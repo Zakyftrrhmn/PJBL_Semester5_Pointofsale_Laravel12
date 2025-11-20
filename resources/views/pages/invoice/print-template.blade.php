@@ -14,12 +14,12 @@
 
         body {
             /* Menggunakan Times New Roman untuk nuansa formal/klasik */
-            font-family: "Times New Roman", Times, serif;
-            font-size: 10pt;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
             /* Ukuran teks dasar: 10pt (normal) */
             color: #000;
             margin: 0;
-            padding: 0;
+            padding: 10px 25px;
             line-height: 1.4;
         }
 

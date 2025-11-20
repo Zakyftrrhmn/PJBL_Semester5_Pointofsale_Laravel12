@@ -23,7 +23,7 @@ class DashboardController extends Controller
 
     public function index(Request $request)
     {
-        $filter = $request->get('filter', 'daily');
+        $filter = $request->get('filter', 'all');
         $now = Carbon::now();
 
         $startDate = match ($filter) {

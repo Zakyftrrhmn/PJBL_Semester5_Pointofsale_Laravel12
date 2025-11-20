@@ -122,7 +122,6 @@
                 <th width="25%">Nama Produk</th>
                 <th width="12%">Harga Beli</th>
                 <th width="10%">Jumlah</th>
-                <th width="10%">Satuan</th>
                 <th width="15%">Subtotal</th>
             </tr>
         </thead>
@@ -134,7 +133,6 @@
                     <td>{{ $detail->produk->nama_produk }}</td>
                     <td class="text-right">Rp {{ number_format($detail->harga_beli, 0, ',', '.') }}</td>
                     <td class="text-center">{{ $detail->jumlah }}</td>
-                    <td class="text-center">{{ $detail->produk->satuan->nama_satuan ?? '-' }}</td>
                     <td class="text-right">Rp {{ number_format($detail->subtotal, 0, ',', '.') }}</td>
                 </tr>
             @endforeach

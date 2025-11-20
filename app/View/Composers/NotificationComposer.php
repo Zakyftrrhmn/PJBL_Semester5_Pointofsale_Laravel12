@@ -16,7 +16,6 @@ class NotificationComposer
             ->where('is_active', 'active')
             ->select('id', 'nama_produk', 'stok_produk', 'pengingat_stok', 'photo_produk', 'kode_produk', 'updated_at')
             ->orderBy('updated_at', 'desc')
-            ->limit(5)
             ->get();
 
 

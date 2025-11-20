@@ -3,8 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Kategori;
-use App\Models\Merek;
-use App\Models\Satuan;
 use App\Models\Produk;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
@@ -14,12 +12,8 @@ class ProdukSeeder extends Seeder
     public function run(): void
     {
         $kategori = Kategori::where('nama_kategori', 'Alat Peraga Edukasi')->first() ?? Kategori::first();
-        $merek = Merek::where('nama_merek', 'IntiPeragaMandiri')->first() ?? Merek::first();
-        $satuan = Satuan::where('nama_satuan', 'Pieces')->first() ?? Satuan::first();
 
         $kategoriId = $kategori?->id;
-        $merekId = $merek?->id;
-        $satuanId = $satuan?->id;
 
         // === Daftar Produk Berdasarkan Data Shopee ===
         $produkList = [
@@ -159,8 +153,6 @@ class ProdukSeeder extends Seeder
                 'deskripsi_produk' => $deskripsi,
                 'is_active' => 'active',
                 'kategori_id' => $kategoriId,
-                'merek_id' => $merekId,
-                'satuan_id' => $satuanId,
             ]);
             $i++;
         }

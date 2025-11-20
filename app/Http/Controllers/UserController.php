@@ -48,6 +48,7 @@ class UserController extends Controller
         $roles = Role::pluck('name', 'name')->all();
         return view('pages.user.create', compact('roles'));
     }
+
     public function store(Request $request)
     {
         $request->validate([

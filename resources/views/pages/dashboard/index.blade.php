@@ -118,7 +118,7 @@
                 'value' => number_format($jumlahPemasok, 0, ',', '.'),
                 'color' => 'text-purple-600',
             ])
-        </div>
+        </div>      
 
 
         {{-- === GRID KARTU PRODUK (Top Selling & Low Stock) === --}}

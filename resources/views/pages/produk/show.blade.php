@@ -35,16 +35,6 @@
                     </div>
 
                     <div>
-                        <p class="text-sm text-gray-500">Merek</p>
-                        <p class="font-medium">{{ $produk->merek->nama_merek ?? '-' }}</p>
-                    </div>
-
-                    <div>
-                        <p class="text-sm text-gray-500">Satuan</p>
-                        <p class="font-medium">{{ $produk->satuan->nama_satuan ?? '-' }}</p>
-                    </div>
-
-                    <div>
                         <p class="text-sm text-gray-500">Stok Produk</p>
                         <p class="font-medium">{{ $produk->stok_produk }}</p>
                         {{-- TAMBAHKAN INDIKATOR STOK RENDAH --}}

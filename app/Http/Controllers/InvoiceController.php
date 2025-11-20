@@ -46,7 +46,7 @@ class InvoiceController extends Controller
      */
     public function show(Penjualan $penjualan)
     {
-        $penjualan->load('pelanggan', 'user', 'detailPenjualans.produk.satuan');
+        $penjualan->load('pelanggan', 'user', 'detailPenjualans.produk');
         return view('pages.invoice.show', compact('penjualan'));
     }
 
@@ -76,7 +76,7 @@ class InvoiceController extends Controller
      */
     public function printNoDiscount(Penjualan $penjualan)
     {
-        $penjualan->load('pelanggan', 'user', 'detailPenjualans.produk.satuan');
+        $penjualan->load('pelanggan', 'user', 'detailPenjualans.produk');
         $isDiscountApplied = false;
 
         // TOTAL MURNI UNTUK INVOICE
@@ -92,8 +92,8 @@ class InvoiceController extends Controller
         $data = compact('penjualan', 'isDiscountApplied', 'subTotalAwal', 'totalFinal', 'bayar', 'kembalian', 'item_total_type');
 
         $pdf = Pdf::loadView('pages.invoice.print-template', $data)
-            ->setPaper([0, 0, 680, 400], 'portrait')
-            ->setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true, 'chroot' => public_path(),]);
+            ->setPaper([0, 0, 595, 420], 'portrait')
+            ->setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true, 'chroot' => public_path(), 'defaultFont' => 'Courier New']);
 
         return $pdf->stream('Invoice-' . $penjualan->kode_penjualan . '-TanpaDiskon.pdf');
     }
@@ -105,7 +105,7 @@ class InvoiceController extends Controller
      */
     public function printWithDiscount(Penjualan $penjualan)
     {
-        $penjualan->load('pelanggan', 'user', 'detailPenjualans.produk.satuan');
+        $penjualan->load('pelanggan', 'user', 'detailPenjualans.produk');
         $isDiscountApplied = true;
 
         // TOTAL SETELAH DISKON ITEM (menggunakan total_harga dari database)
@@ -123,8 +123,8 @@ class InvoiceController extends Controller
         $data = compact('penjualan', 'isDiscountApplied', 'subTotalAwal', 'totalFinal', 'bayar', 'kembalian', 'item_total_type');
 
         $pdf = Pdf::loadView('pages.invoice.print-template', $data)
-            ->setPaper([0, 0, 680, 400], 'portrait')
-            ->setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true, 'chroot' => public_path(),]);
+            ->setPaper([0, 0, 595, 420], 'portrait')
+            ->setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true, 'chroot' => public_path(), 'defaultFont' => 'Courier New']);
 
         return $pdf->stream('Invoice-' . $penjualan->kode_penjualan . '-DenganDiskon.pdf');
     }

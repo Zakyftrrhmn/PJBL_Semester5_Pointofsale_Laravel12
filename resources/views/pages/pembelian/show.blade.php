@@ -43,7 +43,6 @@
                                 <th class="whitespace-nowrap px-4 py-3 text-left font-medium text-gray-900">Produk</th>
                                 <th class="whitespace-nowrap px-4 py-3 text-left font-medium text-gray-900">Harga Beli</th>
                                 <th class="whitespace-nowrap px-4 py-3 text-left font-medium text-gray-900">Jumlah</th>
-                                <th class="whitespace-nowrap px-4 py-3 text-left font-medium text-gray-900">Satuan</th>
                                 <th class="whitespace-nowrap px-4 py-3 text-left font-medium text-gray-900">Subtotal</th>
                             </tr>
                         </thead>
@@ -59,9 +58,6 @@
                                     </td>
                                     <td class="whitespace-nowrap px-4 py-3 text-gray-700">
                                         {{ $detail->jumlah }}
-                                    </td>
-                                    <td class="whitespace-nowrap px-4 py-3 text-gray-700">
-                                        {{ $detail->produk->satuan->nama_satuan ?? '-' }}
                                     </td>
                                     <td class="whitespace-nowrap px-4 py-3 font-semibold text-gray-900">
                                         Rp {{ number_format($detail->subtotal, 0, ',', '.') }}
@@ -94,7 +90,8 @@
                                         <td class="whitespace-nowrap px-4 py-3 text-red-700">
                                             {{ $retur->produk->nama_produk ?? 'Produk Tidak Ditemukan' }}
                                             <p class="text-xs text-red-400 font-mono">
-                                                ({{ $retur->produk->kode_produk ?? 'N/A' }})</p>
+                                                ({{ $retur->produk->kode_produk ?? 'N/A' }})
+                                            </p>
                                         </td>
                                         <td class="whitespace-nowrap px-4 py-3 text-red-700">
                                             {{ $retur->jumlah_retur }}

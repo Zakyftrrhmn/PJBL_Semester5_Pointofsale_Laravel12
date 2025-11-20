@@ -42,14 +42,14 @@ class PesananPembelianController extends Controller
      */
     public function show(Pembelian $pesanan_pembelian) // Menggunakan route model binding
     {
-        $pembelian = $pesanan_pembelian->load('pemasok', 'detailPembelians.produk.satuan');
+        $pembelian = $pesanan_pembelian->load('pemasok', 'detailPembelians.produk');
         return view('pages.pembelian.show', compact('pembelian'));
     }
 
     // Export PDF
     public function exportPDF(Pembelian $pembelian)
     {
-        $pembelian->load('pemasok', 'detailPembelians.produk.satuan');
+        $pembelian->load('pemasok', 'detailPembelians.produk');
         $pdf = Pdf::loadView('pages.pembelian.pdf', compact('pembelian'));
         return $pdf->download('faktur-pembelian-' . $pembelian->kode_pembelian . '.pdf');
     }

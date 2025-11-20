@@ -85,7 +85,7 @@
                 @endcanany
 
 
-                @canany(['produk.index', 'kategori.index', 'merek.index', 'satuan.index'])
+                @canany(['produk.index', 'kategori.index'])
                     <hr class="w-full mb-2 bg-indigo-900 opacity-70">
                     <h3 class="mb-2 text-xs text-indigo-900 flex items-center justify-between text-lg font-medium">
                         <span class="menu-group-title" :class="sidebarToggle ? 'lg:hidden' : ''">Inventory</span>
@@ -103,7 +103,7 @@
                                 </a>
                             </li>
                         @endcan
-
+                        {{-- 
                         @can('barcode.index')
                             <li>
                                 <a href="{{ route('barcode.index') }}"
@@ -113,7 +113,7 @@
                                         Barcode</span>
                                 </a>
                             </li>
-                        @endcan
+                        @endcan --}}
 
                         @can('kategori.index')
                             <li>
@@ -121,26 +121,6 @@
                                     class="menu-item group hover:menu-item-active {{ request()->is('admin/kategori*') ? 'menu-item-active' : 'text-gray-800' }}">
                                     <i class="bx bx-list-ul text-xl"></i>
                                     <span : class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Kategori</span>
-                                </a>
-                            </li>
-                        @endcan
-
-                        @can('merek.index')
-                            <li>
-                                <a href="{{ route('merek.index') }}"
-                                    class="menu-item group hover:menu-item-active {{ request()->is('admin/merek*') ? 'menu-item-active' : 'text-gray-800' }}">
-                                    <i class="bx bx-badge-check text-xl"></i>
-                                    <span : class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Merek</span>
-                                </a>
-                            </li>
-                        @endcan
-
-                        @can('satuan.index')
-                            <li>
-                                <a href="{{ route('satuan.index') }}"
-                                    class="menu-item group hover:menu-item-active {{ request()->is('admin/satuan*') ? 'menu-item-active' : 'text-gray-800' }}">
-                                    <i class="bx bx-box text-xl"></i>
-                                    <span : class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Satuan</span>
                                 </a>
                             </li>
                         @endcan
@@ -254,25 +234,30 @@
                 @endcanany
 
 
-                @can(['laporan.index'])
-                    <h3 class="mt-4 mb-2 text-xs font-semibold uppercase text-gray-400">
-                        Laporan
+                @can('laporan.index')
+                    <hr class="w-full mb-2 bg-indigo-900 opacity-70">
+
+                    <h3 class="mb-2 text-xs text-indigo-900 flex items-center justify-between text-lg font-medium">
+                        <span class="menu-group-title" :class="sidebarToggle ? 'lg:hidden' : ''">Laporan</span>
+                        <i :class="sidebarToggle ? 'opacity-100 visible lg:block' : 'opacity-0 invisible'"
+                            class="transition duration-300 menu-group-icon mx-auto bx bx-dots-horizontal-rounded !text-center"></i>
                     </h3>
 
-                    <ul class="mb-6 flex flex-col gap-1.5">
+                    <ul class="mb-6 flex flex-col gap-y-0.5">
                         <li>
                             <a href="{{ route('laporan.pembelian.index') }}"
                                 class="menu-item group hover:menu-item-active {{ request()->is('admin/laporan/pembelian*') ? 'menu-item-active' : 'text-gray-800' }}">
-                                <i class="bx bx-file"></i>
-                                <span :class="menu - item - text" :class="sidebarToggle ? 'lg:hidden' : ''">Laporan
+                                <i class="bx bx-file text-xl"></i>
+                                <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Laporan
                                     Pembelian</span>
                             </a>
                         </li>
+
                         <li>
                             <a href="{{ route('laporan.penjualan.index') }}"
                                 class="menu-item group hover:menu-item-active {{ request()->is('admin/laporan/penjualan*') ? 'menu-item-active' : 'text-gray-800' }}">
-                                <i class="bx bx-receipt"></i>
-                                <span :class="menu - item - text" :class="sidebarToggle ? 'lg:hidden' : ''">Laporan
+                                <i class="bx bx-receipt text-xl"></i>
+                                <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Laporan
                                     Penjualan</span>
                             </a>
                         </li>

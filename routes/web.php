@@ -7,12 +7,10 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\LaporanController;
-use App\Http\Controllers\MerekController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\PemasokController;
 use App\Http\Controllers\ProdukController;
-use App\Http\Controllers\SatuanController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PembelianController;
 use App\Http\Controllers\PesananPembelianController;
@@ -37,13 +35,6 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
     // Kategori
     Route::resource('kategori', KategoriController::class);
 
-    // Merek
-    Route::resource('merek', MerekController::class);
-
-    // Satuan
-    Route::resource('satuan', SatuanController::class);
-
-
     // Produk
     Route::resource('produk', ProdukController::class);
     Route::get('produk-export-excel', [ProdukController::class, 'exportExcel'])->name('produk.export.excel');
@@ -59,7 +50,7 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
     // <<< TAMBAHKAN ROUTE INI UNTUK AJAX PAGINATION >>>
     Route::get('pos/more-produk', [POSController::class, 'getMoreProduk'])->name('pos.more_produk');
 
-    
+
     Route::prefix('invoice')->group(function () {
         Route::get('/', [InvoiceController::class, 'index'])->name('invoice.index');
         Route::get('/{penjualan}', [InvoiceController::class, 'show'])->name('invoice.show');

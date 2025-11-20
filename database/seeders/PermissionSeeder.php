@@ -75,18 +75,6 @@ class PermissionSeeder extends Seeder
             ['name' => 'kategori.edit', 'group' => 'Kategori', 'description' => 'Mengubah data kategori'],
             ['name' => 'kategori.destroy', 'group' => 'Kategori', 'description' => 'Menghapus kategori'],
 
-            // INVENTORY - Satuan
-            ['name' => 'satuan.index', 'group' => 'Satuan', 'description' => 'Melihat daftar satuan'],
-            ['name' => 'satuan.create', 'group' => 'Satuan', 'description' => 'Menambah satuan baru'],
-            ['name' => 'satuan.edit', 'group' => 'Satuan', 'description' => 'Mengubah data satuan'],
-            ['name' => 'satuan.destroy', 'group' => 'Satuan', 'description' => 'Menghapus satuan'],
-
-            // INVENTORY - Merek
-            ['name' => 'merek.index', 'group' => 'Merek', 'description' => 'Melihat daftar merek'],
-            ['name' => 'merek.create', 'group' => 'Merek', 'description' => 'Menambah merek baru'],
-            ['name' => 'merek.edit', 'group' => 'Merek', 'description' => 'Mengubah data merek'],
-            ['name' => 'merek.destroy', 'group' => 'Merek', 'description' => 'Menghapus merek'],
-
             // ====================================================================================
             // PENAMBAHAN CORE PERMISSION
             // ====================================================================================
@@ -100,7 +88,7 @@ class PermissionSeeder extends Seeder
             ['name' => 'invoice.edit', 'group' => 'Penjualan', 'description' => 'Mengubah data transaksi penjualan'],
             ['name' => 'invoice.destroy', 'group' => 'Penjualan', 'description' => 'Menghapus data transaksi penjualan'],
             ['name' => 'invoice.export', 'group' => 'Penjualan', 'description' => 'Export data penjualan/cetak struk'],
-            
+
             // PEMBELIAN
             ['name' => 'pembelian.create', 'group' => 'Pembelian', 'description' => 'Membuat transaksi pembelian baru'],
             ['name' => 'pembelian.index', 'group' => 'Pembelian', 'description' => 'Melihat daftar transaksi pembelian'],
@@ -188,14 +176,7 @@ class PermissionSeeder extends Seeder
             'kategori.create',
             'kategori.edit',
             'kategori.destroy',
-            'satuan.index',
-            'satuan.create',
-            'satuan.edit',
-            'satuan.destroy',
-            'merek.index',
-            'merek.create',
-            'merek.edit',
-            'merek.destroy',
+
 
             // Pembelian
             'pembelian.create',

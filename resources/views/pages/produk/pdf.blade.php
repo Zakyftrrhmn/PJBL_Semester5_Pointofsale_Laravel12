@@ -189,8 +189,6 @@
                 <th width="10%">Kode</th>
                 <th width="20%">Nama Produk</th>
                 <th width="10%">Kategori</th>
-                <th width="10%">Merek</th>
-                <th width="8%">Satuan</th>
                 <th width="6%">Stok</th>
                 <th width="10%">Harga Beli</th>
                 <th width="10%">Harga Jual</th>
@@ -204,8 +202,6 @@
                     <td>{{ $produk->kode_produk }}</td>
                     <td>{{ $produk->nama_produk }}</td>
                     <td>{{ $produk->kategori->nama_kategori ?? '-' }}</td>
-                    <td>{{ $produk->merek->nama_merek ?? '-' }}</td>
-                    <td>{{ $produk->satuan->nama_satuan ?? '-' }}</td>
                     <td class="text-center">{{ $produk->stok_produk }}</td>
                     <td class="text-right">Rp{{ number_format($produk->harga_beli, 0, ',', '.') }}</td>
                     <td class="text-right">Rp{{ number_format($produk->harga_jual, 0, ',', '.') }}</td>

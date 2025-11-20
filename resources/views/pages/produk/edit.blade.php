@@ -71,46 +71,6 @@
                             @enderror
                         </div>
 
-                        {{-- Merek --}}
-                        <div>
-                            <label for="merek_id" class="block text-sm font-medium text-gray-700">Merek <span
-                                    class="text-red-500">*</span></label>
-                            <select id="merek_id" name="merek_id"
-                                class="mt-1 block w-full rounded-lg border-gray-300 p-2.5 text-sm shadow-sm
-                                   focus:border-blue-400 focus:ring-2 focus:ring-blue-100">
-                                <option value="">Pilih Merek</option>
-                                @foreach ($mereks as $merek)
-                                    <option value="{{ $merek->id }}"
-                                        {{ old('merek_id', $produk->merek_id) == $merek->id ? 'selected' : '' }}>
-                                        {{ $merek->nama_merek }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('merek_id')
-                                <p class="text-xs text-red-500">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        {{-- Satuan --}}
-                        <div>
-                            <label for="satuan_id" class="block text-sm font-medium text-gray-700">Satuan <span
-                                    class="text-red-500">*</span></label>
-                            <select id="satuan_id" name="satuan_id"
-                                class="mt-1 block w-full rounded-lg border-gray-300 p-2.5 text-sm shadow-sm
-                                   focus:border-blue-400 focus:ring-2 focus:ring-blue-100">
-                                <option value="">Pilih Satuan</option>
-                                @foreach ($satuans as $satuan)
-                                    <option value="{{ $satuan->id }}"
-                                        {{ old('satuan_id', $produk->satuan_id) == $satuan->id ? 'selected' : '' }}>
-                                        {{ $satuan->nama_satuan }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('satuan_id')
-                                <p class="text-xs text-red-500">{{ $message }}</p>
-                            @enderror
-                        </div>
-
                         {{-- Stok --}}
                         <div>
                             <label for="stok_produk" class="block text-sm font-medium text-gray-700">Stok Produk <span

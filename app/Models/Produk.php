@@ -26,9 +26,7 @@ class Produk extends Model
         'photo_produk',
         'deskripsi_produk',
         'is_active',
-        'satuan_id',
         'kategori_id',
-        'merek_id',
     ];
 
     protected $attributes = [
@@ -68,19 +66,9 @@ class Produk extends Model
         });
     }
 
-    // relasi
-    public function satuan(): BelongsTo
-    {
-        return $this->belongsTo(Satuan::class);
-    }
 
     public function kategori(): BelongsTo
     {
         return $this->belongsTo(Kategori::class);
-    }
-
-    public function merek(): BelongsTo
-    {
-        return $this->belongsTo(Merek::class);
     }
 }
