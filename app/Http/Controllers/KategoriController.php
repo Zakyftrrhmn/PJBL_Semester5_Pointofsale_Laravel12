@@ -15,7 +15,7 @@ class KategoriController extends Controller
         $this->middleware('permission:kategori.edit')->only(['edit', 'update']);
         $this->middleware('permission:kategori.destroy')->only('destroy');
     }
-    
+
     public function index(Request $request)
     {
         // Jika ada pencarian

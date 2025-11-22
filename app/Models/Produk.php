@@ -71,4 +71,14 @@ class Produk extends Model
     {
         return $this->belongsTo(Kategori::class);
     }
-}
+
+    public function penjualan()
+    {
+        return $this->hasMany(\App\Models\Penjualan::class, 'produk_id');
+    }
+
+    public function detailPenjualan()
+    {
+        return $this->hasMany(\App\Models\DetailPenjualan::class, 'produk_id');
+    }
+    }

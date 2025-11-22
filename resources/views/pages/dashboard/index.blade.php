@@ -13,6 +13,8 @@
                 Selamat Datang Kembali, <span class="text-blue-600">{{ Auth::user()->name }}!</span>
             </h1>
 
+
+
             {{-- Filter Waktu --}}
             <form action="{{ route('dashboard.index') }}" method="GET" class="mt-4 sm:mt-0">
                 <div class="flex items-center gap-3">
@@ -26,6 +28,26 @@
                     </select>
                 </div>
             </form>
+        </div>
+
+        <div class="flex flex-col">
+            @if ($aiStokRendah->count() > 0)
+                <div class="mt-4 rounded-xl border border-red-300 bg-red-100 p-4 shadow-md">
+                    <h2 class="font-bold text-red-800 text-lg mb-2">⚠ Produk Stok Rendah</h2>
+
+                    <ul class="list-disc ml-5 text-sm text-red-900">
+                        @foreach ($aiStokRendah as $item)
+                            <li>
+                                <strong class="text-red-800">{{ $item->nama_produk }}</strong> — stok:
+                                <strong>{{ $item->stok_produk }}</strong> (min: {{ $item->pengingat_stok }}),
+
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+
         </div>
 
         {{-- === KARTU WARNING STOK HAMPIR HABIS (LAMA) DIHILANGKAN UNTUK MENGGANTINYA DENGAN KARTU BARU --}}
@@ -118,7 +140,7 @@
                 'value' => number_format($jumlahPemasok, 0, ',', '.'),
                 'color' => 'text-purple-600',
             ])
-        </div>      
+        </div>
 
 
         {{-- === GRID KARTU PRODUK (Top Selling & Low Stock) === --}}
@@ -147,8 +169,8 @@
                                             <img src="{{ asset('storage/' . $produk->photo_produk) }}" alt="Foto Produk"
                                                 class="w-full h-full object-cover">
                                         @else
-                                            <img src="{{ asset('assets/images/produk/default-produk.png') }}" alt="Default"
-                                                class="w-full h-full object-cover">
+                                            <img src="{{ asset('assets/images/produk/default-produk.png') }}"
+                                                alt="Default" class="w-full h-full object-cover">
                                         @endif
                                     </div>
 

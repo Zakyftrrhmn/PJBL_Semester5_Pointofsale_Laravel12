@@ -49,7 +49,7 @@
                                 class="shadow-theme-lg absolute -right-[240px] mt-[17px] flex h-[480px] w-[350px] flex-col rounded-2xl border border-gray-200 bg-white p-3 sm:w-[361px] lg:right-0">
                                 <div class="mb-3 flex items-center justify-between border-b border-gray-100 pb-3">
                                     <h5 class="text-lg font-semibold text-gray-800">
-                                        Notifikasi Stok Rendah ({{ $stokRendahProduks->count() }})
+                                        Notifikasi ({{ $stokRendahProduks->count() }})
                                     </h5>
 
                                     <button @click="dropdownOpen = false" class="text-gray-500">
@@ -60,51 +60,119 @@
                                 <ul class="custom-scrollbar flex h-auto flex-col overflow-y-auto">
                                     @forelse ($stokRendahProduks as $produk)
                                         <li>
-                                            <a href="{{ route('produk.show', $produk) }}"
-                                                class="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100">
+                                            <a href="{{ route('produk.show', $produk->id) }}"
+                                                class="flex gap-3 py-3 px-4 border-b border-gray-100 rounded-lg hover:bg-gray-50 transition">
 
-                                                {{-- Photo Produk --}}
-                                                <span
-                                                    class="relative z-1 block h-10 w-full max-w-10 rounded-full overflow-hidden">
-                                                    <img src="{{ $produk->photo_produk ? asset('storage/' . $produk->photo_produk) : asset('assets/images/produk/default-produk.png') }}"
-                                                        alt="{{ $produk->nama_produk }}"
-                                                        class="object-cover w-full h-full" />
-                                                </span>
+                                                {{-- FOTO --}}
+                                                <div class="w-11 h-11 rounded-md overflow-hidden bg-gray-200">
+                                                    <img src="{{ $produk->photo_produk
+                                                        ? asset('storage/' . $produk->photo_produk)
+                                                        : asset('assets/images/produk/default-produk.png') }}"
+                                                        class="object-cover w-full h-full"
+                                                        alt="{{ $produk->nama_produk }}">
+                                                </div>
 
-                                                <span class="block">
-                                                    <span class="text-theme-sm mb-1.5 block text-gray-500">
-                                                        <span
-                                                            class="font-medium text-gray-800">{{ $produk->nama_produk }}
-                                                            ({{ $produk->kode_produk }})
-                                                        </span>
-                                                        stok tersisa:
-                                                        <span
-                                                            class="font-medium text-red-600">{{ $produk->stok_produk }}</span>
-                                                        unit, batas pengingat: {{ $produk->pengingat_stok }} unit.
+                                                {{-- INFO PRODUK --}}
+                                                <div class="flex flex-col flex-1">
+
+                                                    {{-- NAMA --}}
+                                                    <span class="font-semibold text-gray-800 text-sm leading-tight">
+                                                        {{ $produk->nama_produk }} ({{ $produk->kode_produk }})
                                                     </span>
 
-                                                    <span class="text-theme-xs flex items-center gap-2 text-gray-500">
-                                                        <span>Stok Rendah</span>
-                                                        <span class="h-1 w-1 rounded-full bg-gray-400"></span>
-                                                        <span>{{ $produk->updated_at->diffForHumans() }}</span>
-                                                    </span>
-                                                </span>
+                                                    {{-- STATUS & TANGGAL --}}
+                                                    <div class="flex items-center gap-2 text-[11px]">
+
+                                                        @if ($produk->status === 'urgent')
+                                                            <span
+                                                                class="text-red-600 font-bold bg-red-100 px-1.5 py-0.5 rounded text-[10px]">
+                                                                ⚠ Urgent
+                                                            </span>
+                                                        @elseif ($produk->status === 'warning')
+                                                            <span
+                                                                class="text-yellow-700 font-semibold bg-yellow-100 px-1.5 py-0.5 rounded text-[10px]">
+                                                                ⚠ Warning
+                                                            </span>
+                                                        @elseif ($produk->status === 'slow')
+                                                            <span
+                                                                class="text-blue-700 font-semibold bg-blue-100 px-1.5 py-0.5 rounded text-[10px]">
+                                                                💤 Slow Moving
+                                                            </span>
+                                                        @endif
+
+                                                        <span class="text-gray-400">•</span>
+                                                        <span
+                                                            class="text-gray-500">{{ $produk->updated_at->diffForHumans() }}</span>
+                                                    </div>
+
+
+                                                    {{-- INFO STATISTIK --}}
+                                                    <div class="mt-1 text-[11.5px]">
+
+                                                        {{-- Stok & Estimasi --}}
+                                                        <div class="text-gray-600">
+                                                            Stok: <strong
+                                                                class="text-red-600">{{ $produk->stok_produk }}</strong>
+                                                            unit
+                                                            @if ($produk->habis_hari <= 1)
+                                                                (habis <strong>hari ini</strong>)
+                                                            @else
+                                                                (± <strong>{{ $produk->habis_hari }} hari</strong>
+                                                                lagi)
+                                                            @endif
+                                                        </div>
+
+                                                        {{-- Rekomendasi AI --}}
+                                                        @if ($produk->rekomendasi_beli > 0)
+                                                            <div
+                                                                class="mt-1 p-1.5 rounded-md bg-gray-100 border border-gray-200">
+                                                                <span class="text-[10.5px] text-gray-700">
+                                                                    💡 Saran restock:
+                                                                    <strong
+                                                                        class="text-indigo-700">+{{ $produk->rekomendasi_beli }}
+                                                                        unit</strong><br>
+                                                                    <span class="text-gray-500">
+                                                                        Penjualan rata-rata:
+                                                                        <strong>{{ $produk->avg_penjualan }}/hari</strong>
+                                                                    </span>
+                                                                </span>
+                                                            </div>
+                                                        @endif
+
+                                                        {{-- Jika slow moving --}}
+                                                        @if ($produk->status === 'slow')
+                                                            <div
+                                                                class="mt-1 p-2 bg-blue-50 border border-blue-200 rounded-md text-[11px]">
+                                                                <div class="text-blue-800 font-semibold">
+                                                                    Produk tidak laku ({{ $produk->days_no_sale }}
+                                                                    hari)
+                                                                </div>
+                                                                <div class="text-blue-700">
+                                                                    💡 Saran: lakukan diskon, bundling, atau promo untuk
+                                                                    mempercepat perputaran stok.
+                                                                </div>
+                                                            </div>
+                                                        @endif
+
+
+                                                    </div>
+
+                                                </div>
                                             </a>
                                         </li>
                                     @empty
-                                        <li>
-                                            <p class="p-3 text-center text-gray-500">
-                                                Tidak ada notifikasi stok rendah saat ini. ✨
-                                            </p>
+                                        <li class="text-center text-gray-500 text-[12px] py-4">
+                                            Tidak ada notifikasi saat ini ✨
                                         </li>
                                     @endforelse
+
 
                                 </ul>
 
                                 @if ($stokRendahProduks->count() > 0)
                                     <a href="#"
                                         class="text-theme-sm shadow-theme-xs mt-3 flex justify-center rounded-lg border border-gray-300 bg-white p-3 font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-800">
-                                        Lihat Semua Produk Stok Rendah
+                                        Lihat Semua Produk
                                     </a>
                                 @endif
                             </div>

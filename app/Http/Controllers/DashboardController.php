@@ -201,11 +201,27 @@ class DashboardController extends Controller
 
             $netSalesData[] = $net;
         }
+        // ===============================================
+        // 6. AI STOCK UNTUK DASHBOARD (TANPA SLOW MOVING)
+        // ===============================================
+
+        $produkAI = Produk::where('is_active', 'active')->get()->map(function ($p) {
+
+            return (object)[
+                'id' => $p->id,
+                'nama_produk' => $p->nama_produk,
+                'stok_produk' => $p->stok_produk,
+                'pengingat_stok' => $p->pengingat_stok,
+                'created_at' => $p->created_at,
+            ];
+        });
+
+        // FILTER: HANYA STOK RENDAH
+        $aiStokRendah = $produkAI->filter(fn($p) => $p->stok_produk <= $p->pengingat_stok);
 
         return view('pages.dashboard.index', [
             'filter' => $filter,
             'totalPenjualan' => $totalPenjualan,
-            // 'totalReturPenjualan' => $totalReturPenjualan, // dikomentar
             'penjualanBersih' => $penjualanBersih,
             'totalPembelian' => $totalPembelian,
             'totalReturPembelian' => $totalReturPembelian,
@@ -219,9 +235,12 @@ class DashboardController extends Controller
             'countStokHampirHabis' => $countStokHampirHabis,
             'topSellingProducts' => $topSellingProducts,
             'topCustomers' => $topCustomers,
-            'topSuppliers' => $topSuppliers, // <-- Variabel baru yang ditambahkan
+            'topSuppliers' => $topSuppliers,
             'chartLabels' => $labels,
             'chartData' => $netSalesData,
+
+            // HANYA STOK RENDAH
+            'aiStokRendah' => $aiStokRendah,
         ]);
     }
 }
