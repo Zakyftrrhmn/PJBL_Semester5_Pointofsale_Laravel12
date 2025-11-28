@@ -241,8 +241,9 @@
                         </label>
                         <input type="text" id="jumlah_bayar" x-model="jumlahBayarFormatted"
                             @focus="jumlahBayarFormatted = parseRupiah(jumlahBayarFormatted)"
-                            @blur="jumlahBayarFormatted = formatRupiah(parseRupiah(jumlahBayarFormatted))"
-                            @input="updateJumlahBayar($event.target.value)" :min="totalBayar" placeholder="0"
+                            @blur="jumlahBayarFormatted = formatNumber(parseRupiah(jumlahBayarFormatted))"
+                            {{-- 💡 PERUBAHAN: Gunakan formatNumber saat blur --}} @input="updateJumlahBayar($event.target.value)" :min="totalBayar"
+                            placeholder="0"
                             class="w-full rounded-lg border border-gray-300 p-2 text-sm font-semibold text-gray-900 focus:border-green-500 focus:ring-green-500 shadow-sm" />
                     </div>
 
@@ -306,24 +307,22 @@
 
                 searchTerm: '',
                 filteredProduks: data.initialProduks,
-                // Inisialisasi cart, pelanggan_id, diskon_percent, dan jumlahBayar dari data edit jika ada
                 cart: data.isEditMode ? data.initialCart : [],
                 pelanggan_id: data.isEditMode ? data.initialPelangganId : data.pelangganUmumId,
 
-                // Diskon transaksi (persen)
-                diskon_percent: data.isEditMode ? data.initialDiskonPercent :
-                0, // Nominal diskon transaksi (hanya untuk tampilan)
+                diskon_percent: data.isEditMode ? data.initialDiskonPercent : 0,
                 diskon_trans_nominal: 0,
 
                 jumlahBayar: data.isEditMode ? data.initialJumlahBayar : null,
-                // cartForServer adalah versi cart yang dikirim ke server (menyertakan diskon_percent per item)
-                jumlahBayarFormatted: data.isEditMode && data.initialJumlahBayar !== null ?
-                    this.formatRupiah(data.initialJumlahBayar) : '',
+                jumlahBayarFormatted: '', // Diinisialisasi di init()
+
+                // ... (Sisanya getter, tidak berubah) ...
 
                 get cartForServer() {
                     return this.cart.map(item => ({
                         id: item.id,
                         qty: item.qty,
+                        // Pastikan diskon_percent diambil langsung dari item di cart dan diubah ke Number
                         diskon_percent: Number(item.diskon_percent || 0)
                     }));
                 },
@@ -351,41 +350,55 @@
                 get buttonText() {
                     if (this.cart.length === 0) return 'Tambah Produk Dahulu';
                     if (this.kembalian < 0) return 'Bayar Kurang ' + this.formatRupiah(Math.abs(this.kembalian));
-                    return this.isEditMode ? 'Simpan Perubahan Transaksi' : 'Selesaikan Transaksi'; // Perubahan teks
+                    return this.isEditMode ? 'Simpan Perubahan Transaksi' : 'Selesaikan Transaksi';
+                },
+
+                // --- FUNGSI BARU UNTUK INPUT FORMATTING ---
+                formatNumber(number) {
+                    // Hanya format angka menjadi string dengan titik ribuan (tanpa 'Rp ')
+                    if (number === null || isNaN(number) || number < 0) return '0';
+                    return String(Math.abs(number)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
                 },
 
                 parseRupiah(value) {
-                    if (typeof value === 'number') return value; // Jika nilainya sudah angka (saat @focus)
+                    if (typeof value === 'number') return value;
                     if (!value) return 0;
-                    // Hapus 'Rp', spasi, dan titik ribuan.
+                    // Hapus semua karakter non-digit kecuali tanda negatif (jika perlu)
                     const cleaned = String(value).replace(/[^0-9]/g, '');
                     return cleaned ? parseInt(cleaned, 10) : 0;
                 },
-                updateJumlahBayar(value) {
-                    // 1. Bersihkan nilai input untuk mendapatkan angka numerik
-                    const numericValue = this.parseRupiah(value);
 
-                    // 2. Perbarui nilai numerik yang digunakan untuk perhitungan
+                // 💡 Perbaikan: Gunakan fungsi formatNumber untuk inisialisasi input
+                updateJumlahBayar(value) {
+                    const numericValue = this.parseRupiah(value);
                     this.jumlahBayar = numericValue;
 
-                    // 3. Optional: Lakukan pemformatan saat mengetik (menambahkan titik ribuan)
-                    //    Ini membuat tampilan input lebih user-friendly saat mengetik.
+                    // Opsional: Lakukan pemformatan saat mengetik
                     if (numericValue > 0) {
-                        this.jumlahBayarFormatted = numericValue.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                        // Gunakan formatNumber di sini
+                        this.jumlahBayarFormatted = this.formatNumber(numericValue);
                     } else if (value.length === 0) {
                         this.jumlahBayarFormatted = '';
                     } else {
-                        // Biarkan apa adanya jika pengguna mengetik sesuatu yang tidak valid.
+                        // Jika input tidak valid (misal: hanya titik), biarkan pengguna perbaiki
+                        this.jumlahBayarFormatted = value;
                     }
 
-                    // 4. Panggil ulang perhitungan total
                     this.calculateTotals();
                 },
+
+                // 💡 Perbaikan: Ubah formatRupiah agar selalu berprefix 'Rp ' untuk output
+                formatRupiah(number) {
+                    if (number === null || isNaN(number)) return 'Rp 0';
+                    const formatted = Math.abs(number).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                    return 'Rp ' + formatted;
+                },
+                // --- AKHIR FUNGSI BARU ---
 
                 init() {
                     this.calculateTotals();
 
-                    // 🌟 INISIALISASI BARU
+                    // 🌟 INISIALISASI PENTING (Edit Mode)
                     if (this.jumlahBayar !== null && this.jumlahBayar > 0) {
                         // Gunakan formatNumber (tanpa 'Rp ') untuk inisialisasi tampilan input
                         this.jumlahBayarFormatted = this.formatNumber(this.jumlahBayar);
@@ -394,14 +407,7 @@
                     }
                 },
 
-                formatRupiah(number, includePrefix = false) { // 💡 Tambahkan parameter includePrefix
-                    if (number === null || isNaN(number)) return (includePrefix ? 'Rp ' : '') + '0';
-
-                    const formatted = Math.abs(number).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-                    // Gunakan 'Rp ' untuk di tempat lain (seperti total dan kembalian)
-                    return (includePrefix ? 'Rp ' : '') + formatted;
-                },
+                // ... (Sisanya fungsi cart logic, tidak ada perubahan) ...
 
                 calculateTotals() {
                     // Validasi sederhana
@@ -426,7 +432,6 @@
                     const subtotal = this.subtotalAfterProductDiscounts;
                     this.diskon_trans_nominal = Math.round((this.diskon_percent / 100) * subtotal);
 
-                    // jumlah bayar minimal & kembalian dihitung via getter
                     if (this.jumlahBayar !== null && this.jumlahBayar !== '') {
                         this.jumlahBayar = Math.max(0, Number(this.jumlahBayar || 0));
                     }
@@ -442,22 +447,26 @@
 
                     if (existingIndex > -1) {
                         const item = this.cart[existingIndex];
-                        if (item.qty < produk.stok_produk) {
+                        if (item.qty < item.stok_produk) {
                             item.qty++;
                             this.calculateTotals();
                         } else {
-                            alert(`Maksimal stok untuk ${produk.nama_produk} adalah ${produk.stok_produk}!`);
+                            alert(`Maksimal stok untuk ${produk.nama_produk} adalah ${item.stok_produk}!`);
                         }
                     } else {
                         const hargaJual = Number(produk.harga_jual) || 0;
-                        // Ketika menambah produk BARU di edit mode, stok produk yang digunakan adalah STOK AKTUAL SAAT INI
-                        // Stok aktual produk di `produk` sudah dihitung saat controller menginisialisasi $produksForJs
+                        // Cek apakah produk ini sudah ada di initialCart (saat edit)
+                        // dan gunakan stok_produk yang sudah disesuaikan
+                        const currentStok = this.isEditMode ?
+                            (this.cart.find(i => i.id === produk.id)?.stok_produk || produk.stok_produk) :
+                            produk.stok_produk;
+
                         this.cart.push({
                             id: produk.id,
                             nama_produk: produk.nama_produk,
                             kode_produk: produk.kode_produk,
                             harga_satuan: hargaJual,
-                            stok_produk: produk.stok_produk,
+                            stok_produk: currentStok, // Gunakan stok yang sudah disesuaikan
                             qty: 1,
                             subtotal: hargaJual,
                             diskon_percent: 0,

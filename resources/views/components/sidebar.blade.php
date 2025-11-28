@@ -294,14 +294,14 @@
                         @endcan
 
                         @can('backup.index')
-                            <li>
+                            {{-- <li>
                                 <a href="{{ route('backup.index') }}"
                                     class="menu-item group hover:menu-item-active {{ request()->is('admin/backup*') ? 'menu-item-active' : 'text-gray-800' }}">
                                     <i class="bx bx-hdd"></i>
                                     <span : class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Backup
                                         Data</span>
                                 </a>
-                            </li>
+                            </li> --}}
                         @endcan
                     </ul>
                 @endcanany

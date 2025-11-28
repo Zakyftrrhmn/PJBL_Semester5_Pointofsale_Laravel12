@@ -40,7 +40,8 @@
                             <span class="text-red-500">*</span>
                         </label>
                         <input type="email" id="email" name="email" value="{{ old('email', $pelanggan->email) }}"
-                            class="mt-1 block w-full rounded-lg border border-gray-300 p-2.5 sm:text-sm shadow-sm focus:border-blue-400 focus:ring focus:ring-blue-100">
+                            class="mt-1 block w-full rounded-lg border border-gray-300 p-2.5 sm:text-sm shadow-sm focus:border-blue-400 focus:ring focus:ring-blue-100"
+                            required>
                         @error('email')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror

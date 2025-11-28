@@ -38,7 +38,7 @@
                         </label>
                         <input type="email" id="email" name="email" value="{{ old('email') }}"
                             class="mt-1 block w-full rounded-lg border border-gray-300 p-2.5 sm:text-sm shadow-sm focus:border-blue-400 focus:ring focus:ring-blue-100"
-                            placeholder="Masukkan email pemasok">
+                            placeholder="Masukkan email pemasok" required>
                         @error('email')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -51,7 +51,7 @@
                         </label>
                         <input type="text" id="alamat" name="alamat" value="{{ old('alamat') }}"
                             class="mt-1 block w-full rounded-lg border border-gray-300 p-2.5 sm:text-sm shadow-sm focus:border-blue-400 focus:ring focus:ring-blue-100"
-                            placeholder="Masukkan alamat pemasok">
+                            placeholder="Masukkan alamat pemasok" required>
                         @error('alamat')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror

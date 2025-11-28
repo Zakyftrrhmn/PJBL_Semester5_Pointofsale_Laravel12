@@ -10,11 +10,11 @@ class PemasokExport implements FromCollection, WithHeadings
 {
     public function collection()
     {
-        return Pemasok::select('nama_pelanggan', 'telp', 'email', 'email')->get();
+        return Pemasok::select('nama_pemasok', 'telp', 'email', 'email')->get();
     }
 
     public function headings(): array
     {
-        return ["Nama Pelanggan", "Telepon", "Email", "Alamat"];
+        return ["Nama Pemasok", "Telepon", "Email", "Alamat"];
     }
 }

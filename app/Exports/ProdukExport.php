@@ -37,7 +37,7 @@ class ProdukExport implements FromCollection, WithHeadings
             'Harga Beli',
             'Harga Jual',
             'Deskripsi',
-            'Satuan',
+            'Status',
             'Kategori',
         ];
     }
