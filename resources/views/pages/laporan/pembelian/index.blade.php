@@ -1,6 +1,6 @@
 @extends('layouts.layout')
-@section('title', 'Laporan Pembelian')
-@section('subtitle', 'Daftar transaksi pembelian')
+@section('title', 'Laporan Barang Masuk')
+@section('subtitle', 'Daftar transaksi barang masuk')
 @section('content')
 
     <div class="space-y-6">
@@ -71,7 +71,7 @@
 
             {{-- Filter Status Group --}}
             <div class="flex-shrink-0">
-                <label for="status" class="block text-sm font-medium text-gray-700">Filter Status Pembelian</label>
+                <label for="status" class="block text-sm font-medium text-gray-700">Status Barang Masuk</label>
                 <select id="status" name="status"
                     class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow-sm">
                     <option value="all" {{ request('status') == 'all' ? 'selected' : '' }}>Semua Status</option>

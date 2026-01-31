@@ -14,6 +14,11 @@ return [
     |
     */
 
+    'openai' => [
+        'key' => env('OPENAI_API_KEY'),
+    ],
+
+
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],
@@ -37,7 +42,7 @@ return [
 
     'recaptcha' => [
         'site_key' => env('RECAPTCHA_SITEKEY'),
-        'secret_key' => env('RECAPTCHA_SECRET'),
+        'secret' => env('RECAPTCHA_SECRET'), // Gunakan 'secret' saja agar simpel
     ],
 
 ];

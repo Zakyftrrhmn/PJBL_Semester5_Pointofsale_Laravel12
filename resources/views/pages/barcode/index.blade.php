@@ -10,6 +10,7 @@
         routeCetakPdf: '{{ route('barcode.cetak-pdf') }}'
     })">
 
+        {{-- Form Pilih Produk --}}
         <div class="rounded-2xl border border-gray-200 bg-white shadow-sm p-6">
             <label class="block text-sm font-medium text-gray-700 mb-2">Product <span class="text-red-500">*</span></label>
             <div class="flex gap-3 items-center">
@@ -19,16 +20,41 @@
                         <option :value="p.id" x-text="`${p.nama_produk} (${p.kode_produk})`"></option>
                     </template>
                 </select>
+                <button @click="addAllProduk()" type="button"
+                    class="whitespace-nowrap px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition flex items-center gap-2">
+                    <i class='bx bx-plus-circle'></i>
+                    <span>Tambah Semua</span>
+                </button>
             </div>
         </div>
 
+        {{-- Tabel Produk Terpilih --}}
         <template x-if="selectedProdukList.length">
             <div class="rounded-2xl border border-gray-200 bg-white shadow-sm p-6">
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-base font-semibold text-gray-800">Produk yang akan dicetak</h3>
-                    <button @click="clearProduk()" type="button" class="text-red-500 text-sm hover:underline">
-                        Hapus Semua
-                    </button>
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                    <h3 class="text-base font-semibold text-gray-800">
+                        Produk yang akan dicetak (<span x-text="selectedProdukList.length"></span>)
+                    </h3>
+
+                    <div class="flex flex-wrap gap-2 items-center">
+                        {{-- Set Global Qty --}}
+                        <div class="flex items-center gap-2 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
+                            <label class="text-sm font-medium text-blue-700 whitespace-nowrap">Set Qty Semua:</label>
+                            <input type="number" x-model.number="globalQty" min="1" max="999"
+                                class="w-20 px-2 py-1 border border-blue-300 rounded text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <button @click="setGlobalQty()" type="button"
+                                class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm font-medium">
+                                Terapkan
+                            </button>
+                        </div>
+
+                        {{-- Hapus Semua --}}
+                        <button @click="clearProduk()" type="button"
+                            class="px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 flex items-center gap-1 border border-red-200">
+                            <i class='bx bx-trash'></i>
+                            <span class="text-sm font-medium">Hapus Semua</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="overflow-x-auto">
@@ -44,30 +70,32 @@
                         <tbody class="divide-y divide-gray-100">
                             <template x-for="p in selectedProdukList" :key="p.id">
                                 <tr class="hover:bg-gray-50 transition">
-                                    <td class="px-4 py-3 flex items-center gap-3">
-                                        {{-- Perbaikan: Pastikan asset() digunakan dengan benar --}}
-                                        <img :src="p.gambar ? '/storage/' + p.gambar :
-                                            '{{ asset('assets/images/produk/default-produk.png') }}'"
-                                            class="w-10 h-10 rounded-lg object-cover">
-                                        <span x-text="p.nama_produk" class="font-medium text-gray-700"></span>
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center gap-3">
+                                            <img :src="p.gambar ? '/storage/' + p.gambar :
+                                                '{{ asset('assets/images/produk/default-produk.png') }}'"
+                                                class="w-10 h-10 rounded-lg object-cover">
+                                            <span x-text="p.nama_produk" class="font-medium text-gray-700"></span>
+                                        </div>
                                     </td>
                                     <td class="px-4 py-3 text-gray-700" x-text="p.kode_produk ?? '-'"></td>
                                     <td class="px-4 py-3 text-center">
                                         <div class="flex items-center justify-center gap-2">
                                             <button type="button" @click="if(p.qty > 1) p.qty--"
-                                                class="p-1 border rounded-lg text-gray-600 hover:bg-gray-100">
+                                                class="p-1 border rounded-lg text-gray-600 hover:bg-gray-100 transition">
                                                 <i class='bx bx-minus'></i>
                                             </button>
-                                            <span x-text="p.qty" class="font-semibold"></span>
+                                            <input type="number" x-model.number="p.qty" min="1" max="999"
+                                                class="w-16 px-2 py-1 border rounded text-center font-semibold">
                                             <button type="button" @click="p.qty++"
-                                                class="p-1 border rounded-lg text-gray-600 hover:bg-gray-100">
+                                                class="p-1 border rounded-lg text-gray-600 hover:bg-gray-100 transition">
                                                 <i class='bx bx-plus'></i>
                                             </button>
                                         </div>
                                     </td>
                                     <td class="px-4 py-3 text-center">
                                         <button type="button" @click="removeProduk(p.id)"
-                                            class="p-2 border rounded-lg shadow-sm text-gray-700 border-gray-200 hover:bg-gray-100">
+                                            class="p-2 border rounded-lg shadow-sm text-red-600 border-gray-200 hover:bg-red-50 transition">
                                             <i class='bx bx-trash'></i>
                                         </button>
                                     </td>
@@ -77,60 +105,67 @@
                     </table>
                 </div>
 
+                {{-- Action Buttons --}}
                 <div class="flex justify-end gap-3 mt-6">
                     <button type="button" @click="openGenerateModal()" :disabled="isLoading"
-                        class="inline-flex items-center gap-2 rounded-md bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-600 disabled:opacity-50">
-                        </i><i class="bx bx-show"></i> Lihat Barcode
+                        class="inline-flex items-center gap-2 rounded-md bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition">
+                        <i class="bx bx-show"></i>
+                        <span x-text="isLoading ? 'Loading...' : 'Lihat Barcode'"></span>
                     </button>
                     <button type="button" @click="submitPdfForm()" :disabled="isLoading"
-                        class="inline-flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50">
+                        class="inline-flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition">
                         <i class='bx bx-printer'></i> Cetak ke PDF
                     </button>
                 </div>
-
             </div>
         </template>
 
-        <div x-cloak x-show="showModal" class="fixed inset-0 z-99999 overflow-y-auto" aria-labelledby="modal-title"
+        {{-- Modal Preview Barcode --}}
+        <div x-cloak x-show="showModal" class="fixed inset-0 z-[9999] overflow-y-auto" aria-labelledby="modal-title"
             role="dialog" aria-modal="true">
             <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:p-0">
 
+                {{-- Overlay --}}
                 <div x-show="showModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
                     x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
                     x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-                    class="fixed inset-0 **bg-gray-500 bg-opacity-75** transition-opacity" @click="showModal = false">
+                    class="fixed inset-0 bg-gray-900 bg-opacity-50 transition-opacity" @click="showModal = false">
                 </div>
 
+                {{-- Modal Content --}}
                 <div x-show="showModal" x-transition:enter="ease-out duration-300"
                     x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                     x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
                     x-transition:leave="ease-in duration-200"
                     x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
                     x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                    class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
-                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                            Lihat Barcode
-                        </h3>
+                    class="relative inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl sm:w-full">
 
-
-                        <div class="mt-2 max-h-96 overflow-y-auto" x-html="modalContent">
+                    <div class="bg-white px-6 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg leading-6 font-semibold text-gray-900" id="modal-title">
+                                Preview Barcode
+                            </h3>
+                            <button @click="showModal = false" type="button"
+                                class="text-gray-400 hover:text-gray-600 transition">
+                                <i class='bx bx-x text-2xl'></i>
+                            </button>
                         </div>
+                        <div class="mt-2 max-h-[70vh] overflow-y-auto" x-html="modalContent"></div>
                     </div>
-                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-2">
                         <button type="button" @click="showModal = false"
-                            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:w-auto sm:text-sm transition">
                             Tutup
                         </button>
-
-
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- Script Alpine.js Functionality --}}
+    {{-- Alpine.js Script --}}
     <script>
         function barcodeData(config) {
             return {
@@ -140,6 +175,7 @@
                 showModal: false,
                 modalContent: '',
                 isLoading: false,
+                globalQty: 1, // Nilai default untuk qty global
                 csrfToken: config.csrfToken,
                 routeGenerate: config.routeGenerate,
                 routeCetakPdf: config.routeCetakPdf,
@@ -150,23 +186,84 @@
 
                 addProduk() {
                     if (!this.selectedProduct) return;
+
                     const produk = this.selectedProdukData;
                     if (!produk) return;
-                    if (!this.selectedProdukList.find(p => p.id === produk.id)) {
+
+                    const exists = this.selectedProdukList.find(p => p.id === produk.id);
+
+                    if (!exists) {
                         this.selectedProdukList.push({
                             ...produk,
                             qty: 1
                         });
+                    } else {
+                        alert('Produk sudah ada di list!');
                     }
-                    this.selectedProduct = null;
+
+                    this.selectedProduct = "";
+                },
+
+                addAllProduk() {
+                    if (this.produks.length === 0) {
+                        alert('Tidak ada produk yang tersedia.');
+                        return;
+                    }
+
+                    let addedCount = 0;
+
+                    this.produks.forEach(produk => {
+                        const exists = this.selectedProdukList.find(p => p.id === produk.id);
+
+                        if (!exists) {
+                            this.selectedProdukList.push({
+                                ...produk,
+                                qty: 1
+                            });
+                            addedCount++;
+                        }
+                    });
+
+                    this.selectedProduct = "";
+
+                    if (addedCount > 0) {
+                        alert(`Berhasil menambahkan ${addedCount} produk!`);
+                    } else {
+                        alert('Semua produk sudah ada di list.');
+                    }
+                },
+
+                // METHOD BARU: Set qty global untuk semua produk
+                setGlobalQty() {
+                    if (this.globalQty < 1) {
+                        alert('Qty minimal adalah 1!');
+                        this.globalQty = 1;
+                        return;
+                    }
+
+                    if (this.selectedProdukList.length === 0) {
+                        alert('Tidak ada produk yang dipilih!');
+                        return;
+                    }
+
+                    if (confirm(`Set qty semua produk menjadi ${this.globalQty}?`)) {
+                        this.selectedProdukList.forEach(p => {
+                            p.qty = this.globalQty;
+                        });
+                        alert(`Qty semua produk berhasil diubah menjadi ${this.globalQty}!`);
+                    }
                 },
 
                 removeProduk(id) {
-                    this.selectedProdukList = this.selectedProdukList.filter(p => p.id !== id);
+                    if (confirm('Hapus produk ini dari list?')) {
+                        this.selectedProdukList = this.selectedProdukList.filter(p => p.id !== id);
+                    }
                 },
 
                 clearProduk() {
-                    this.selectedProdukList = [];
+                    if (confirm('Hapus semua produk dari list?')) {
+                        this.selectedProdukList = [];
+                    }
                 },
 
                 async openGenerateModal() {
@@ -176,7 +273,12 @@
                     }
 
                     this.isLoading = true;
-                    this.modalContent = '<div class=\'text-center p-8\'>Loading...</div>';
+                    this.modalContent = `
+                        <div class="text-center p-8">
+                            <i class="bx bx-loader-alt bx-spin text-5xl text-indigo-500"></i>
+                            <p class="mt-3 text-gray-600">Memuat barcode...</p>
+                        </div>
+                    `;
                     this.showModal = true;
 
                     const produkIds = this.selectedProdukList.map(p => p.id);
@@ -202,11 +304,18 @@
                             throw new Error('Gagal memuat barcode');
                         }
 
-                        this.modalContent = await response.text();
+                        const html = await response.text();
+                        this.modalContent = html;
 
                     } catch (error) {
-                        console.error(error);
-                        this.modalContent = '<div class=\'text-center p-8 text-red-500\'>Gagal memuat barcode.</div>';
+                        console.error('Error:', error);
+                        this.modalContent = `
+                            <div class="text-center p-8">
+                                <i class="bx bx-error-circle text-5xl text-red-500"></i>
+                                <p class="mt-3 text-red-600 font-medium">Gagal memuat barcode</p>
+                                <p class="text-sm text-gray-500 mt-2">${error.message}</p>
+                            </div>
+                        `;
                     } finally {
                         this.isLoading = false;
                     }
@@ -218,20 +327,17 @@
                         return;
                     }
 
-                    // Membuat form dinamis untuk POST request dan membuka di tab baru
                     const form = document.createElement('form');
                     form.method = 'POST';
                     form.action = this.routeCetakPdf;
-                    form.target = '_blank'; // Buka di tab baru
+                    form.target = '_blank';
 
-                    // CSRF Token
                     const tokenInput = document.createElement('input');
                     tokenInput.type = 'hidden';
                     tokenInput.name = '_token';
                     tokenInput.value = this.csrfToken;
                     form.appendChild(tokenInput);
 
-                    // Data produk dan jumlah
                     this.selectedProdukList.forEach(p => {
                         const produkIdInput = document.createElement('input');
                         produkIdInput.type = 'hidden';

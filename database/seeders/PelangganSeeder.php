@@ -17,36 +17,52 @@ class PelangganSeeder extends Seeder
     {
         $this->command->info('Memulai pembuatan data pelanggan...');
 
-        // Hapus data lama untuk menghindari duplikasi (opsional)
-        // DB::table('pelanggans')->truncate();
+        /**
+         * ======================================================
+         * 1. BUAT PELANGGAN UMUM (WAJIB ADA)
+         * ======================================================
+         */
+        $pelangganUmum = Pelanggan::firstOrCreate(
+            ['nama_pelanggan' => 'Umum'],
+            [
+                'id' => Str::uuid()->toString(),
+                'email' => null,
+                'telp' => null,
+                'photo_pelanggan' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
 
+        $this->command->info('✔ Pelanggan "Umum" siap digunakan (ID: ' . $pelangganUmum->id . ')');
+
+        /**
+         * ======================================================
+         * 2. BUAT DATA PELANGGAN DUMMY
+         * ======================================================
+         */
         $faker = \Faker\Factory::create('id_ID');
         $numPelanggan = 50;
         $pelangganData = [];
 
-        // Buat 50 data Pelanggan
         for ($i = 0; $i < $numPelanggan; $i++) {
 
-            // Generate nama lengkap, lalu gabungkan dengan kode unik untuk email
             $namaLengkap = $faker->firstName() . ' ' . $faker->lastName();
-            $emailBase = strtolower(str_replace(' ', '.', $namaLengkap));
 
             $pelangganData[] = [
-                // Menggunakan Str::uuid() karena id adalah primary key bertipe UUID
                 'id' => Str::uuid()->toString(),
                 'nama_pelanggan' => $namaLengkap,
-                // Pastikan email unik, tambahkan nomor jika perlu
                 'email' => $faker->unique()->safeEmail(),
                 'telp' => $faker->phoneNumber(),
-                'photo_pelanggan' => null, // Biarkan kosong atau tambahkan path dummy jika perlu
+                'photo_pelanggan' => null,
                 'created_at' => Carbon::now()->subDays($numPelanggan - $i),
                 'updated_at' => Carbon::now()->subDays($numPelanggan - $i),
             ];
         }
 
-        // Masukkan data dalam batch
         DB::table('pelanggans')->insert($pelangganData);
 
-        $this->command->info('50 data pelanggan berhasil dibuat!');
+        $this->command->info('✔ ' . $numPelanggan . ' data pelanggan dummy berhasil dibuat!');
+        $this->command->info('🎉 Seeder Pelanggan selesai tanpa error.');
     }
 }

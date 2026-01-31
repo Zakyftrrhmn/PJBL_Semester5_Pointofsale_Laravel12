@@ -25,20 +25,37 @@ class POSController extends Controller
         if (!$pelangganUmum) {
             $pelangganUmum = Pelanggan::create([
                 'nama_pelanggan' => 'Umum',
-                'telepon' => '-',
+                'telp' => '-',
                 'alamat' => 'Tidak Ada',
             ]);
         }
 
         $pelanggans = Pelanggan::orderBy('nama_pelanggan')->get(['id', 'nama_pelanggan']);
 
+        // ✅ AMBIL SEMUA PRODUK AKTIF UNTUK JAVASCRIPT (tanpa pagination)
+        $produksForJs = Produk::where('is_active', 'active')
+            ->orderBy('nama_produk')
+            ->get()
+            ->map(function ($produk) {
+                return [
+                    'id' => $produk->id,
+                    'nama_produk' => $produk->nama_produk,
+                    'kode_produk' => $produk->kode_produk,
+                    'harga_jual' => $produk->harga_jual,
+                    'stok_produk' => $produk->stok_produk,
+                    'photo_produk' => $produk->photo_produk,
+                ];
+            })
+            ->toArray(); // ⚠️ Penting: convert ke array untuk JSON
+
+        // Data untuk pagination (tampilan di halaman)
         $produks = Produk::where('is_active', 'active')
             ->when($request->search, function ($query, $search) {
                 $query->where('nama_produk', 'like', "%{$search}%")
                     ->orWhere('kode_produk', 'like', "%{$search}%");
             })
             ->orderBy('nama_produk')
-            ->paginate(30)
+            ->paginate(20)
             ->withQueryString()
             ->through(function ($produk) {
                 return [
@@ -51,7 +68,7 @@ class POSController extends Controller
                 ];
             });
 
-        $produksForJs = $produks->items();
+
 
         return view('pages.pos.index', compact('produks', 'produksForJs', 'pelanggans', 'pelangganUmum'));
     }
@@ -65,10 +82,16 @@ class POSController extends Controller
 
         try {
             // Validasi input utama
+            // Validasi input utama
             $request->validate([
                 'cart_data'     => 'required|json',
-                'pelanggan_id'  => 'required|uuid|exists:pelanggans,id',
+                'pelanggan_id'  => 'required|exists:pelanggans,id',
                 'jumlah_bayar'  => 'required',
+                'tanggal_penjualan'  => 'required|date', // ← TAMBAHKAN INI
+            ]);
+
+            $request->merge([
+                'pelanggan_id' => trim($request->pelanggan_id)
             ]);
 
             // Fungsi helper untuk membersihkan format uang
@@ -167,7 +190,7 @@ class POSController extends Controller
             // Simpan penjualan
             $penjualan = Penjualan::create([
                 'kode_penjualan'    => null,
-                'tanggal_penjualan' => now()->toDateString(),
+                'tanggal_penjualan' => $request->tanggal_penjualan, // ← UBAH INI (yang tadinya now()->toDateString())
                 'total_harga'       => $subtotalAfterProductDiscounts,
                 'diskon_percent'    => $diskonTransPercent,
                 'diskon_nominal'    => $diskonTransNominal,

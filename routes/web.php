@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\Auth;
 Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('auth.login.post');
 
-Route::prefix('admin')->middleware(['auth'])->group(function () {
+Route::prefix('admin')->middleware(['auth', 'no.cache'])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 
@@ -103,12 +103,19 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
     Route::get('/backup/download/{filename}', [BackupController::class, 'download'])->name('backup.download');
     Route::delete('/backup/delete/{filename}', [BackupController::class, 'delete'])->name('backup.delete');
 
+    Route::get('/pos/search-produk', [POSController::class, 'searchProduk'])->name('pos.search-produk');
+
+
     // rekening bank
     Route::resource('rekeningBank', RekeningBankController::class);
 
     // pages
     Route::resource('pages', PagesController::class);
 
+    Route::get('/get-prefixes', [ProdukController::class, 'getPrefixes'])->name('produk.prefixes');
+    Route::get('/generate-kode', [ProdukController::class, 'generateKode'])->name('produk.generateKode');
+
+    // Laporan
     // Laporan
     Route::prefix('laporan')->group(function () {
         // Laporan Pembelian
@@ -116,9 +123,16 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
         Route::get('pembelian/export-pdf', [LaporanController::class, 'exportPDFPembelian'])->name('laporan.pembelian.export.pdf');
         Route::get('pembelian/export-excel', [LaporanController::class, 'exportExcelPembelian'])->name('laporan.pembelian.export.excel');
 
-        // Laporan Penjualan (BARU)
+        // Laporan Penjualan
         Route::get('penjualan', [LaporanController::class, 'indexPenjualan'])->name('laporan.penjualan.index');
         Route::get('penjualan/export-pdf', [LaporanController::class, 'exportPDFPenjualan'])->name('laporan.penjualan.export.pdf');
         Route::get('penjualan/export-excel', [LaporanController::class, 'exportExcelPenjualan'])->name('laporan.penjualan.export.excel');
+
+        Route::get('penjualan-per-produk', [LaporanController::class, 'indexPenjualanPerProduk'])
+            ->name('laporan.penjualan-per-produk.index');
+        Route::get('penjualan-per-produk/export-pdf', [LaporanController::class, 'exportPDFPenjualanPerProduk'])
+            ->name('laporan.penjualan-per-produk.export.pdf');
+        Route::get('penjualan-per-produk/export-excel', [LaporanController::class, 'exportExcelPenjualanPerProduk'])
+            ->name('laporan.penjualan-per-produk.export.excel');
     });
 });

@@ -66,6 +66,20 @@ class Produk extends Model
         });
     }
 
+    public static function getUniquePrefixes()
+    {
+        return self::select('kode_produk')
+            ->get()
+            ->map(function ($item) {
+                // Mengambil huruf saja di awal kode (sebelum angka)
+                preg_match('/^[A-Z]+/', $item->kode_produk, $matches);
+                return $matches[0] ?? null;
+            })
+            ->filter()
+            ->unique()
+            ->values();
+    }
+
 
     public function kategori(): BelongsTo
     {
@@ -81,4 +95,4 @@ class Produk extends Model
     {
         return $this->hasMany(\App\Models\DetailPenjualan::class, 'produk_id');
     }
-    }
+}

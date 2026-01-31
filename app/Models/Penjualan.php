@@ -15,6 +15,8 @@ class Penjualan extends Model
 
     public $incrementing = false;
     protected $keyType = 'string';
+    // Tambahkan attribute ke array appends agar muncul saat di-convert ke array/json (opsional)
+    protected $appends = ['total_modal', 'laba'];
 
     protected $fillable = [
         'kode_penjualan',
@@ -34,18 +36,30 @@ class Penjualan extends Model
         parent::boot();
 
         static::creating(function ($penjualan) {
+            // 1. Generate UUID
             if (empty($penjualan->id)) {
                 $penjualan->id = (string) Str::uuid();
             }
 
+            // 2. Generate kode_penjualan otomatis (Contoh: IPM26010001)
             if (empty($penjualan->kode_penjualan)) {
-                // Contoh: PJL20240001
-                $datePrefix = 'PJL' . date('Y');
+                // Gunakan date('ym') untuk Tahun (2 digit) dan Bulan (2 digit)
+                // Hasil prefix: IPM2601 (untuk Jan 2026)
+                $datePrefix = 'IPM' . date('ym');
+
                 $latestPenjualan = static::where('kode_penjualan', 'like', $datePrefix . '%')
                     ->orderBy('kode_penjualan', 'desc')
                     ->first();
 
-                $number = ($latestPenjualan) ? intval(substr($latestPenjualan->kode_penjualan, -4)) + 1 : 1;
+                $number = 1;
+
+                if ($latestPenjualan) {
+                    // Mengambil 4 angka terakhir dari string kode_penjualan
+                    $lastNumber = intval(substr($latestPenjualan->kode_penjualan, -4));
+                    $number = $lastNumber + 1;
+                }
+
+                // Gabungkan prefix dengan nomor urut yang sudah di-pad dengan nol (0001)
                 $penjualan->kode_penjualan = $datePrefix . str_pad($number, 4, '0', STR_PAD_LEFT);
             }
         });
@@ -78,5 +92,28 @@ class Penjualan extends Model
         }
 
         return 'Completed';
+    }
+
+    /**
+     * Menghitung total modal berdasarkan harga beli produk di setiap detail
+     */
+    public function getTotalModalAttribute()
+    {
+        // Gunakan relasi yang sudah di-load agar tidak query berulang (N+1)
+        // dan pastikan menggunakan nama fungsi relasi yang benar
+        return $this->detailPenjualans->sum(function ($detail) {
+            // Cek apakah produk ada, jika null (produk dihapus) beri 0
+            $hargaBeli = $detail->produk ? (float) $detail->produk->harga_beli : 0;
+            return (int) $detail->qty * $hargaBeli;
+        });
+    }
+
+    /**
+     * Menghitung laba (Total Bayar - Total Modal)
+     */
+    public function getLabaAttribute()
+    {
+        // Pastikan total_bayar dikonversi ke float/int agar perhitungan akurat
+        return (float) $this->total_bayar - (float) $this->total_modal;
     }
 }

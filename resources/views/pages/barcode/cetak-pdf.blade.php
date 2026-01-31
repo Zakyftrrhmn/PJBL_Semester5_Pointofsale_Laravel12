@@ -1,118 +1,83 @@
-{{-- resources/views/pages/barcode/cetak-pdf.blade.php --}}
-
 <!DOCTYPE html>
 <html lang="id">
 
 <head>
     <meta charset="UTF-8">
-    <title>Cetak Barcode PDF</title>
-    @php use Milon\Barcode\Facades\DNS1DFacade as DNS1D; @endphp
-
-    {{-- PERHATIAN: Pastikan DomPDF dikonfigurasi untuk mengizinkan gambar jarak jauh/base64 (DOMPDF_ENABLE_REMOTE = true) --}}
-
     <style>
         @page {
-            margin: 8mm;
+            margin: 1cm;
         }
 
         body {
-            font-family: sans-serif;
-            font-size: 10px;
-            margin: 0;
-            padding: 0;
-            color: #000;
+            font-family: 'Helvetica', Arial, sans-serif;
         }
 
-        .barcode-container-print {
+        .container {
             width: 100%;
-            /* Lebar penuh */
-            display: block;
         }
 
-        .barcode-box {
-            width: 45mm;
-            height: auto;
-            border: 1px solid #ddd;
-            margin: 2mm 1mm;
-            padding: 1mm;
-            text-align: center;
+        .barcode-card {
+            width: 24%;
+            /* Pas 4 kolom */
             float: left;
+            margin-bottom: 10px;
+            padding: 10px 5px;
+            text-align: center;
             box-sizing: border-box;
-            page-break-inside: avoid;
+            border: 1px dashed #ccc;
+            /* Garis bantu potong */
         }
 
-        .clear-float {
-            clear: both;
-        }
-
-        .barcode-box .title {
-            font-size: 7px;
+        .product-name {
+            font-size: 7pt;
             font-weight: bold;
-            line-height: 1;
-            max-height: 10px;
+            height: 20px;
             overflow: hidden;
-            margin-bottom: 1px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
         }
 
-        .barcode-box .barcode {
-            margin: 1px auto;
-            height: 15px;
-            display: block;
+        .barcode-image img {
+            width: 100%;
+            /* Agar barcode memenuhi lebar kotak */
+            height: 30px;
         }
 
-        .barcode-box .barcode img {
-            max-width: 100%;
-            height: 15px;
-            display: block;
-            margin: 0 auto;
-        }
-
-        .barcode-box .code {
-            font-size: 7px;
+        .product-code {
+            font-size: 8pt;
+            margin-top: 5px;
+            font-family: monospace;
             font-weight: bold;
-            line-height: 1;
+        }
+
+        .clear {
+            clear: both;
         }
     </style>
 </head>
 
 <body>
-    <div class="barcode-container-print">
-        @php
-            $counter = 0; // Inisialisasi counter untuk mengatur 4 kolom
-        @endphp
-
+    <div class="container">
+        @php $counter = 0; @endphp
         @foreach ($produks as $produk)
             @php
                 $qty = $jumlahData[$produk->id] ?? 1;
-
-                // GENERATE BARCODE sebagai PNG Base64
-                // C128, lebar 1.2, tinggi 15
-                $barcodeBase64 = DNS1D::getBarcodePNG($produk->kode_produk, 'C128', 1.2, 15);
+                // Menggunakan factor 2.0 agar garis lebih tebal & mudah di-scan iWore
+                $barcodeBase64 = \Milon\Barcode\Facades\DNS1DFacade::getBarcodePNG($produk->kode_produk, 'C128', 2, 33);
             @endphp
 
-            {{-- Ulangi pencetakan sebanyak QTY --}}
             @for ($i = 0; $i < $qty; $i++)
-                {{-- Logic PHP untuk Clear Float setiap 4 Box --}}
-                @if ($counter > 0 && $counter % 4 == 0)
-                    <div class="clear-float"></div>
-                @endif
-
-                <div class="barcode-box">
-                    <div class="title">
-                        {{-- Opsi: Batasi panjang nama produk jika masih tumpang tindih --}}
-                        {{-- Contoh: {{ Str::limit($produk->nama_produk, 25) }} (Jika Anda menggunakan Str Facade) --}}
-                        {{ $produk->nama_produk }}
+                <div class="barcode-card">
+                    <div class="product-name">{{ $produk->nama_produk }}</div>
+                    <div class="barcode-image">
+                        <img src="data:image/png;base64,{{ $barcodeBase64 }}">
                     </div>
-                    <div class="barcode">
-                        {{-- Gunakan data URI untuk gambar PNG Base64 --}}
-                        <img src="data:image/png;base64,{{ $barcodeBase64 }}" alt="barcode">
-                    </div>
-                    <div class="code">{{ $produk->kode_produk }}</div>
+                    <div class="product-code">{{ $produk->kode_produk }}</div>
                 </div>
-
-                @php
-                    $counter++;
-                @endphp
+                @php $counter++; @endphp
+                @if ($counter % 4 == 0)
+                    <div class="clear"></div>
+                @endif
             @endfor
         @endforeach
     </div>

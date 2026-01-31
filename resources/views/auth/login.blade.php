@@ -5,11 +5,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Login | Point of Sale</title>
-    <!-- Favicon -->
     <link rel="icon" type="image/png" href="{{ asset('assets/images/logo/favicon.png') }}">
     @vite('resources/css/app.css')
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+    {{-- KOMENTAR: Menonaktifkan Script Google reCAPTCHA --}}
+    {{-- <script src="https://www.google.com/recaptcha/api.js" async defer></script> --}}
 
     <style>
         body {
@@ -86,26 +87,23 @@
                     @enderror
                 </div>
 
-                {{-- reCAPTCHA --}}
-                <div class="relative">
+                {{-- reCAPTCHA - KOMENTAR: Bagian ini dikomentari agar tidak muncul di UI --}}
+                {{-- <div class="relative">
                     <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
 
-                    {{-- Error: Wajib Diisi (required) --}}
                     @error('g-recaptcha-response')
                         <p class="mt-1 text-sm text-red-600 font-medium">⚠️ Verifikasi reCAPTCHA harus diisi.</p>
                     @enderror
 
-                    {{-- Error: Gagal Verifikasi dari Controller --}}
                     @error('captcha_error')
                         <p class="mt-1 text-sm text-red-600 font-medium">⚠️ {{ $message }}</p>
                     @enderror
 
-
-                    {{-- overlay agar reCAPTCHA tidak bisa diklik selama lockout --}}
                     @if (($remaining ?? 0) > 0)
                         <div id="recaptcha-overlay" class="absolute inset-0"></div>
                     @endif
-                </div>
+                </div> --}}
+
 
                 {{-- tombol --}}
                 <div class="flex items-center justify-between mt-2">

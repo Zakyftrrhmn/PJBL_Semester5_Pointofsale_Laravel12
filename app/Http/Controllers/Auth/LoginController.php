@@ -28,7 +28,8 @@ class LoginController extends Controller
         $request->validate([
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
-            'g-recaptcha-response' => ['required'],
+            // KOMENTAR: Menonaktifkan validasi wajib isi captcha
+            // 'g-recaptcha-response' => ['required'],
         ]);
 
         $key = $this->throttleKey($request);
@@ -45,23 +46,23 @@ class LoginController extends Controller
             ]);
         }
 
-        // 3. Verifikasi reCAPTCHA
-        $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-            'secret' => env('RECAPTCHA_SECRET'),
-            'response' => $request->input('g-recaptcha-response'),
-            'remoteip' => $request->ip(),
-        ])->json();
+        // 3. Verifikasi reCAPTCHA - KOMENTAR: Bagian ini dikomentari agar tidak melakukan cek ke Google
+        // $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+        //     'secret' => config('services.recaptcha.secret'),
+        //     'response' => $request->input('g-recaptcha-response'),
+        //     'remoteip' => $request->ip(),
+        // ])->json();
 
-        if (empty($response['success']) || $response['success'] !== true) {
-            // Hit rate limiter jika CAPTCHA gagal verifikasi
-            RateLimiter::hit($key, $decaySeconds);
-            // Simpan email ke session saat HITTING limiter
-            $request->session()->put('locked_email', $request->input('email'));
+        // if (empty($response['success']) || $response['success'] !== true) {
+        //     // Hit rate limiter jika CAPTCHA gagal verifikasi
+        //     RateLimiter::hit($key, $decaySeconds);
+        //     // Simpan email ke session saat HITTING limiter
+        //     $request->session()->put('locked_email', $request->input('email'));
 
-            return back()->withErrors([
-                'captcha_error' => 'Verifikasi reCAPTCHA gagal. Silakan coba lagi.',
-            ])->onlyInput('email');
-        }
+        //     return back()->withErrors([
+        //         'captcha_error' => 'Verifikasi reCAPTCHA gagal. Silakan coba lagi.',
+        //     ])->onlyInput('email');
+        // }
 
         // 4. Coba Autentikasi
         if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {

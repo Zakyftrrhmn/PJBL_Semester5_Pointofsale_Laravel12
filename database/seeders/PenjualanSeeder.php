@@ -53,7 +53,7 @@ class PenjualanSeeder extends Seeder
     {
         $penjualan = Penjualan::create([
             'id' => Str::uuid(),
-            'kode_penjualan' => 'PNJ' . rand(1000, 9999),
+            // 'kode_penjualan' => 'IPM' . rand(1000, 9999),
             'tanggal_penjualan' => Carbon::now()->subDays(rand(0, 6))->format('Y-m-d'),
             'total_harga' => $qty * $produk->harga_jual,
             'diskon_percent' => 0,

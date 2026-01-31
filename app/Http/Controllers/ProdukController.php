@@ -53,6 +53,7 @@ class ProdukController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'kode_produk' => 'required|string|max:50|unique:produks,kode_produk', // Tambahkan ini
             'nama_produk' => 'required|string|max:255',
             'stok_produk' => 'required|integer|min:0',
             'pengingat_stok'   => 'required|integer|min:0',
@@ -70,7 +71,7 @@ class ProdukController extends Controller
             'deskripsi_produk' => 'nullable|string|max:500',
             'is_active' => 'required|in:active,non_active',
             'kategori_id' => 'required|exists:kategoris,id',
-            'photo_produk' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'photo_produk' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:1024',
         ]);
 
         $data = $request->all();
@@ -104,6 +105,7 @@ class ProdukController extends Controller
         $produk = Produk::findOrFail($id);
 
         $request->validate([
+            'kode_produk'      => 'required|string|max:50|unique:produks,kode_produk,' . $id,
             'nama_produk'      => 'required|string|max:255',
             'stok_produk'      => 'required|integer|min:0',
             'pengingat_stok'   => 'required|integer|min:0',
@@ -112,7 +114,7 @@ class ProdukController extends Controller
             'kategori_id'      => 'required|exists:kategoris,id',
             'is_active'        => 'required|in:active,non_active',
             'deskripsi_produk' => 'nullable|string',
-            'photo_produk'     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'photo_produk'     => 'nullable|image|mimes:jpg,jpeg,png|max:1024',
         ]);
 
         if ($request->hasFile('photo_produk')) {
@@ -124,6 +126,7 @@ class ProdukController extends Controller
             $produk->photo_produk = $path;
         }
 
+        $produk->kode_produk      = $request->kode_produk;
         $produk->nama_produk      = $request->nama_produk;
         $produk->stok_produk      = $request->stok_produk;
         $produk->pengingat_stok   = $request->pengingat_stok;
@@ -158,5 +161,45 @@ class ProdukController extends Controller
         $pdf = Pdf::loadView('pages.produk.pdf', compact('produks'))
             ->setPaper('a4', 'landscape');
         return $pdf->download('produk.pdf');
+    }
+
+
+    // Tambahkan di ProdukController.php
+
+    public function getPrefixes()
+    {
+        // Mengambil semua kode_produk, lalu ambil bagian hurufnya saja secara unik
+        $produks = \App\Models\Produk::select('kode_produk')->get();
+
+        $prefixes = $produks->map(function ($item) {
+            // Mengambil karakter non-angka di awal string (Prefix)
+            preg_match('/^[A-Z]+/', $item->kode_produk, $matches);
+            return $matches[0] ?? null;
+        })->filter()->unique()->values();
+
+        return response()->json($prefixes);
+    }
+
+    public function generateKode(Request $request)
+    {
+        $prefix = strtoupper($request->prefix);
+
+        // Cari produk terakhir dengan prefix tersebut
+        // Gunakan regex database atau LIKE
+        $latest = \App\Models\Produk::where('kode_produk', 'like', $prefix . '%')
+            ->orderByRaw('LENGTH(kode_produk) DESC')
+            ->orderBy('kode_produk', 'desc')
+            ->first();
+
+        if ($latest) {
+            // Ambil angka setelah prefix
+            $currentNumber = str_replace($prefix, '', $latest->kode_produk);
+            $nextNumber = intval($currentNumber) + 1;
+        } else {
+            $nextNumber = 1;
+        }
+
+        $newCode = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+        return response()->json(['kode' => $newCode]);
     }
 }

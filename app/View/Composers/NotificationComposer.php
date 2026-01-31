@@ -35,7 +35,7 @@ class NotificationComposer
             $lastSale = $p->detailPenjualan()->latest()->first();
             $daysNoSale = $lastSale
                 ? now()->diffInDays($lastSale->created_at)
-                : 999; // belum pernah terjual
+                : 90; // belum pernah terjual
 
             $isSlowMoving = $daysNoSale >= 30;
 

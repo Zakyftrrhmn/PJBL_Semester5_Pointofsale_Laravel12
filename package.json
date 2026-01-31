@@ -16,10 +16,15 @@
     },
     "dependencies": {
         "@alpinejs/persist": "^3.15.0",
-        "alpinejs": "^3.15.0",
+        "alpinejs": "^3.15.4",
+        "boxicons": "^2.1.4",
+        "datatables.net": "^2.3.6",
+        "datatables.net-dt": "^2.3.6",
         "dropzone": "^6.0.0-beta.2",
         "flatpickr": "^4.6.13",
         "flowbite": "^3.1.2",
-        "jsvectormap": "^1.7.0"
+        "jquery": "^4.0.0",
+        "jsvectormap": "^1.7.0",
+        "tom-select": "^2.4.3"
     }
 }

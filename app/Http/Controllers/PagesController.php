@@ -32,10 +32,10 @@ class PagesController extends Controller
             'telepon2'      => 'nullable|string|max:20',
             'email'         => 'nullable|email|max:100',
 
-            'logo_sidebar'  => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'logo_sidebar2' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'logo_login'    => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'favicon'       => 'nullable|image|mimes:jpg,jpeg,png,ico|max:2048',
+            'logo_sidebar'  => 'nullable|image|mimes:jpg,jpeg,png|max:1024',
+            'logo_sidebar2' => 'nullable|image|mimes:jpg,jpeg,png|max:1024',
+            'logo_login'    => 'nullable|image|mimes:jpg,jpeg,png|max:1024',
+            'favicon'       => 'nullable|image|mimes:jpg,jpeg,png,ico|max:1024',
         ]);
 
         // === Upload file jika ada ===
@@ -70,10 +70,10 @@ class PagesController extends Controller
             'telepon2'      => 'nullable|string|max:20',
             'email'         => 'nullable|email|max:100',
 
-            'logo_sidebar'  => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'logo_sidebar2' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'logo_login'    => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'favicon'       => 'nullable|image|mimes:jpg,jpeg,png,ico|max:2048',
+            'logo_sidebar'  => 'nullable|image|mimes:jpg,jpeg,png|max:1024',
+            'logo_sidebar2' => 'nullable|image|mimes:jpg,jpeg,png|max:1024',
+            'logo_login'    => 'nullable|image|mimes:jpg,jpeg,png|max:1024',
+            'favicon'       => 'nullable|image|mimes:jpg,jpeg,png,ico|max:1024',
         ]);
 
         // === Update file upload ===

@@ -48,7 +48,7 @@
                     </div>
 
                     <div>
-                        <p class="text-sm text-gray-500">Harga Beli</p>
+                        <p class="text-sm text-gray-500">Modal</p>
                         <p class="font-medium">Rp {{ number_format($produk->harga_beli, 0, ',', '.') }}</p>
                     </div>
 

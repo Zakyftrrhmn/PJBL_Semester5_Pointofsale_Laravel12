@@ -3,422 +3,223 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Faktur Penjualan - {{ $penjualan->kode_penjualan }}</title>
 
     <style>
-        /* === UMUM === */
         @page {
-            /* Margin standar untuk dokumen A4 */
-            margin: 15px 20px;
+            size: 21.6cm 33cm;
+            margin: 0;
         }
 
         body {
-            /* Menggunakan Times New Roman untuk nuansa formal/klasik */
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            /* Ukuran teks dasar: 10pt (normal) */
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 10pt;
+            margin: 0.8cm 1cm;
+            line-height: 1.15;
             color: #000;
-            margin: 0;
-            padding: 10px 25px;
-            line-height: 1.4;
         }
 
-        .wrapper {
+        table {
             width: 100%;
-            margin: 0 auto;
+            border-collapse: collapse;
         }
 
-        /* === KOP SURAT === */
-        .kop-surat {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #000;
-            margin-bottom: 15px;
+        .judul {
+            text-align: center;
+            font-size: 15pt;
+            font-weight: bold;
         }
 
-        .kop-surat-logo {
-            width: 140px;
-            height: auto;
-            max-height: 55px;
-            object-fit: contain;
-        }
-
-        .kop-surat-info {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            text-align: right;
-            line-height: 1.2;
-        }
-
-        .kop-surat-info h1 {
-            margin: 0;
+        .no {
+            text-align: center;
             font-size: 12pt;
-            /* Judul perusahaan: 12pt */
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            /* Jarak huruf dikurangi agar lebih padat */
-            color: #000;
+            margin-bottom: 6px;
         }
 
-        .kop-surat-info p {
-            margin: 1px 0;
-            font-size: 8pt;
-            /* Info kontak: 8pt (paling kecil) */
-            line-height: 1.2;
-            color: #333;
-        }
-
-        /* === HEADER FAKTUR === */
-        .header {
-            text-align: center;
-            margin-bottom: 10px;
-            line-height: 1.1;
-        }
-
-        .header h2 {
-            margin: 0;
-            font-size: 14pt;
-            /* Judul FAKTUR PENJUALAN: 14pt (Menonjol) */
-            text-transform: uppercase;
-            font-weight: bold;
-            border-bottom: 1px solid #000;
-            display: inline-block;
-            padding: 0 5px 2px;
-        }
-
-        .header p {
-            margin: 3px 0 0;
-            font-size: 9pt;
-            /* Nomor Faktur: 9pt */
-            font-weight: normal;
-        }
-
-        /* === INFORMASI TRANSAKSI (Pelanggan & Tanggal) === */
-        .info-table {
-            width: 100%;
-            margin-bottom: 10px;
-            border-collapse: collapse;
-        }
-
-        .info-table td {
-            padding: 2px 4px;
+        .header td {
             vertical-align: top;
-            font-size: 9.5pt;
-            /* Info Transaksi: 9.5pt */
+            font-size: 12pt;
         }
 
-        .info-table tr td:nth-child(1),
-        .info-table tr td:nth-child(3) {
-            width: 12%;
-            font-weight: bold;
+        .kiri {
+            width: 55%;
         }
 
-        .info-table tr td:nth-child(2),
-        .info-table tr td:nth-child(4) {
-            width: 38%;
+        .kanan {
+            width: 45%;
         }
 
-        .section-title {
-            margin-top: 5px;
-            font-weight: bold;
-            font-size: 10pt;
-            border-bottom: 1px solid #000;
-            display: block;
-            padding-bottom: 2px;
-            margin-bottom: 3px;
-        }
-
-        /* === TABEL BARANG === */
-        table.daftar {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 3px;
-            font-size: 9.5pt;
-            /* Isi tabel: 9.5pt */
-        }
-
-        table.daftar th,
-        table.daftar td {
-            border: 1px solid #000;
-            padding: 4px 6px;
-        }
-
-        table.daftar th {
-            background-color: #f5f5f5;
-            text-align: center;
+        .nama-toko {
+            font-size: 16pt;
             font-weight: bold;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        table.daftar td {
-            vertical-align: middle;
-        }
-
-        .text-right {
-            text-align: right;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        /* === TOTAL === */
-        .total-section {
-            margin-top: 0px;
-            width: 100%;
-            border-collapse: collapse;
+        .alamat-toko {
             font-size: 10pt;
+            line-height: 1.3;
+            margin-top: 2px;
         }
 
-        .total-section td {
-            padding: 4px 6px;
+        .barang th,
+        .barang td {
+            border: 1px solid #000;
+            padding: 3px;
+            font-size: 12pt;
         }
 
-        .total-section tr td:first-child {
-            width: 80%;
-            text-align: right;
-            font-weight: bold;
-        }
-
-        /* Menghapus border atas agar menyambung mulus dari tabel barang */
-        .total-section tr:first-child td,
-        .total-section tr:nth-child(2) td {
-            border: none;
-            border-left: 1px solid #000;
-            border-right: 1px solid #000;
-        }
-
-        /* Penyorotan Kuat pada Total Bayar (Kesan Resmi) */
-        .total-section tr:last-child td {
-            border: none;
-            /* Hapus semua border default */
-            border-top: 1px dashed #555;
-            /* Garis putus-putus di atas Total Bayar */
-            border-bottom: 3px double #000;
-            /* Garis ganda di bawah, sangat formal */
-            border-left: 1px solid #000;
-            border-right: 1px solid #000;
-            background-color: #eee;
-            font-size: 11pt;
-            font-weight: bold;
-        }
-
-
-        .terbilang {
-            font-size: 9pt;
-            margin-top: 5px;
-            font-style: italic;
-            padding-left: 5px;
-        }
-
-        .footer-note {
-            font-size: 8.5pt;
-            margin-top: 10px;
-            padding-left: 5px;
-            color: #555;
-        }
-
-        /* === TANDA TANGAN === */
-        .ttd-section {
-            width: 100%;
-            margin-top: 30px;
-            text-align: right;
-            page-break-inside: avoid;
-        }
-
-        .ttd-column {
-            display: inline-block;
-            width: 200px;
+        .barang th {
             text-align: center;
-            font-size: 9.5pt;
+            font-weight: bold;
         }
 
-        .ttd-column p {
-            margin: 0;
+        .footer {
+            margin-top: 6px;
+            font-size: 12pt;
         }
 
-        .ttd-box {
-            height: 50px;
-            margin: 15px 0 5px;
+        .footer td {
+            width: 33%;
+            vertical-align: top;
         }
 
-        .ttd-jabatan {
-            font-style: normal;
-            font-size: 9pt;
-            font-weight: normal;
-            color: #555;
+        .note-box {
+            border: 1px solid #000;
+            display: inline-block;
+            padding: 8px 18px;
+            font-size: 10pt;
+            font-weight: bold;
         }
     </style>
 </head>
 
 <body>
-    <div class="wrapper">
 
-        @php
-            $page =
-                $page ??
-                (object) [
-                    'logo_sidebar' => 'logo/logo-sidebar.png',
-                    'nama_toko' => 'INTI PERAGA MANDIRI',
-                    'jalan' => 'Jl. Jend. Ahmad Yani No.157, Tanah Datar',
-                    'kota' => 'Pekanbaru',
-                    'telepon' => '0813-7586-6604',
-                    'nama_pemilik' => 'Pemilik Toko',
-                ];
-        @endphp
+    @php
+        $page =
+            $page ??
+            (object) [
+                'nama_toko' => 'INTI PERAGA MANDIRI',
+                'jalan' => 'Jl. Jend. Ahmad Yani No.157',
+                'kota' => 'Pekanbaru - Riau',
+                'telepon' => '0813-7586-6604',
+                'nama_pemilik' => 'Pemilik',
+            ];
+    @endphp
 
-        {{-- === KOP SURAT === --}}
-        <div class="kop-surat">
-            {{-- Container Logo --}}
-            <div class="kop-surat-logo-container">
-                @php
-                    $path = storage_path('app/public/' . ($page->logo_sidebar ?? 'logo/logo-sidebar.png'));
-                    $type = pathinfo($path, PATHINFO_EXTENSION);
-                    $data = @file_get_contents($path);
-                    $base64 = $data ? 'data:image/' . $type . ';base64,' . base64_encode($data) : '';
-                @endphp
+    <div class="judul">FAKTUR PENJUALAN</div>
+    <div class="no">No. {{ $penjualan->kode_penjualan }}</div>
 
-                @if ($base64)
-                    <img src="{{ $base64 }}" alt="Logo Toko" class="kop-surat-logo">
-                @else
-                    <img src="{{ public_path('assets/images/logo/logo-sidebar.png') }}" class="kop-surat-logo"
-                        alt="Logo Toko">
+    <table class="header">
+        <tr>
+            <td class="kiri">
+                <div class="nama-toko">{{ strtoupper($page->nama_toko) }}</div>
+                <div class="alamat-toko">
+                    {{ $page->jalan }}<br>
+                    {{ $page->kota }}<br>
+                    Telp. {{ $page->telepon }}
+                </div>
+            </td>
+
+            <td class="kanan">
+                Tanggal Invoice : {{ \Carbon\Carbon::parse($penjualan->tanggal_penjualan)->format('d-m-Y') }}<br>
+                Kepada Yth&nbsp;&nbsp;&nbsp;: {{ $penjualan->pelanggan->nama_pelanggan ?? '-CASH-' }}
+            </td>
+        </tr>
+    </table>
+
+    <br>
+
+    <table class="barang">
+        <thead>
+            <tr>
+                <th style="width:15%">Kode</th>
+                <th style="width:40%">Nama Produk</th>
+                <th style="width:15%">Harga</th>
+                <th style="width:10%">Qty</th>
+                @if ($isDiscountApplied)
+                    <th style="width:10%">Disc %</th>
                 @endif
-            </div>
-            {{-- Container Info Perusahaan --}}
-            <div class="kop-surat-info">
-                <h1>{{ $page && $page->nama_toko ? strtoupper($page->nama_toko) : 'INTI PERAGA MANDIRI' }}</h1>
-                <p>
-                    {{ $page->jalan ?? 'Jl. Jend. Ahmad Yani No.157, Tanah Datar' }}<br>
-                    {{ $page->kota ?? 'Kec. Pekanbaru' }}<br>
-                    Telp: {{ $page->telepon ?? '0813-7586-6604' }}
-                </p>
-            </div>
-        </div>
-
-        {{-- === HEADER FAKTUR === --}}
-        <div class="header">
-            {{-- Tambahkan keterangan yang sesuai --}}
-            <h2>FAKTUR PENJUALAN</h2>
-            <p>No. {{ $penjualan->kode_penjualan }}</p>
-        </div>
-
-        {{-- === INFORMASI TRANSAKSI === --}}
-        <table class="info-table">
-            <tr>
-                <td>Tanggal</td>
-                <td>: {{ \Carbon\Carbon::parse($penjualan->tanggal_penjualan)->format('d-m-Y') }}</td>
-                <td>Pelanggan</td>
-                <td>: {{ $penjualan->pelanggan->nama_pelanggan ?? 'Umum' }}</td>
+                <th style="width:{{ $isDiscountApplied ? '10%' : '20%' }}">Total</th>
             </tr>
-        </table>
+        </thead>
 
-        {{-- === DAFTAR PEMBELIAN === --}}
-        <div class="section-title">DAFTAR PEMBELIAN</div>
+        <tbody>
+            @foreach ($penjualan->detailPenjualans as $d)
+                @php
+                    $totalMurni = $d->harga_satuan * $d->qty;
 
-        <table class="daftar">
-            <thead>
+                    if ($item_total_type === 'MURNI') {
+                        $totalItem = $totalMurni;
+                    } else {
+                        $discPersen = $d->diskon_percent ?? 0;
+                        $discNilai = ($discPersen / 100) * $totalMurni;
+                        $totalItem = $totalMurni - $discNilai;
+                    }
+                @endphp
                 <tr>
-                    <th style="width: 15%;">Kode</th>
-                    <th style="width: 35%;">Nama Produk</th>
-                    <th style="width: 15%;">Harga Satuan</th>
-                    <th style="width: 10%;">Qty</th>
-                    {{-- HANYA TAMPILKAN KOLOM DISKON JIKA isDiscountApplied=true --}}
+                    <td>{{ $d->produk->kode_produk }}</td>
+                    <td>{{ $d->produk->nama_produk }}</td>
+                    <td align="right">Rp {{ number_format($d->harga_satuan, 0, ',', '.') }}</td>
+                    <td align="center">{{ $d->qty }}</td>
+
                     @if ($isDiscountApplied)
-                        <th style="width: 10%;">Diskon Item (%)</th>
+                        <td align="center">{{ number_format($d->diskon_percent ?? 0, 0) }}%</td>
                     @endif
-                    {{-- Sesuaikan lebar kolom Total --}}
-                    <th style="width: {{ $isDiscountApplied ? '15%' : '25%' }};">Total Item</th>
+
+                    <td align="right">Rp {{ number_format($totalItem, 0, ',', '.') }}</td>
                 </tr>
-            </thead>
+            @endforeach
+        </tbody>
 
-            <tbody>
-                @foreach ($penjualan->detailPenjualans as $detail)
-                    @php
-                        // Hitung total tanpa diskon
-                        $totalItemMurni = $detail->harga_satuan * $detail->qty;
-
-                        // Kalau print MURNI -> pakai total asli
-                        if ($item_total_type === 'MURNI') {
-                            $totalItemDisplay = $totalItemMurni;
-                        } else {
-                            // Kalau print DISKON, hitung total setelah diskon
-                            $diskonPersen = $detail->diskon_percent ?? 0;
-                            $diskonNilai = ($diskonPersen / 100) * $totalItemMurni;
-                            $totalItemDisplay = $totalItemMurni - $diskonNilai;
-                        }
-                    @endphp
-
-                    <tr>
-                        <td>{{ $detail->produk->kode_produk ?? '-' }}</td>
-                        <td>{{ $detail->produk->nama_produk }}</td>
-                        <td class="text-right">Rp {{ number_format($detail->harga_satuan, 0, ',', '.') }}</td>
-                        <td class="text-center">{{ $detail->qty }}</td>
-
-                        {{-- Tampilkan kolom diskon hanya jika ada diskon --}}
-                        @if ($isDiscountApplied)
-                            <td class="text-center">{{ number_format($detail->diskon_percent ?? 0, 0) }}%</td>
-                        @endif
-
-                        <td class="text-right">Rp {{ number_format($totalItemDisplay, 0, ',', '.') }}</td>
-                    </tr>
-                @endforeach
-            </tbody>
-
-        </table>
-
-        {{-- === TOTAL & DISKON === --}}
-        <table class="total-section">
+        <tfoot>
             <tr>
-                {{-- Label menyesuaikan dengan Total Harga Awal yang dikirim Controller --}}
-                <td>Total Harga</td>
-                <td class="text-right">Rp {{ number_format($subTotalAwal, 0, ',', '.') }}</td>
+                <td colspan="{{ $isDiscountApplied ? 5 : 4 }}" align="right"><strong>Subtotal</strong></td>
+                <td align="right"><strong>Rp {{ number_format($subTotalAwal, 0, ',', '.') }}</strong></td>
             </tr>
 
-            {{-- HANYA TAMPILKAN DISKON TRANSAKSI jika isDiscountApplied=true DAN diskon nominal > 0 --}}
             @if ($isDiscountApplied && $penjualan->diskon_nominal > 0)
                 <tr>
-                    <td>Diskon Transaksi ({{ number_format($penjualan->diskon_percent ?? 0, 0) }}%)</td>
-                    <td class="text-right">- Rp {{ number_format($penjualan->diskon_nominal, 0, ',', '.') }}</td>
+                    <td colspan="{{ $isDiscountApplied ? 5 : 4 }}" align="right">
+                        Diskon Transaksi ({{ number_format($penjualan->diskon_percent ?? 0, 0) }}%)
+                    </td>
+                    <td align="right">- Rp {{ number_format($penjualan->diskon_nominal, 0, ',', '.') }}</td>
                 </tr>
             @endif
 
+            <tr>
+                <td colspan="{{ $isDiscountApplied ? 5 : 4 }}" align="right"><strong>TOTAL BAYAR</strong></td>
+                <td align="right"><strong>Rp {{ number_format($totalFinal, 0, ',', '.') }}</strong></td>
+            </tr>
 
             <tr>
-                <td>TOTAL BAYAR</td>
-                <td class="text-right">
-                    Rp
-                    {{ number_format($totalFinal, 0, ',', '.') }}
+                <td colspan="{{ $isDiscountApplied ? 6 : 5 }}" style="font-size:9pt; text-transform: uppercase;">
+                    Terbilang : {{ ucwords(\App\Helpers\Terbilang::make($totalFinal, ' Rupiah')) }}
                 </td>
             </tr>
-        </table>
+        </tfoot>
+    </table>
 
-        {{-- === TERBILANG === --}}
-        <p class="terbilang">
-            Terbilang:
-            *{{ ucwords(\App\Helpers\Terbilang::make($totalFinal, ' Rupiah')) }}*
-        </p>
+    <table class="footer">
+        <tr>
+            <td>
+                <strong>Tanda Terima</strong><br><br><br><br>
+                ({{ $penjualan->pelanggan->nama_pelanggan ?? 'Umum' }})
+            </td>
 
-        {{-- === CATATAN === --}}
-        <div class="footer-note">
-            Catatan:<br>
-            Barang yang sudah dibeli tidak dapat dikembalikan/dipertukarkan.
-        </div>
+            <td style="text-align:center; vertical-align:middle;">
+                <div class="note-box">
+                    Barang yang sudah dibeli tidak dapat dikembalikan/ditukar
+                </div>
+            </td>
 
-        {{-- === TANDA TANGAN === --}}
-        <div class="ttd-section">
-            <div class="ttd-column">
-                <p>{{ $page->kota ?? 'Pekanbaru' }}, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</p>
-                <p>Hormat Kami,</p>
-                <div class="ttd-box"></div>
-                <p><strong>{{ $page->nama_pemilik ?? ($penjualan->user->name ?? 'Kasir') }}</strong></p>
-                <p class="ttd-jabatan">Pemilik / Kasir</p>
-            </div>
-        </div>
-    </div>
+            <td style="text-align:right;">
+                <strong>Hormat Kami,</strong><br><br><br><br>
+                ({{ $page->nama_pemilik }})
+            </td>
+        </tr>
+    </table>
+
 </body>
 
 </html>

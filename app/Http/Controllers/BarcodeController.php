@@ -11,9 +11,9 @@ class BarcodeController extends Controller
 {
     public function __construct()
     {
-        // Memastikan hanya pengguna dengan permission 'barcode.index' yang dapat mengakses controller ini.
         $this->middleware('can:barcode.index');
     }
+
     public function index()
     {
         $produks = Produk::all();
@@ -22,7 +22,6 @@ class BarcodeController extends Controller
 
     public function generateBarcodes(Request $request)
     {
-        // Validasi input
         $request->validate([
             'produk_id' => 'required|array',
             'jumlah' => 'required|array',
@@ -32,17 +31,16 @@ class BarcodeController extends Controller
 
         $barcodeDataModal = [];
         foreach ($produks as $produk) {
-            if (!isset($barcodeDataModal[$produk->id])) {
-                $qty = $request->jumlah[$produk->id] ?? 1;
-                $barcodeDataModal[$produk->id] = [
-                    'nama_produk' => $produk->nama_produk,
-                    'kode_produk' => $produk->kode_produk,
-                    'qty' => $qty,
-                    'barcode_html' => DNS1D::getBarcodeHTML($produk->kode_produk, 'C128', 1.5, 30),
-                ];
-            }
+            $qty = $request->jumlah[$produk->id] ?? 1;
+            $barcodeDataModal[] = [
+                'nama_produk' => $produk->nama_produk,
+                'kode_produk' => $produk->kode_produk,
+                'qty' => $qty,
+                // Diperbesar: width factor ke 2, height ke 40
+                'barcode_html' => DNS1D::getBarcodeHTML($produk->kode_produk, 'C128', 2, 45),
+            ];
         }
-        return view('pages.barcode.modal-content', ['barcodeData' => array_values($barcodeDataModal)]);
+        return view('pages.barcode.modal-content', ['barcodeData' => $barcodeDataModal]);
     }
 
     public function cetakPdf(Request $request)
@@ -55,8 +53,10 @@ class BarcodeController extends Controller
         $produks = Produk::whereIn('id', $request->produk_id)->get();
         $jumlahData = $request->jumlah;
 
-        $pdf = Pdf::loadView('pages.barcode.cetak-pdf', compact('produks', 'jumlahData'));
+        // Menggunakan setting paper A4 portrait
+        $pdf = Pdf::loadView('pages.barcode.cetak-pdf', compact('produks', 'jumlahData'))
+            ->setPaper('a4', 'portrait');
 
-        return $pdf->stream('barcode.pdf');
+        return $pdf->stream('barcode-produk.pdf');
     }
 }

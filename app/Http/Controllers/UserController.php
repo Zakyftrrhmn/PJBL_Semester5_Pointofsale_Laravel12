@@ -6,9 +6,11 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -56,7 +58,7 @@ class UserController extends Controller
             'email'     => 'required|email|unique:users,email',
             'password'  => 'required|string|min:8|confirmed',
             'roles'     => 'required|string|exists:roles,name',
-            'photo_user' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'photo_user' => 'nullable|image|mimes:jpg,jpeg,png|max:1024',
         ]);
 
         $photoPath = null;
@@ -71,8 +73,11 @@ class UserController extends Controller
             'photo_user' => $photoPath,
         ]);
 
-        // Perubahan: assignRole dengan single string
-        $user->assignRole($request->input('roles')); // Tidak perlu array
+        // Assign role
+        $user->assignRole($request->input('roles'));
+
+        // Clear cache untuk user baru
+        $this->clearUserCache($user->id);
 
         return redirect()->route('user.index')->with('success', 'User berhasil ditambahkan!');
     }
@@ -84,7 +89,7 @@ class UserController extends Controller
     public function edit(User $user)
     {
         $roles = Role::pluck('name', 'name')->all();
-        $userRole = $user->roles->pluck('name', 'name')->all(); // Peran yang dimiliki user
+        $userRole = $user->roles->pluck('name', 'name')->all();
 
         return view('pages.user.edit', compact('user', 'roles', 'userRole'));
     }
@@ -98,7 +103,7 @@ class UserController extends Controller
             'name'      => 'required|string|max:255',
             'email'     => ['required', 'email', Rule::unique('users')->ignore($user->id)],
             'password'  => 'nullable|string|min:8|confirmed',
-            'photo_user' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'photo_user' => 'nullable|image|mimes:jpg,jpeg,png|max:1024',
         ];
 
         if (auth()->user()->hasRole('Super Admin')) {
@@ -117,14 +122,11 @@ class UserController extends Controller
             $data['password'] = Hash::make($request->password);
         }
 
-        // ✅ PERBAIKAN DI SINI — logika update foto
+        // Update foto
         if ($request->hasFile('photo_user')) {
-            // Hapus foto lama jika ada
             if ($user->photo_user && Storage::disk('public')->exists($user->photo_user)) {
                 Storage::disk('public')->delete($user->photo_user);
             }
-
-            // Simpan foto baru ke folder storage/app/public/users
             $data['photo_user'] = $request->file('photo_user')->store('users', 'public');
         }
 
@@ -135,6 +137,9 @@ class UserController extends Controller
         if (auth()->user()->hasRole('Super Admin') && !$user->hasRole('Super Admin')) {
             $user->syncRoles($request->input('roles'));
         }
+
+        // Clear cache setelah update
+        $this->clearUserCache($user->id);
 
         return redirect()->route('user.index')->with('success', 'User berhasil diperbarui!');
     }
@@ -155,12 +160,51 @@ class UserController extends Controller
             return back()->with('error', 'Anda tidak dapat menghapus akun Anda sendiri.');
         }
 
-        // ... (Logika hapus foto)
-        if ($user->photo_user && Storage::disk('public')->exists($user->photo_user)) {
-            Storage::disk('public')->delete($user->photo_user);
-        }
+        try {
+            // Mulai database transaction
+            DB::beginTransaction();
 
-        $user->delete();
-        return redirect()->route('user.index')->with('success', 'User berhasil dihapus!');
+            // Hapus foto
+            if ($user->photo_user && Storage::disk('public')->exists($user->photo_user)) {
+                Storage::disk('public')->delete($user->photo_user);
+            }
+
+            // Clear cache sebelum delete
+            $this->clearUserCache($user->id);
+
+            // Hapus user
+            $user->delete();
+
+            // Commit transaction
+            DB::commit();
+
+            return redirect()->route('user.index')->with('success', 'User berhasil dihapus!');
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Rollback jika terjadi error
+            DB::rollBack();
+
+            // Cek apakah error karena foreign key constraint
+            if ($e->getCode() == 23000) {
+                return back()->with('error', 'User tidak dapat dihapus karena masih memiliki data transaksi (penjualan, pembelian, atau data lainnya). Silakan hubungi administrator untuk menonaktifkan akun ini.');
+            }
+
+            // Error lainnya
+            return back()->with('error', 'Terjadi kesalahan saat menghapus user. Silakan coba lagi.');
+        } catch (\Exception $e) {
+            // Rollback untuk error umum
+            DB::rollBack();
+
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Helper method untuk clear semua cache terkait user
+     */
+    private function clearUserCache($userId)
+    {
+        Cache::forget('user_permissions_' . $userId);
+        Cache::forget('header_user_' . $userId);
+        Cache::forget('header_roles_' . $userId);
     }
 }

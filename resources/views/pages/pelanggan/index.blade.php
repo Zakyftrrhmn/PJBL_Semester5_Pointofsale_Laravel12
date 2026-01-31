@@ -152,8 +152,42 @@
                                                     class="font-medium text-gray-700 whitespace-nowrap">{{ $pelanggan->nama_pelanggan }}</span>
                                             </div>
                                         </td>
-                                        <td class="px-5 py-4 text-gray-700 whitespace-nowrap">{{ $pelanggan->telp }}</td>
-                                        <td class="px-5 py-4 text-gray-700 whitespace-nowrap">{{ $pelanggan->email }}</td>
+
+                                        <td class="px-5 py-4 whitespace-nowrap">
+                                            @if ($pelanggan->telp)
+                                                <span class="text-gray-700 font-medium">{{ $pelanggan->telp }}</span>
+                                            @else
+                                                <span
+                                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-600 border border-amber-100">
+                                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                    </svg>
+                                                    No Phone
+                                                </span>
+                                            @endif
+                                        </td>
+
+                                        <td class="px-5 py-4 whitespace-nowrap">
+                                            @if ($pelanggan->email)
+                                                <span
+                                                    class="text-blue-600 hover:underline cursor-pointer">{{ $pelanggan->email }}</span>
+                                            @else
+                                                <span
+                                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-500 border border-slate-200">
+                                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                                                        </path>
+                                                    </svg>
+                                                    Not Set
+                                                </span>
+                                            @endif
+                                        </td>
 
                                         <td class="px-5 py-4 flex justify-center gap-2">
                                             @can('pelanggan.edit')

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AiAssistantController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
@@ -9,19 +10,11 @@ use App\Http\Controllers\Api\PenjualanController;
 use App\Http\Controllers\Api\ProdukController;
 use App\Http\Controllers\Api\LaporanController;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-| Nama Route (Naming) menggunakan awalan 'api.' untuk menghindari konflik
-| dengan route di web.php.
-*/
 
-// Rute Publik (Otentikasi)
 Route::post('/login', [AuthController::class, 'login'])->name('api.login');
 
+Route::post('/ai/ask', [AiAssistantController::class, 'ask']);
 
-// Rute Terproteksi (Membutuhkan Token Sanctum)
 Route::middleware('auth:sanctum')->group(function () {
 
     // Auth Rute
@@ -44,11 +37,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Produk Rute (CRUD)
     // apiResource otomatis memberi nama: api.produks.index, api.produks.store, dst.
-    Route::apiResource('produks', ProdukController::class)->except(['create', 'edit'])->names('api.produks');
     Route::get('produks/kategoris', [ProdukController::class, 'getKategoris'])->name('api.produks.kategoris');
+    Route::apiResource('produks', ProdukController::class)->except(['create', 'edit'])->names('api.produks');
 
     // Laporan Rute
     Route::prefix('laporan')->name('api.laporan.')->group(function () {
         Route::get('penjualan', [LaporanController::class, 'indexPenjualan'])->name('penjualan.index'); // api.laporan.penjualan.index
+        Route::get('penjualan/pdf', [LaporanController::class, 'exportPDFPenjualan'])->name('penjualan.pdf');
     });
 });

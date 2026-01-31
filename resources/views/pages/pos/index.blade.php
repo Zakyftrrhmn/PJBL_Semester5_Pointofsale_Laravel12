@@ -11,7 +11,6 @@
     @php
         $produksForJs = $produksForJs;
         $pelanggansForJs = $pelanggans;
-        // Data inisialisasi tambahan untuk edit mode
         $initialCart = $initialCart ?? [];
         $initialPelangganId = $initialPelangganId ?? ($pelangganUmum->id ?? '');
         $initialDiskonPercent = $initialDiskonPercent ?? 0;
@@ -24,6 +23,7 @@
         @if (session('success'))
             <div class="p-4 mb-4 text-green-800 rounded-lg bg-green-200">
                 {{ session('success') }}
+
             </div>
         @endif
         @if (session('error'))
@@ -35,90 +35,146 @@
         <div class="flex flex-col lg:flex-row gap-6" x-data="posData({
             initialProduks: @js($produksForJs),
             initialPelanggans: @js($pelanggansForJs),
+            paginatedProduks: @js($produks->items()),
             pelangganUmumId: '{{ $pelangganUmum->id ?? '' }}',
-            // Data untuk Edit Mode
             isEditMode: @js($isEditMode),
             initialCart: @js($initialCart),
             initialPelangganId: '{{ $initialPelangganId }}',
             initialDiskonPercent: @js($initialDiskonPercent),
             initialJumlahBayar: @js($initialJumlahBayar),
             penjualanId: '{{ $penjualanId }}',
+        
         })">
 
             {{-- Product Panel (Kiri) --}}
             <div class="lg:w-2/3 space-y-4">
+                {{-- Search Bar dengan Indikator Scanner --}}
                 <div class="rounded-2xl border border-gray-200 bg-white shadow-sm p-4 sticky top-4 z-10">
-                    <form action="{{ route('pos.index') }}" method="GET" class="flex items-center gap-2">
+                    {{-- Status Scanner Aktif --}}
+                    <div class="mb-3 flex items-center gap-2" x-show="scannerActive" x-cloak>
+                        <div class="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2 flex-1">
+                            <div class="relative flex h-3 w-3">
+                                <span
+                                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                            </div>
+                            <span class="text-sm font-medium text-green-700">
+                                <i class='bx bx-barcode-reader'></i> Scanner Barcode Aktif
+                            </span>
+                        </div>
+                        <button @click="toggleScanner()" type="button"
+                            class="px-3 py-2 bg-red-50 border border-red-200 text-red-600 rounded-lg hover:bg-red-100 text-sm font-medium">
+                            <i class='bx bx-x'></i> Nonaktifkan
+                        </button>
+                    </div>
+
+                    {{-- Tombol Aktifkan Scanner jika tidak aktif --}}
+                    <div class="mb-3" x-show="!scannerActive">
+                        <button @click="toggleScanner()" type="button"
+                            class="w-full flex items-center justify-center gap-2 bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg px-4 py-3 text-blue-600 hover:bg-blue-100 font-medium">
+                            <i class='bx bx-barcode-reader text-xl'></i>
+                            <span>Aktifkan Scanner Barcode</span>
+                        </button>
+                    </div>
+
+                    {{-- Search Form - CLIENT SIDE SEARCH --}}
+                    <div class="flex items-center gap-2">
                         <div class="relative w-full">
-                            <input type="text" name="search" value="{{ request('search') }}" x-ref="searchInput"
-                                @keydown.enter="searchProduk" placeholder="Cari produk berdasarkan nama atau kode..."
-                                class="h-10 w-full rounded-lg border border-gray-200 pl-10 pr-3 text-sm text-gray-700 placeholder-gray-400 shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
+                            <input type="text" x-model="searchTerm" @input="filterProduks" @keydown.enter="searchProduk"
+                                x-ref="searchInput" placeholder="Cari produk berdasarkan nama atau kode..."
+                                class="h-10 w-full rounded-lg border border-gray-200 pl-10 pr-10 text-sm text-gray-700 placeholder-gray-400 shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
                             <span class="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400">
                                 <i class="bx bx-search text-lg"></i>
                             </span>
+                            {{-- Clear button --}}
+                            <button type="button" @click="clearSearch" x-show="searchTerm.length > 0"
+                                class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                <i class="bx bx-x text-lg"></i>
+                            </button>
                         </div>
-                        <button type="submit" class="hidden">Cari</button>
-                        <div class="relative group">
-                            <a href="{{ route('pos.index') }}"
-                                class="flex items-center justify-center h-10 w-10 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shadow-sm">
-                                <i class="bx bx-refresh text-xl"></i>
-                            </a>
-                        </div>
-                    </form>
+                    </div>
+
+                    {{-- Barcode yang terdeteksi --}}
+                    <div x-show="lastScannedCode" x-cloak class="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <p class="text-xs text-yellow-700">
+                            <i class='bx bx-info-circle'></i>
+                            Barcode terakhir: <span class="font-mono font-bold" x-text="lastScannedCode"></span>
+                        </p>
+                    </div>
+
+                    {{-- Info hasil pencarian --}}
+                    <div x-show="searchTerm.length > 0" x-cloak
+                        class="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p class="text-xs text-blue-700">
+                            <i class='bx bx-info-circle'></i>
+                            Ditemukan <span class="font-bold" x-text="filteredProduks.length"></span> produk
+                            <span x-show="filteredProduks.length === 0" class="text-red-600 font-semibold ml-1">- Tidak ada
+                                hasil</span>
+                        </p>
+                    </div>
                 </div>
 
                 {{-- Daftar Produk --}}
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                    @forelse ($produks as $produk)
-                        <div @click="addToCart({{ json_encode($produk) }})"
+                    <template x-for="produk in filteredProduks" :key="produk.id">
+                        <div @click="addToCart(produk)"
                             :class="{
-                                'opacity-50 cursor-not-allowed': {{ $produk['stok_produk'] }} <= 0,
-                                'hover:shadow-xl hover:-translate-y-1 cursor-pointer': {{ $produk['stok_produk'] }} > 0
+                                'opacity-50 cursor-not-allowed': produk.stok_produk <= 0,
+                                'hover:shadow-xl hover:scale-[1.02] transform-gpu cursor-pointer': produk.stok_produk >
+                                    0
                             }"
                             class="flex flex-col justify-between min-w-[150px] rounded-xl border border-gray-200 bg-white p-3 text-center shadow-sm transition-all duration-200 ease-in-out">
-
                             <div
                                 class="relative w-full mb-2 overflow-hidden rounded-lg aspect-square border border-gray-100 bg-gray-50">
-                                <img src="{{ $produk['photo_produk'] ? asset('storage') . '/' . $produk['photo_produk'] : asset('assets/images/produk/default-produk.png') }}"
-                                    alt="Foto Produk"
-                                    class="w-full h-full object-cover transition-transform duration-300 hover:scale-105">
+                                <img :src="produk.photo_produk ? '{{ asset('storage') }}/' + produk.photo_produk :
+                                    '{{ asset('assets/images/produk/default-produk.png') }}'"
+                                    :alt="produk.nama_produk" width="300" height="300"
+                                    class="w-full h-full object-cover transition-transform duration-300 hover:scale-105" />
 
-                                @if ($produk['stok_produk'] <= 0)
+                                <template x-if="produk.stok_produk <= 0">
                                     <div
                                         class="absolute inset-0 bg-black/60 flex items-center justify-center text-xs font-semibold uppercase tracking-wide text-white rounded-lg">
                                         Habis
                                     </div>
-                                @endif
+                                </template>
                             </div>
 
                             <div class="space-y-1">
-                                <p class="text-sm font-semibold text-gray-800 truncate"
-                                    title="{{ $produk['nama_produk'] }}">
-                                    {{ $produk['nama_produk'] }}</p>
-                                <p class="text-xs text-gray-500 font-mono truncate">{{ $produk['kode_produk'] }}</p>
-
+                                <p class="text-sm font-semibold text-gray-800 truncate" :title="produk.nama_produk"
+                                    x-text="produk.nama_produk"></p>
+                                <p class="text-xs text-gray-500 font-mono truncate" x-text="produk.kode_produk"></p>
                                 <p class="font-bold text-green-600 text-sm sm:text-base leading-tight break-words"
-                                    x-text="formatRupiah({{ $produk['harga_jual'] }})"></p>
-
-                                <p
-                                    class="text-xs font-medium mt-1 break-words {{ $produk['stok_produk'] <= 5 ? 'text-red-500' : 'text-gray-500' }}">
-                                    Stok: {{ $produk['stok_produk'] }}</p>
+                                    x-text="formatRupiah(produk.harga_jual)"></p>
+                                <p class="text-xs font-medium mt-1 break-words"
+                                    :class="produk.stok_produk <= 5 ? 'text-red-500' : 'text-gray-500'">
+                                    Stok: <span x-text="produk.stok_produk"></span>
+                                </p>
                             </div>
                         </div>
-                    @empty
+                    </template>
+
+                    {{-- Pesan jika tidak ada hasil --}}
+                    <template x-if="filteredProduks.length === 0">
                         <div class="col-span-full text-center py-10 text-gray-500">
-                            Tidak ada produk ditemukan.
+                            <i class="bx bx-search-alt text-4xl mb-2 block"></i>
+                            <p x-show="searchTerm.length > 0">
+                                Tidak ada produk yang cocok dengan "<span class="font-semibold" x-text="searchTerm"></span>"
+                            </p>
+                            <p x-show="searchTerm.length === 0">
+                                Tidak ada produk tersedia.
+                            </p>
                         </div>
-                    @endforelse
+                    </template>
                 </div>
 
-                <div class="mt-4">
-                    {{ $produks->links('vendor.pagination.tailwind') }}
+                {{-- Pagination --}}
+                <div class="mt-6 flex justify-center">
+                    {{ $produks->links() }}
                 </div>
 
             </div>
 
-            {{-- Cart & Payment Panel (Kanan) - DESIGN DIPERBAIKI --}}
+            {{-- Cart & Payment Panel (Kanan) --}}
             <div
                 class="lg:w-1/3 bg-white rounded-xl border border-gray-200 shadow-lg p-5 flex flex-col h-full sticky top-4">
 
@@ -156,7 +212,8 @@
 
                                 <div>
                                     <label class="block text-[10px] text-gray-500 font-medium">QTY</label>
-                                    <div class="flex items-center border border-gray-300 rounded-md overflow-hidden mt-0.5">
+                                    <div
+                                        class="flex items-center border border-gray-300 rounded-md overflow-hidden mt-0.5">
                                         <button @click="decrementQty(index)" :disabled="item.qty <= 1"
                                             class="text-gray-600 hover:bg-gray-100 disabled:text-gray-300 p-0.5">
                                             <i class="bx bx-minus text-xs"></i>
@@ -180,12 +237,11 @@
 
                                 <div class="text-right">
                                     <label class="block text-[10px] text-gray-500 font-medium">SUBTOTAL</label>
-                                    <p class="text-sm font-bold text-blue-600 mt-0.5" x-text="formatRupiah(item.subtotal)">
-                                    </p>
+                                    <p class="text-sm font-bold text-blue-600 mt-0.5"
+                                        x-text="formatRupiah(item.subtotal)"></p>
                                 </div>
                             </div>
 
-                            {{-- Detail Harga Satuan di Bawah --}}
                             <div class="text-right mt-1">
                                 <span class="text-[10px] text-gray-500 mr-2"
                                     x-text="'@ ' + formatRupiah(item.harga_satuan)"></span>
@@ -225,10 +281,19 @@
                     </div>
 
                     <div class="space-y-1 pt-1">
+                        <label for="tanggal_penjualan" class="block text-sm font-medium text-gray-700">
+                            Tanggal Transaksi
+                        </label>
+                        <input type="date" id="tanggal_penjualan" x-model="tanggal_penjualan"
+                            :max="new Date().toISOString().split('T')[0]"
+                            class="w-full rounded-lg border border-gray-300 p-2 text-sm text-gray-700 focus:border-blue-500 shadow-sm bg-white">
+                    </div>
+
+                    <div class="space-y-1 pt-1">
                         <label for="pelanggan_id" class="block text-sm font-medium text-gray-700">Pelanggan</label>
                         <select id="pelanggan_id" x-model="pelanggan_id"
                             class="w-full rounded-lg border border-gray-300 p-2 text-sm text-gray-700 focus:border-blue-500 shadow-sm bg-white">
-                            <option value="">Umum</option>
+                            <option :value="pelangganUmumId">Umum</option>
                             <template x-for="p in initialPelanggans" :key="p.id">
                                 <option :value="p.id" x-text="p.nama_pelanggan"></option>
                             </template>
@@ -242,8 +307,7 @@
                         <input type="text" id="jumlah_bayar" x-model="jumlahBayarFormatted"
                             @focus="jumlahBayarFormatted = parseRupiah(jumlahBayarFormatted)"
                             @blur="jumlahBayarFormatted = formatNumber(parseRupiah(jumlahBayarFormatted))"
-                            {{-- 💡 PERUBAHAN: Gunakan formatNumber saat blur --}} @input="updateJumlahBayar($event.target.value)" :min="totalBayar"
-                            placeholder="0"
+                            @input="updateJumlahBayar($event.target.value)" :min="totalBayar" placeholder="0"
                             class="w-full rounded-lg border border-gray-300 p-2 text-sm font-semibold text-gray-900 focus:border-green-500 focus:ring-green-500 shadow-sm" />
                     </div>
 
@@ -260,13 +324,14 @@
                 <form
                     :action="isEditMode ? '{{ route('invoice.update', ['penjualan' => $penjualanId ?? ':id']) }}'.replace(':id',
                         penjualanId) : '{{ route('pos.store') }}'"
-                    method="POST" class="mt-auto">
+                    method="POST" class="mt-auto" @submit="handleSubmit">
                     @csrf
 
                     <template x-if="isEditMode">
                         @method('PUT')
                     </template>
 
+                    <input type="hidden" name="tanggal_penjualan" :value="tanggal_penjualan">
                     <input type="hidden" name="pelanggan_id" :value="pelanggan_id">
                     <input type="hidden" name="diskon_percent" :value="diskon_percent">
                     <input type="hidden" name="diskon_nominal" :value="diskon_trans_nominal">
@@ -286,18 +351,91 @@
                         <span x-text="buttonText"></span>
                     </button>
                 </form>
+
+
             </div>
         </div>
     </div>
 
-    {{-- Logic Alpine.js --}}
+    {{-- Script Alpine.js --}}
     <script>
         function posData(data) {
             return {
+                /* ==========================
+                   STORAGE (TAMBAHAN)
+                ========================== */
+                storageKey: 'pos_cart_v1',
+
+                saveCartToStorage() {
+                    const payload = {
+                        cart: this.cart,
+                        pelanggan_id: this.pelanggan_id,
+                        tanggal_penjualan: this.tanggal_penjualan, // ← TAMBAHKAN INI
+                        diskon_percent: this.diskon_percent,
+                        jumlahBayar: this.jumlahBayar,
+                    };
+                    try {
+                        localStorage.setItem(this.storageKey, JSON.stringify(payload));
+                    } catch (e) {
+                        console.error('Error saving to storage:', e);
+                    }
+                },
+
+                loadCartFromStorage() {
+                    if (this.isEditMode) return;
+
+                    const saved = localStorage.getItem(this.storageKey);
+                    if (!saved) return;
+
+                    try {
+                        const parsed = JSON.parse(saved);
+
+                        if (Array.isArray(parsed.cart)) {
+                            this.cart = parsed.cart;
+                        }
+
+                        // ✅ VALIDASI PELANGGAN ID DARI STORAGE
+                        const pelangganValid = this.initialPelanggans.find(p => p.id === parsed.pelanggan_id);
+
+                        if (pelangganValid) {
+                            this.pelanggan_id = parsed.pelanggan_id;
+                        } else {
+                            console.warn('⚠️ Pelanggan dari storage tidak valid, fallback ke Umum');
+                            this.pelanggan_id = this.pelangganUmumId;
+                        }
+
+                        if (parsed.tanggal_penjualan) {
+                            this.tanggal_penjualan = parsed.tanggal_penjualan;
+                        }
+
+                        if (parsed.diskon_percent !== undefined) {
+                            this.diskon_percent = parsed.diskon_percent;
+                        }
+
+                        if (parsed.jumlahBayar !== undefined) {
+                            this.jumlahBayar = parsed.jumlahBayar;
+                            this.jumlahBayarFormatted = this.formatNumber(parsed.jumlahBayar);
+                        }
+
+                        this.calculateTotals();
+                    } catch (e) {
+                        console.error('Error loading from storage:', e);
+                        localStorage.removeItem(this.storageKey);
+                    }
+                },
+
+                clearStorage() {
+                    localStorage.removeItem(this.storageKey);
+                },
+
+                /* ==========================
+                   DATA ASLI
+                ========================== */
                 allProduks: data.initialProduks,
+                displayProduks: data.paginatedProduks,
+                filteredProduks: data.paginatedProduks,
                 initialPelanggans: data.initialPelanggans,
                 pelangganUmumId: data.pelangganUmumId,
-
                 isEditMode: data.isEditMode,
                 penjualanId: data.penjualanId,
                 initialCart: data.initialCart,
@@ -306,23 +444,28 @@
                 initialJumlahBayar: data.initialJumlahBayar,
 
                 searchTerm: '',
-                filteredProduks: data.initialProduks,
+
                 cart: data.isEditMode ? data.initialCart : [],
                 pelanggan_id: data.isEditMode ? data.initialPelangganId : data.pelangganUmumId,
-
+                tanggal_penjualan: new Date().toISOString().split('T')[0], // ← TAMBAHKAN INI   
                 diskon_percent: data.isEditMode ? data.initialDiskonPercent : 0,
                 diskon_trans_nominal: 0,
-
                 jumlahBayar: data.isEditMode ? data.initialJumlahBayar : null,
-                jumlahBayarFormatted: '', // Diinisialisasi di init()
+                jumlahBayarFormatted: '',
 
-                // ... (Sisanya getter, tidak berubah) ...
+                scannerActive: false,
+                barcodeBuffer: '',
+                lastScanTime: 0,
+                scanTimeout: null,
+                lastScannedCode: '',
 
+                /* ==========================
+                   COMPUTED
+                ========================== */
                 get cartForServer() {
                     return this.cart.map(item => ({
                         id: item.id,
                         qty: item.qty,
-                        // Pastikan diskon_percent diambil langsung dari item di cart dan diubah ke Number
                         diskon_percent: Number(item.diskon_percent || 0)
                     }));
                 },
@@ -337,9 +480,7 @@
                 },
 
                 get kembalian() {
-                    if (this.jumlahBayar === null || this.jumlahBayar === '') {
-                        return 0;
-                    }
+                    if (this.jumlahBayar === null || this.jumlahBayar === '') return 0;
                     return this.jumlahBayar - this.totalBayar;
                 },
 
@@ -353,9 +494,10 @@
                     return this.isEditMode ? 'Simpan Perubahan Transaksi' : 'Selesaikan Transaksi';
                 },
 
-                // --- FUNGSI BARU UNTUK INPUT FORMATTING ---
+                /* ==========================
+                   FORMAT & INPUT
+                ========================== */
                 formatNumber(number) {
-                    // Hanya format angka menjadi string dengan titik ribuan (tanpa 'Rp ')
                     if (number === null || isNaN(number) || number < 0) return '0';
                     return String(Math.abs(number)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
                 },
@@ -363,54 +505,296 @@
                 parseRupiah(value) {
                     if (typeof value === 'number') return value;
                     if (!value) return 0;
-                    // Hapus semua karakter non-digit kecuali tanda negatif (jika perlu)
                     const cleaned = String(value).replace(/[^0-9]/g, '');
                     return cleaned ? parseInt(cleaned, 10) : 0;
                 },
 
-                // 💡 Perbaikan: Gunakan fungsi formatNumber untuk inisialisasi input
                 updateJumlahBayar(value) {
                     const numericValue = this.parseRupiah(value);
                     this.jumlahBayar = numericValue;
-
-                    // Opsional: Lakukan pemformatan saat mengetik
                     if (numericValue > 0) {
-                        // Gunakan formatNumber di sini
                         this.jumlahBayarFormatted = this.formatNumber(numericValue);
                     } else if (value.length === 0) {
                         this.jumlahBayarFormatted = '';
                     } else {
-                        // Jika input tidak valid (misal: hanya titik), biarkan pengguna perbaiki
                         this.jumlahBayarFormatted = value;
                     }
-
                     this.calculateTotals();
+                    this.saveCartToStorage();
                 },
 
-                // 💡 Perbaikan: Ubah formatRupiah agar selalu berprefix 'Rp ' untuk output
                 formatRupiah(number) {
                     if (number === null || isNaN(number)) return 'Rp 0';
                     const formatted = Math.abs(number).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
                     return 'Rp ' + formatted;
                 },
-                // --- AKHIR FUNGSI BARU ---
 
+                /* ==========================
+                   SEARCH
+                ========================== */
+                filterProduks() {
+                    const term = this.searchTerm.toLowerCase().trim();
+
+                    if (term === '') {
+                        this.filteredProduks = this.displayProduks;
+                        return;
+                    }
+
+                    this.filteredProduks = this.allProduks.filter(produk => {
+                        return produk.nama_produk.toLowerCase().includes(term) ||
+                            produk.kode_produk.toLowerCase().includes(term);
+                    });
+                },
+
+                clearSearch() {
+                    this.searchTerm = '';
+                    this.filteredProduks = this.displayProduks;
+                    this.$refs.searchInput.focus();
+                },
+
+                searchProduk(event) {
+                    event.preventDefault();
+
+                    const term = this.searchTerm.toLowerCase().trim();
+
+                    const produkByCode = this.allProduks.find(p =>
+                        p.kode_produk.toLowerCase() === term
+                    );
+
+                    if (produkByCode) {
+                        this.addToCart(produkByCode);
+                        this.clearSearch();
+                    }
+                },
+
+                /* ==========================
+                   BARCODE SCANNER
+                ========================== */
+                toggleScanner() {
+                    this.scannerActive = !this.scannerActive;
+                    if (this.scannerActive) {
+                        this.barcodeBuffer = '';
+                        this.lastScanTime = 0;
+                        this.lastScannedCode = '';
+                        if (this.scanTimeout) {
+                            clearTimeout(this.scanTimeout);
+                            this.scanTimeout = null;
+                        }
+                        this.initBarcodeScanner();
+                        console.log('✅ Scanner barcode diaktifkan');
+                    } else {
+                        this.removeBarcodeScanner();
+                        console.log('❌ Scanner barcode dinonaktifkan');
+                    }
+                },
+
+                initBarcodeScanner() {
+                    this.barcodeBuffer = '';
+                    this.lastScanTime = 0;
+
+                    this.boundBarcodeInput = this.handleBarcodeInput.bind(this);
+                    this.boundBarcodeKeyDown = this.handleBarcodeKeyDown.bind(this);
+
+                    document.addEventListener('keypress', this.boundBarcodeInput);
+                    document.addEventListener('keydown', this.boundBarcodeKeyDown);
+                },
+
+                removeBarcodeScanner() {
+                    if (this.boundBarcodeInput) {
+                        document.removeEventListener('keypress', this.boundBarcodeInput);
+                    }
+                    if (this.boundBarcodeKeyDown) {
+                        document.removeEventListener('keydown', this.boundBarcodeKeyDown);
+                    }
+
+                    this.barcodeBuffer = '';
+                    this.lastScanTime = 0;
+                    if (this.scanTimeout) {
+                        clearTimeout(this.scanTimeout);
+                        this.scanTimeout = null;
+                    }
+                },
+
+                handleBarcodeInput(e) {
+                    if (!this.scannerActive) return;
+
+                    const activeElement = document.activeElement;
+                    const isInputField = activeElement && (
+                        activeElement.tagName === 'INPUT' ||
+                        activeElement.tagName === 'TEXTAREA' ||
+                        activeElement.tagName === 'SELECT'
+                    );
+                    if (isInputField) return;
+
+                    const currentTime = new Date().getTime();
+                    const char = e.key;
+
+                    if (currentTime - this.lastScanTime > 100) {
+                        this.barcodeBuffer = '';
+                    }
+
+                    this.lastScanTime = currentTime;
+                    this.barcodeBuffer += char;
+
+                    if (this.scanTimeout) {
+                        clearTimeout(this.scanTimeout);
+                    }
+
+                    this.scanTimeout = setTimeout(() => {
+                        this.processBarcodeInput();
+                    }, 50);
+                },
+
+                handleBarcodeKeyDown(e) {
+                    if (!this.scannerActive) return;
+
+                    if (e.key === 'Enter' && this.barcodeBuffer.length > 0) {
+                        e.preventDefault();
+                        if (this.scanTimeout) {
+                            clearTimeout(this.scanTimeout);
+                        }
+                        this.processBarcodeInput();
+                    }
+                },
+
+                processBarcodeInput() {
+                    const barcode = this.barcodeBuffer.trim();
+
+                    this.barcodeBuffer = '';
+
+                    if (this.scanTimeout) {
+                        clearTimeout(this.scanTimeout);
+                        this.scanTimeout = null;
+                    }
+
+                    if (barcode.length < 3) {
+                        return;
+                    }
+
+                    console.log('🔍 Barcode terdeteksi:', barcode);
+                    this.lastScannedCode = barcode;
+
+                    const produk = this.allProduks.find(p =>
+                        p.kode_produk.toLowerCase() === barcode.toLowerCase()
+                    );
+
+                    if (produk) {
+                        this.addToCart(produk);
+                        this.showScanSuccess(produk.nama_produk);
+                    } else {
+                        this.showScanError(barcode);
+                    }
+                },
+
+                showScanSuccess(productName) {
+                    const notification = document.createElement('div');
+                    notification.className =
+                        'fixed top-20 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in-down';
+                    notification.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <i class='bx bx-check-circle text-xl'></i>
+                        <div>
+                            <p class="font-semibold">Berhasil ditambahkan!</p>
+                            <p class="text-sm">${productName}</p>
+                        </div>
+                    </div>
+                `;
+                    document.body.appendChild(notification);
+                    setTimeout(() => notification.remove(), 3000);
+                    this.playBeep(800, 100);
+                },
+
+                showScanError(barcode) {
+                    const notification = document.createElement('div');
+                    notification.className =
+                        'fixed top-20 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in-down';
+                    notification.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <i class='bx bx-error-circle text-xl'></i>
+                        <div>
+                            <p class="font-semibold">Produk tidak ditemukan!</p>
+                            <p class="text-sm">Barcode: ${barcode}</p>
+                        </div>
+                    </div>
+                `;
+                    document.body.appendChild(notification);
+                    setTimeout(() => notification.remove(), 3000);
+                    this.playBeep(400, 200);
+                },
+
+                playBeep(frequency = 800, duration = 100) {
+                    try {
+                        const audioContext = new(window.AudioContext || window.webkitAudioContext)();
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        oscillator.frequency.value = frequency;
+                        oscillator.type = 'sine';
+                        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+                        oscillator.start(audioContext.currentTime);
+                        oscillator.stop(audioContext.currentTime + duration / 1000);
+                    } catch (e) {
+                        console.log('Audio tidak didukung');
+                    }
+                },
+
+                /* ==========================
+                   HANDLE SUBMIT FORM
+                ========================== */
+                handleSubmit(event) {
+                    if (!this.isReadyToPay) {
+                        event.preventDefault();
+                        return false;
+                    }
+
+                    // Biarkan form submit normal dengan data lengkap
+                    return true;
+                },
+
+                /* ==========================
+                   INIT
+                ========================== */
                 init() {
+                    const hasSuccessMessage = document.querySelector('.bg-green-200');
+                    const fromInvoice = document.referrer.includes('/invoice/');
+
+                    if (hasSuccessMessage || fromInvoice) {
+                        this.clearStorage();
+
+                        this.cart = [];
+                        this.pelanggan_id = this.pelangganUmumId;
+                        this.diskon_percent = 0;
+                        this.diskon_trans_nominal = 0;
+                        this.jumlahBayar = null;
+                        this.jumlahBayarFormatted = '';
+                    } else {
+                        if (!this.isEditMode) {
+                            this.loadCartFromStorage();
+                        }
+                    }
+
+                    // ✅ TAMBAHAN ANTI ERROR PELANGGAN INVALID
+                    const pelangganValid = this.initialPelanggans.find(p => p.id === this.pelanggan_id);
+                    if (!pelangganValid) {
+                        console.warn('⚠️ Pelanggan tidak valid, reset ke Umum');
+                        this.pelanggan_id = this.pelangganUmumId;
+                    }
+
                     this.calculateTotals();
 
-                    // 🌟 INISIALISASI PENTING (Edit Mode)
                     if (this.jumlahBayar !== null && this.jumlahBayar > 0) {
-                        // Gunakan formatNumber (tanpa 'Rp ') untuk inisialisasi tampilan input
                         this.jumlahBayarFormatted = this.formatNumber(this.jumlahBayar);
                     } else {
                         this.jumlahBayarFormatted = '';
                     }
                 },
 
-                // ... (Sisanya fungsi cart logic, tidak ada perubahan) ...
-
+                /* ==========================
+                   CART
+                ========================== */
                 calculateTotals() {
-                    // Validasi sederhana
                     this.diskon_percent = Math.max(0, Number(this.diskon_percent || 0));
                     if (this.diskon_percent > 100) this.diskon_percent = 100;
 
@@ -419,7 +803,6 @@
                         const qty = Number(item.qty) || 0;
                         const subtotalGross = qty * hargaSatuan;
 
-                        // diskon per-item (persen)
                         item.diskon_percent = Math.max(0, Number(item.diskon_percent || 0));
                         if (item.diskon_percent > 100) item.diskon_percent = 100;
 
@@ -428,7 +811,6 @@
                         if (item.subtotal < 0) item.subtotal = 0;
                     });
 
-                    // diskon transaksi nominal (berlaku setelah diskon produk)
                     const subtotal = this.subtotalAfterProductDiscounts;
                     this.diskon_trans_nominal = Math.round((this.diskon_percent / 100) * subtotal);
 
@@ -440,6 +822,7 @@
                 addToCart(produk) {
                     if (produk.stok_produk <= 0) {
                         alert(`Stok ${produk.nama_produk} habis!`);
+                        this.playBeep(400, 200);
                         return;
                     }
 
@@ -450,13 +833,13 @@
                         if (item.qty < item.stok_produk) {
                             item.qty++;
                             this.calculateTotals();
+                            this.saveCartToStorage();
                         } else {
                             alert(`Maksimal stok untuk ${produk.nama_produk} adalah ${item.stok_produk}!`);
+                            this.playBeep(400, 200);
                         }
                     } else {
                         const hargaJual = Number(produk.harga_jual) || 0;
-                        // Cek apakah produk ini sudah ada di initialCart (saat edit)
-                        // dan gunakan stok_produk yang sudah disesuaikan
                         const currentStok = this.isEditMode ?
                             (this.cart.find(i => i.id === produk.id)?.stok_produk || produk.stok_produk) :
                             produk.stok_produk;
@@ -466,13 +849,14 @@
                             nama_produk: produk.nama_produk,
                             kode_produk: produk.kode_produk,
                             harga_satuan: hargaJual,
-                            stok_produk: currentStok, // Gunakan stok yang sudah disesuaikan
+                            stok_produk: currentStok,
                             qty: 1,
                             subtotal: hargaJual,
                             diskon_percent: 0,
                             diskon_nominal: 0,
                         });
                         this.calculateTotals();
+                        this.saveCartToStorage();
                     }
                 },
 
@@ -488,6 +872,7 @@
 
                     this.cart[index].qty = qty;
                     this.calculateTotals();
+                    this.saveCartToStorage();
                 },
 
                 incrementQty(index) {
@@ -495,6 +880,7 @@
                     if (item.qty < item.stok_produk) {
                         item.qty++;
                         this.calculateTotals();
+                        this.saveCartToStorage();
                     }
                 },
 
@@ -503,28 +889,53 @@
                     if (item.qty > 1) {
                         item.qty--;
                         this.calculateTotals();
+                        this.saveCartToStorage();
                     }
                 },
 
                 removeFromCart(index) {
                     this.cart.splice(index, 1);
                     this.calculateTotals();
-                },
-
-                searchProduk(event) {
-                    const term = this.$refs.searchInput.value.toLowerCase().trim();
-
-                    const produkByCode = this.allProduks.find(p => p.kode_produk.toLowerCase() === term);
-
-                    if (produkByCode) {
-                        this.addToCart(produkByCode);
-                        this.$refs.searchInput.value = '';
-                        this.searchTerm = '';
-                        event.preventDefault();
-                        return;
-                    }
+                    this.saveCartToStorage();
                 },
             }
         }
     </script>
+
+    {{-- Custom CSS untuk animasi --}}
+    <style>
+        @keyframes fade-in-down {
+            0% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in-down {
+            animation: fade-in-down 0.3s ease-out;
+        }
+
+        .custom-scrollbar-compact::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar-compact::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar-compact::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar-compact::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
 @endsection

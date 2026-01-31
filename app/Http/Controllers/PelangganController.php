@@ -49,7 +49,7 @@ class PelangganController extends Controller
             'nama_pelanggan' => 'required|string|max:255',
             'telp' => 'required|string|max:20',
             'email' => 'required|email|unique:pelanggans,email',
-            'photo_pelanggan' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'photo_pelanggan' => 'nullable|image|mimes:jpg,jpeg,png|max:1024',
         ]);
 
         $photoPath = null;
@@ -94,7 +94,7 @@ class PelangganController extends Controller
             'nama_pelanggan' => 'required|string|max:255',
             'telp' => 'required|string|max:20',
             'email' => 'required|email|unique:pelanggans,email,' . $pelanggan->id,
-            'photo_pelanggan' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'photo_pelanggan' => 'nullable|image|mimes:jpg,jpeg,png|max:1024',
         ]);
 
         $data = $request->only(['nama_pelanggan', 'telp', 'email']);

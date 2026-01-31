@@ -61,6 +61,7 @@ class DashboardController extends Controller
             ->count();
 
         // 4. Produk Paling Laris (Top 5 berdasarkan kuantitas)
+        // 4. Produk Paling Laris (Top 5 berdasarkan kuantitas)
         $topSellingProducts = DB::table('detail_penjualans')
             ->select(DB::raw('produk_id, SUM(qty) as total_qty_terjual'))
             ->join('penjualans', 'detail_penjualans.penjualan_id', '=', 'penjualans.id')
@@ -70,10 +71,23 @@ class DashboardController extends Controller
             ->limit(5)
             ->get()
             ->map(function ($item) {
-                // Ambil nama produk
+                // Ambil produk beserta harga dan foto dari Model Produk
                 $produk = Produk::find($item->produk_id);
+
+                // Pastikan produk ada sebelum mengakses propertinya
+                if (!$produk) {
+                    return [
+                        'nama_produk' => 'Produk Dihapus',
+                        'harga_jual' => 0.0,
+                        'photo_url' => '', // Tambahkan field ini
+                        'total_qty_terjual' => (int) $item->total_qty_terjual,
+                    ];
+                }
+
                 return [
-                    'nama_produk' => $produk ? $produk->nama_produk : 'Produk Dihapus',
+                    'nama_produk' => $produk->nama_produk,
+                    'harga_jual' => (float) $produk->harga_jual, // Tambahkan field ini
+                    'photo_url' => $produk->photo_produk ? asset('storage/' . $produk->photo_produk) : '', // Tambahkan field ini. Sesuaikan path storage jika perlu.
                     'total_qty_terjual' => (int) $item->total_qty_terjual,
                 ];
             });

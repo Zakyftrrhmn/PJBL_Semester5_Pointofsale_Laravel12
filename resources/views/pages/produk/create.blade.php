@@ -35,6 +35,25 @@
                     {{-- Form Input (2 Kolom) --}}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
+                        {{-- Kode Produk (Baru) --}}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Kode Unit</label>
+                                <input type="text" id="prefix_input" list="prefix_list"
+                                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="Ketik atau pilih prefix...">
+                                <datalist id="prefix_list">
+                                </datalist>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Kode Produk Otomatis</label>
+                                <input type="text" id="kode_produk" name="kode_produk" readonly
+                                    class="mt-1 block w-full bg-gray-50 rounded-lg border-gray-300 shadow-sm"
+                                    placeholder="Pilih prefix dulu...">
+                            </div>
+                        </div>
+
                         {{-- Nama Produk --}}
                         <div>
                             <label for="nama_produk" class="block text-sm font-medium text-gray-700">Nama Produk <span
@@ -95,7 +114,7 @@
                         </div>
                         {{-- Harga Beli --}}
                         <div>
-                            <label for="harga_beli" class="block text-sm font-medium text-gray-700">Harga Beli <span
+                            <label for="harga_beli" class="block text-sm font-medium text-gray-700">Modal<span
                                     class="text-red-500">*</span></label>
                             <input type="number" id="harga_beli" name="harga_beli" value="{{ old('harga_beli') }}"
                                 placeholder="Contoh: 1500000"
@@ -169,6 +188,40 @@
             </div>
         </div>
     </div>
+
+
+    <script>
+        // 1. Ambil daftar prefix saat halaman dibuka
+        function loadPrefixes() {
+            fetch("{{ route('produk.prefixes') }}")
+                .then(response => response.json())
+                .then(data => {
+                    const list = document.getElementById('prefix_list');
+                    list.innerHTML = '';
+                    data.forEach(prefix => {
+                        const option = document.createElement('option');
+                        option.value = prefix;
+                        list.appendChild(option);
+                    });
+                });
+        }
+
+        // 2. Jalankan saat mengetik atau memilih dari datalist
+        document.getElementById('prefix_input').addEventListener('input', function() {
+            let prefix = this.value.toUpperCase();
+            if (prefix.length >= 2) {
+                fetch(`{{ route('produk.generateKode') }}?prefix=${prefix}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('kode_produk').value = data.kode;
+                    });
+            }
+        });
+
+        // Jalankan fungsi load saat halaman siap
+        document.addEventListener('DOMContentLoaded', loadPrefixes);
+    </script>
+
 
     {{-- Preview Gambar --}}
     <script>

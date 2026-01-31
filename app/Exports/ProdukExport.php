@@ -18,10 +18,9 @@ class ProdukExport implements FromCollection, WithHeadings
                     'Kode Produk'   => $produk->kode_produk,
                     'Nama Produk'   => $produk->nama_produk,
                     'Stok'          => $produk->stok_produk,
-                    'Harga Beli'    => $produk->harga_beli,
+                    'Modal'    => $produk->harga_beli,
                     'Harga Jual'    => $produk->harga_jual,
                     'Deskripsi'     => $produk->deskripsi_produk ?? '-',
-                    'Status'        => $produk->is_active,
                     'Kategori'      => $produk->kategori->nama_kategori ?? '-',
                 ];
             });
@@ -37,7 +36,6 @@ class ProdukExport implements FromCollection, WithHeadings
             'Harga Beli',
             'Harga Jual',
             'Deskripsi',
-            'Status',
             'Kategori',
         ];
     }

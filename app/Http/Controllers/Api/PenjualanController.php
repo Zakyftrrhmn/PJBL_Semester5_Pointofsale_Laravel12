@@ -7,6 +7,7 @@ use App\Models\Penjualan; // Pastikan model Penjualan sudah di-import
 use App\Models\DetailPenjualan; // Pastikan model DetailPenjualan sudah di-import
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf; // <<< TAMBAHKAN INI
 use Illuminate\Support\Facades\DB;
 
 class PenjualanController extends Controller
@@ -52,34 +53,33 @@ class PenjualanController extends Controller
      */
     public function show(Penjualan $penjualan)
     {
-        // Load relasi detail penjualan, produk, dan user terkait
-        $penjualan->load([
-            'pelanggan',
-            'user:id,name',
-            'detailPenjualans.produk:id,kode_produk,nama_produk'
-        ]);
+        // 1. Load relasi yang diperlukan oleh Android Model (PenjualanDetailResponse.java)
+        $penjualan->load('pelanggan', 'user', 'detailPenjualans.produk');
 
-        // Format data detail penjualan untuk mobile
+        // 2. Hitung total item (sesuai kebutuhan Android Model)
+        $totalItems = $penjualan->detailPenjualans->sum('qty');
+
+        // 3. Siapkan detail item
+        // detailPenjualans sudah memiliki kolom 'diskon_percent' dan 'diskon_nominal'
         $detailItems = $penjualan->detailPenjualans->map(function ($detail) {
+            // Pastikan Anda memilih semua kolom yang dibutuhkan oleh DetailPenjualan.java di Android
             return [
-                'produk' => $detail->produk->nama_produk ?? 'Produk Dihapus',
-                'kode_produk' => $detail->produk->kode_produk ?? '-',
-                'qty' => (int) $detail->qty,
-                'harga_satuan' => (float) $detail->harga_satuan,
-                'diskon_percent' => (float) $detail->diskon_percent,
-                'diskon_nominal' => (float) $detail->diskon_nominal,
-                'subtotal' => (float) $detail->subtotal,
+                'nama_produk' => $detail->produk->nama_produk, // Dipakai di adapter
+                'harga_satuan' => $detail->harga_satuan,
+                'qty' => $detail->qty,
+                'diskon_percent' => $detail->diskon_percent, // <--- DATA DISKON ADA DI SINI
+                'diskon_nominal' => $detail->diskon_nominal, // <--- DATA DISKON ADA DI SINI
+                'subtotal' => $detail->subtotal,
             ];
         });
 
-        // Data lengkap untuk merender invoice di mobile
-        $invoiceData = [
-            'penjualan_header' => $penjualan,
-            'detail_items' => $detailItems,
-            'total_items' => count($detailItems),
-        ];
 
-        return response()->json($invoiceData);
+        // 4. Kembalikan respons JSON sesuai struktur PenjualanDetailResponse.java
+        return response()->json([
+            'penjualan_header' => $penjualan, // Akan mengembalikan objek Penjualan lengkap
+            'detail_items' => $detailItems,
+            'total_items' => $totalItems,
+        ]);
     }
 
     /**
@@ -88,14 +88,33 @@ class PenjualanController extends Controller
      */
     public function printInvoice(Penjualan $penjualan)
     {
-        // ASUMSI: Anda sudah memiliki route web yang menghasilkan PDF invoice di /invoice/print/{id}
-        // Jika belum, Anda harus membuatnya di Web Controller Anda
-        $printUrl = url('/invoice/print/' . $penjualan->id);
+        // 1. Load relasi
+        $penjualan->load('pelanggan', 'user', 'detailPenjualans.produk');
+        $isDiscountApplied = true;
 
-        return response()->json([
-            'message' => 'Gunakan URL ini untuk mencetak/mengunduh PDF Invoice',
-            'invoice_id' => $penjualan->id,
-            'print_url' => $printUrl
-        ]);
+        // 2. Hitung Total (Sama seperti printWithDiscount)
+        // Asumsi: Kita bisa menggunakan $penjualan->total_harga dari database (total setelah diskon item)
+        $subTotalAwal = $penjualan->total_harga;
+
+        // Total Final adalah total_bayar dari database (setelah diskon transaksi)
+        $totalFinal = $penjualan->total_bayar;
+
+        $bayar = $penjualan->jumlah_bayar;
+        $kembalian = $bayar - $totalFinal;
+
+        // Tambahkan variabel item_total_type untuk mengontrol di view
+        $item_total_type = 'DISKON';
+
+        $data = compact('penjualan', 'isDiscountApplied', 'subTotalAwal', 'totalFinal', 'bayar', 'kembalian', 'item_total_type');
+
+        // 3. Generate PDF (Sama seperti di InvoiceController)
+        $pdf = Pdf::loadView('pages.invoice.print-template', $data)
+            // SetPaper dan setOptions harus sesuai dengan yang Anda inginkan
+            ->setPaper([0, 0, 595, 420], 'portrait')
+            ->setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true, 'chroot' => public_path(), 'defaultFont' => 'Courier New']);
+
+        // 4. KEMBALIKAN PDF STREAM
+        return $pdf->stream('Invoice-' . $penjualan->kode_penjualan . '-DenganDiskon.pdf');
+        // TIDAK ADA LAGI response()->json([...])
     }
 }

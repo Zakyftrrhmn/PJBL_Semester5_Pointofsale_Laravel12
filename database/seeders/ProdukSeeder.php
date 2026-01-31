@@ -11,12 +11,12 @@ class ProdukSeeder extends Seeder
 {
     public function run(): void
     {
+        // Ambil kategori atau buat jika belum ada
         $kategori = Kategori::where('nama_kategori', 'Alat Peraga Edukasi')->first() ?? Kategori::first();
-
         $kategoriId = $kategori?->id;
 
-        // === Daftar Produk Berdasarkan Data Shopee ===
-        $produkList = [
+        // Daftar Produk Dasar
+        $baseProdukList = [
             ['IntiPeragaMandiri - TORSO LAKI-LAKI - Alat Peraga Edukasi Sekolah', 755000],
             ['Educational Block Bunga', 94500],
             ['IPMToys - Puzzle Chunky Animal / Mainan Edukasi', 55000],
@@ -135,12 +135,24 @@ class ProdukSeeder extends Seeder
             ['Kertas Lakmus pH 0-14', 220000],
         ];
 
-        $i = 1;
-        foreach ($produkList as [$nama, $hargaJual]) {
-            $kode = 'PRD' . str_pad($i, 4, '0', STR_PAD_LEFT);
+        // Definisikan Lokasi
+        $lokasi = ['BL', 'JKT', 'MDN'];
+        $counter = [
+            'BL' => 1,
+            'JKT' => 1,
+            'MDN' => 1
+        ];
+
+        foreach ($baseProdukList as [$nama, $hargaJual]) {
+            // Pilih lokasi secara acak untuk variasi data
+            $prefix = $lokasi[array_rand($lokasi)];
+
+            // Generate Kode (Contoh: BL0001)
+            $kode = $prefix . str_pad($counter[$prefix], 4, '0', STR_PAD_LEFT);
+
             $hargaBeli = (int)($hargaJual * 0.8);
             $stok = rand(10, 50);
-            $deskripsi = "Produk edukatif dan alat peraga: {$nama}. Cocok untuk sekolah, laboratorium, dan pembelajaran interaktif.";
+            $deskripsi = "Produk edukatif dari cabang {$prefix}: {$nama}. Cocok untuk sekolah dan laboratorium.";
 
             Produk::create([
                 'id' => Str::uuid(),
@@ -154,9 +166,11 @@ class ProdukSeeder extends Seeder
                 'is_active' => 'active',
                 'kategori_id' => $kategoriId,
             ]);
-            $i++;
+
+            // Naikkan angka urutan khusus untuk prefix tersebut
+            $counter[$prefix]++;
         }
 
-        echo "✅ Seeder produk selesai! Total produk: " . count($produkList) . "\n";
+        echo "✅ Seeder produk berhasil! Data telah dikelompokkan berdasarkan BL, JKT, dan MDN.\n";
     }
 }

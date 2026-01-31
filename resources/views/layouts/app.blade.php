@@ -9,8 +9,23 @@
     sidebarToggle: false,
     scrollTop: false,
     showModal: false,
-    deleteUrl: ''
-}" class="bg-[#F7F7F7] min-h-screen flex flex-col">
+    deleteUrl: '',
+    loading: true
+}" x-init="setTimeout(() => loading = false, 300)" class="bg-[#F7F7F7]">
+
+    <!-- GLOBAL LOADING SCREEN -->
+    <div x-show="loading" x-transition.opacity class="fixed inset-0 z-[99999] flex items-center justify-center bg-white">
+        <div class="flex flex-col items-center gap-4">
+            <svg class="h-10 w-10 animate-spin text-blue-600" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                </circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
+                </path>
+            </svg>
+            <span class="text-sm text-gray-500">Memuat halaman...</span>
+        </div>
+    </div>
+
 
     <div class="flex flex-1 overflow-hidden">
 

@@ -2,6 +2,7 @@
 @section('title', 'Edit Produk')
 @section('subtitle', 'Ubah informasi produk yang sudah ada')
 @section('content')
+
     <div class="space-y-6">
         <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
             <div class="p-6">
@@ -36,6 +37,29 @@
 
                     {{-- Form Input (2 Kolom) --}}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                        {{-- Kode Produk (Disamakan dengan Create) --}}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Kode Unit</label>
+                                <input type="text" id="prefix_input" list="prefix_list"
+                                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm p-2.5"
+                                    placeholder="Ketik prefix baru...">
+                                <datalist id="prefix_list">
+                                </datalist>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Kode Produk <span
+                                        class="text-red-500">*</span></label>
+                                <input type="text" id="kode_produk" name="kode_produk"
+                                    value="{{ old('kode_produk', $produk->kode_produk) }}"
+                                    class="mt-1 block w-full bg-gray-50 rounded-lg border-gray-300 shadow-sm text-sm p-2.5 focus:ring-blue-500 focus:border-blue-500">
+                                @error('kode_produk')
+                                    <p class="text-xs text-red-500">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
 
                         {{-- Nama Produk --}}
                         <div>
@@ -84,22 +108,23 @@
                             @enderror
                         </div>
 
+                        {{-- Pengingat Stok --}}
                         <div>
                             <label for="pengingat_stok" class="block text-sm font-medium text-gray-700">Batas Pengingat Stok
                                 <span class="text-red-500">*</span></label>
                             <input type="number" id="pengingat_stok" name="pengingat_stok"
                                 value="{{ old('pengingat_stok', $produk->pengingat_stok) }}" required min="0"
-                                class="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm shadow-sm
-        focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                                placeholder="Cth: 10 (Notifikasi akan muncul jika stok <= 10)" />
+                                class="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm shadow-sm
+                                focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                                placeholder="Cth: 10" />
                             @error('pengingat_stok')
                                 <p class="text-xs text-red-500">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        {{-- Harga Beli --}}
+                        {{-- Modal --}}
                         <div>
-                            <label for="harga_beli" class="block text-sm font-medium text-gray-700">Harga Beli <span
+                            <label for="harga_beli" class="block text-sm font-medium text-gray-700">Modal<span
                                     class="text-red-500">*</span></label>
                             <input type="number" id="harga_beli" name="harga_beli"
                                 value="{{ old('harga_beli', $produk->harga_beli) }}" placeholder="Contoh: 1500000"
@@ -127,11 +152,6 @@
                         <div>
                             <label for="is_active" class="block text-sm font-medium text-gray-700">
                                 Status <span class="text-red-500">*</span>
-                                <p class="text-xs text-gray-500">
-                                    Pilih <span class="font-semibold text-green-600">Active</span> untuk menampilkan data,
-                                    atau <span class="font-semibold text-red-600">Non Active</span> agar data tidak
-                                    ditampilkan.
-                                </p>
                             </label>
                             <select id="is_active" name="is_active"
                                 class="mt-1 block w-full rounded-lg border-gray-300 p-2.5 text-sm shadow-sm
@@ -176,15 +196,42 @@
         </div>
     </div>
 
-    {{-- Preview Gambar --}}
     <script>
+        // Prefix Logika
+        function loadPrefixes() {
+            fetch("{{ route('produk.prefixes') }}")
+                .then(response => response.json())
+                .then(data => {
+                    const list = document.getElementById('prefix_list');
+                    list.innerHTML = '';
+                    data.forEach(prefix => {
+                        const option = document.createElement('option');
+                        option.value = prefix;
+                        list.appendChild(option);
+                    });
+                });
+        }
+
+        document.getElementById('prefix_input').addEventListener('input', function() {
+            let prefix = this.value.toUpperCase();
+            if (prefix.length >= 2) {
+                fetch(`{{ route('produk.generateKode') }}?prefix=${prefix}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('kode_produk').value = data.kode;
+                    });
+            }
+        });
+
+        // Image Preview
         document.getElementById('photo_produk').addEventListener('change', function(e) {
             let reader = new FileReader();
             reader.onload = function(e) {
                 document.getElementById('preview-image').setAttribute('src', e.target.result);
             };
-            reader.readAsDataURL(this.files[0]);
+            if (this.files[0]) reader.readAsDataURL(this.files[0]);
         });
-    </script>
 
+        document.addEventListener('DOMContentLoaded', loadPrefixes);
+    </script>
 @endsection

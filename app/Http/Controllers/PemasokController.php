@@ -51,7 +51,7 @@ class PemasokController extends Controller
             'telp' => 'required|string|max:20',
             'email' => 'required|email|unique:pemasoks,email',
             'alamat' => 'required|max:150',
-            'photo_pemasok' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'photo_pemasok' => 'nullable|image|mimes:jpg,jpeg,png|max:1024',
         ]);
 
         $photoPath = null;
@@ -93,7 +93,7 @@ class PemasokController extends Controller
             'telp' => 'required|string|max:20',
             'email' => 'required|email|unique:pemasoks,email,' . $pemasok->id,
             'alamat' => 'required|max:150',
-            'photo_pemasok' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'photo_pemasok' => 'nullable|image|mimes:jpg,jpeg,png|max:1024',
         ]);
 
         $data = $request->only(['nama_pemasok', 'telp', 'email']);
