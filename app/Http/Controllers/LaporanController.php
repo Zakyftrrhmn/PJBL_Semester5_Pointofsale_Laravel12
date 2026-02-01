@@ -535,33 +535,95 @@ class LaporanController extends Controller
     }
 
     /**
+     * Helper: Hitung data detail dengan alokasi diskon transaksi secara proporsional.
+     * Ini dipakai untuk index (paginated), PDF, dan Excel agar konsisten.
+     *
+     * Logika:
+     * 1. Setiap DetailPenjualan punya subtotal = (qty * harga_satuan) - diskon_item
+     * 2. Penjualan punya diskon_nominal (diskon transaksi keseluruhan)
+     * 3. Diskon transaksi dialokasikan ke setiap item secara PROPORSIONAL
+     *    berdasarkan kontribusi subtotal-nya terhadap total subtotal transaksi
+     *
+     * Contoh:
+     *   Item A subtotal = 63,000  (kontribusi 30.43%)  → diskon trans = 6,300
+     *   Item B subtotal = 144,000 (kontribusi 69.57%)  → diskon trans = 14,400
+     *   Total diskon transaksi = 20,700 ✓
+     */
+    private function getAllocatedDiscount(\App\Models\DetailPenjualan $detail): array
+    {
+        $penjualan = $detail->penjualan;
+
+        // Subtotal item setelah diskon per-produk (sudah tersimpan di DB)
+        $subtotalAfterItemDiscount = (float) $detail->subtotal;
+
+        // Harga kotor item (sebelum diskon item)
+        $hargaKotor = (float) $detail->qty * (float) $detail->harga_satuan;
+
+        // Diskon item nominal
+        $diskonItemNominal = $hargaKotor - $subtotalAfterItemDiscount;
+
+        // Diskon transaksi total dari penjualan
+        $diskonTransaksiTotal = (float) ($penjualan->diskon_nominal ?? 0);
+
+        // Hitung total subtotal semua item di transaksi ini (setelah diskon item)
+        // Gunakan total_harga dari penjualan jika ada, fallback ke sum detail
+        $totalSubtotalTransaksi = (float) ($penjualan->total_harga ?? 0);
+        if ($totalSubtotalTransaksi <= 0) {
+            $totalSubtotalTransaksi = $penjualan->detailPenjualans->sum('subtotal');
+        }
+
+        // Alokasi diskon transaksi secara proporsional
+        $diskonTransaksiItem = 0;
+        if ($totalSubtotalTransaksi > 0 && $diskonTransaksiTotal > 0) {
+            $proportion = $subtotalAfterItemDiscount / $totalSubtotalTransaksi;
+            $diskonTransaksiItem = round($diskonTransaksiTotal * $proportion, 0);
+        }
+
+        // Subtotal akhir (net) = subtotal setelah diskon item - alokasi diskon transaksi
+        $subtotalNet = $subtotalAfterItemDiscount - $diskonTransaksiItem;
+
+        return [
+            'harga_kotor'              => $hargaKotor,                  // qty * harga_satuan
+            'diskon_item_percent'      => (float) ($detail->diskon_percent ?? 0),
+            'diskon_item_nominal'      => $diskonItemNominal,           // harga_kotor - subtotal
+            'subtotal_after_item_disc' => $subtotalAfterItemDiscount,   // = detail->subtotal (dari DB)
+            'diskon_transaksi_item'    => $diskonTransaksiItem,         // alokasi proporsional
+            'subtotal_net'             => $subtotalNet,                 // final net per item
+        ];
+    }
+
+    /**
      * Laporan Penjualan Per Produk dengan Filter Kode Unit (Prefix)
      */
     public function indexPenjualanPerProduk(Request $request)
     {
-        $preset    = $request->input('preset', 'all');
-        $startDate = $request->input('start_date');
-        $endDate   = $request->input('end_date');
-        $status    = $request->input('status', 'all');
-        $prefix    = $request->input('prefix', 'all');
+        $preset     = $request->input('preset', 'all');
+        $startDate  = $request->input('start_date');
+        $endDate    = $request->input('end_date');
+        $status     = $request->input('status', 'all');
+        $prefix     = $request->input('prefix', 'all');
         $kategoriId = $request->input('kategori_id', 'all');
 
         $dateRange = $this->getDateRange($preset, $startDate, $endDate);
         $startDate = $dateRange['start'];
         $endDate   = $dateRange['end'];
 
-        // ===== PERBAIKAN: Ambil prefix dengan regex (huruf di awal) =====
-        $prefixes = Produk::selectRaw("REGEXP_REPLACE(kode_produk, '[0-9].*', '') as prefix")
+        // Ambil prefix unik dari kode_produk (huruf di awal sebelum angka)
+        $prefixes = \App\Models\Produk::selectRaw("REGEXP_REPLACE(kode_produk, '[0-9].*', '') as prefix")
             ->distinct()
             ->pluck('prefix')
             ->filter()
             ->sort()
             ->values();
-        // ===== AKHIR PERBAIKAN =====
 
         $kategoris = \App\Models\Kategori::orderBy('nama_kategori')->get();
 
-        $query = DetailPenjualan::with(['penjualan.pelanggan', 'penjualan.user', 'produk.kategori'])
+        $query = \App\Models\DetailPenjualan::with([
+            'penjualan.pelanggan',
+            'penjualan.user',
+            'penjualan.detailPenjualans', // Needed untuk alokasi diskon transaksi
+            'produk.kategori',
+        ])
             ->whereHas('penjualan', function ($q) use ($startDate, $endDate, $status) {
                 $q->whereBetween('tanggal_penjualan', [$startDate, $endDate]);
                 if ($status !== 'all') {
@@ -587,11 +649,17 @@ class LaporanController extends Controller
 
         $detailPenjualans = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
 
-        $summary = DetailPenjualan::whereHas('penjualan', function ($q) use ($startDate, $endDate, $status) {
-            $q->whereBetween('tanggal_penjualan', [$startDate, $endDate]);
-            if ($status === 'completed') $q->doesntHave('returPenjualans');
-            if ($status === 'return') $q->has('returPenjualans');
-        })
+        // Hitung summary dengan alokasi diskon yang benar
+        // Ambil semua data (tanpa pagination) untuk summary totals
+        $summaryQuery = \App\Models\DetailPenjualan::with([
+            'penjualan.detailPenjualans',
+            'produk',
+        ])
+            ->whereHas('penjualan', function ($q) use ($startDate, $endDate, $status) {
+                $q->whereBetween('tanggal_penjualan', [$startDate, $endDate]);
+                if ($status === 'completed') $q->doesntHave('returPenjualans');
+                if ($status === 'return') $q->has('returPenjualans');
+            })
             ->when($prefix !== 'all', function ($q) use ($prefix) {
                 $q->whereHas('produk', fn($qq) => $qq->where('kode_produk', 'LIKE', $prefix . '%'));
             })
@@ -600,12 +668,21 @@ class LaporanController extends Controller
             })
             ->get();
 
-        $total_qty = $summary->sum('qty');
-        $total_subtotal = $summary->sum('subtotal');
-        $total_modal = $summary->sum(function ($detail) {
-            return $detail->qty * ($detail->produk->harga_beli ?? 0);
-        });
-        $total_laba = $total_subtotal - $total_modal;
+        $total_qty       = 0;
+        $total_subtotal  = 0; // Ini sekarang = sum subtotal NET (setelah semua diskon)
+        $total_modal     = 0;
+        $total_laba      = 0;
+
+        foreach ($summaryQuery as $detail) {
+            $allocated = $this->getAllocatedDiscount($detail);
+            $modal     = (float) $detail->qty * (float) ($detail->produk->harga_beli ?? 0);
+            $laba      = $allocated['subtotal_net'] - $modal;
+
+            $total_qty      += $detail->qty;
+            $total_subtotal += $allocated['subtotal_net'];
+            $total_modal    += $modal;
+            $total_laba     += $laba;
+        }
 
         return view('pages.laporan.penjualan-per-produk.index', compact(
             'detailPenjualans',
@@ -628,21 +705,27 @@ class LaporanController extends Controller
         ini_set('memory_limit', '2048M');
         set_time_limit(600);
 
-        $preset    = $request->input('preset', 'all');
-        $startDate = $request->input('start_date');
-        $endDate   = $request->input('end_date');
-        $status    = $request->input('status', 'all');
-        $prefix    = $request->input('prefix', 'all');
+        $preset     = $request->input('preset', 'all');
+        $startDate  = $request->input('start_date');
+        $endDate    = $request->input('end_date');
+        $status     = $request->input('status', 'all');
+        $prefix     = $request->input('prefix', 'all');
         $kategoriId = $request->input('kategori_id', 'all');
 
         $dateRange = $this->getDateRange($preset, $startDate, $endDate);
         $startDate = $dateRange['start'];
         $endDate   = $dateRange['end'];
-        $periode = \Carbon\Carbon::parse($startDate)->format('d F Y') . ' s/d ' . \Carbon\Carbon::parse($endDate)->format('d F Y');
+        $periode   = \Carbon\Carbon::parse($startDate)->format('d F Y')
+            . ' s/d '
+            . \Carbon\Carbon::parse($endDate)->format('d F Y');
 
         $page = \App\Models\Pages::first();
 
-        $query = DetailPenjualan::with(['penjualan.pelanggan', 'produk.kategori'])
+        $query = \App\Models\DetailPenjualan::with([
+            'penjualan.pelanggan',
+            'penjualan.detailPenjualans',
+            'produk.kategori',
+        ])
             ->whereHas('penjualan', function ($q) use ($startDate, $endDate, $status) {
                 $q->whereBetween('tanggal_penjualan', [$startDate, $endDate]);
                 if ($status === 'completed') $q->doesntHave('returPenjualans');
@@ -659,24 +742,43 @@ class LaporanController extends Controller
 
         $detailPenjualans = $query->get();
 
-        $total_qty = $detailPenjualans->sum('qty');
-        $total_subtotal = $detailPenjualans->sum('subtotal');
-        $total_modal = $detailPenjualans->sum(fn($d) => $d->qty * ($d->produk->harga_beli ?? 0));
-        $total_laba = $total_subtotal - $total_modal;
+        // Hitung totals dengan alokasi diskon
+        $total_qty = $total_subtotal = $total_modal = $total_laba = 0;
+        $allocatedItems = [];
 
-        $statusLabel = match ($status) {
+        foreach ($detailPenjualans as $detail) {
+            $allocated = $this->getAllocatedDiscount($detail);
+            $modal     = (float) $detail->qty * (float) ($detail->produk->harga_beli ?? 0);
+            $laba      = $allocated['subtotal_net'] - $modal;
+
+            // Simpan allocated data bersama detail untuk dipakai di view
+            $allocatedItems[] = [
+                'detail'    => $detail,
+                'allocated' => $allocated,
+                'modal'     => $modal,
+                'laba'      => $laba,
+            ];
+
+            $total_qty      += $detail->qty;
+            $total_subtotal += $allocated['subtotal_net'];
+            $total_modal    += $modal;
+            $total_laba     += $laba;
+        }
+
+        $statusLabel   = match ($status) {
             'completed' => 'Completed',
-            'return' => 'Retur',
-            default => 'Semua Status',
+            'return'    => 'Retur',
+            default     => 'Semua Status',
         };
-
-        $prefixLabel = $prefix === 'all' ? 'Semua Kode Unit' : 'Kode Unit: ' . $prefix;
-        $kategoriLabel = $kategoriId === 'all' ? 'Semua Kategori' : 'Kategori: ' . \App\Models\Kategori::find($kategoriId)->nama_kategori ?? '-';
+        $prefixLabel   = $prefix === 'all' ? 'Semua Kode Unit' : 'Kode Unit: ' . $prefix;
+        $kategoriLabel = $kategoriId === 'all'
+            ? 'Semua Kategori'
+            : 'Kategori: ' . (\App\Models\Kategori::find($kategoriId)?->nama_kategori ?? '-');
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::setPaper('a4', 'landscape');
 
         return $pdf->loadView('pages.laporan.penjualan-per-produk.pdf', compact(
-            'detailPenjualans',
+            'allocatedItems',
             'periode',
             'total_qty',
             'total_subtotal',
@@ -697,40 +799,69 @@ class LaporanController extends Controller
         ini_set('memory_limit', '2048M');
         set_time_limit(600);
 
-        $preset    = $request->input('preset', 'all');
-        $startDate = $request->input('start_date');
-        $endDate   = $request->input('end_date');
-        $status    = $request->input('status', 'all');
-        $prefix    = $request->input('prefix', 'all');
+        $preset     = $request->input('preset', 'all');
+        $startDate  = $request->input('start_date');
+        $endDate    = $request->input('end_date');
+        $status     = $request->input('status', 'all');
+        $prefix     = $request->input('prefix', 'all');
         $kategoriId = $request->input('kategori_id', 'all');
 
         $dateRange = $this->getDateRange($preset, $startDate, $endDate);
         $startDate = $dateRange['start'];
         $endDate   = $dateRange['end'];
-        $periode = \Carbon\Carbon::parse($startDate)->format('d F Y') . ' s/d ' . \Carbon\Carbon::parse($endDate)->format('d F Y');
+        $periode   = \Carbon\Carbon::parse($startDate)->format('d F Y')
+            . ' s/d '
+            . \Carbon\Carbon::parse($endDate)->format('d F Y');
 
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
+        $sheet       = $spreadsheet->getActiveSheet();
 
-        $sheet->mergeCells('A1:K1');
+        // Title
+        $sheet->mergeCells('A1:M1');
         $sheet->setCellValue('A1', 'LAPORAN PENJUALAN PER PRODUK');
         $sheet->getStyle('A1')->getFont()->setSize(16)->setBold(true);
-        $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
 
-        $sheet->mergeCells('A2:K2');
+        $sheet->mergeCells('A2:M2');
         $sheet->setCellValue('A2', 'Periode: ' . $periode);
-        $sheet->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A2')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
 
-        $headers = ['NO', 'TANGGAL', 'INVOICE', 'KODE PRODUK', 'NAMA PRODUK', 'KATEGORI', 'QTY', 'HARGA', 'SUBTOTAL', 'MODAL', 'LABA'];
-        $sheet->fromArray($headers, null, 'A5');
-        $sheet->getStyle('A5:K5')->getFont()->setBold(true);
-        $sheet->getStyle('A5:K5')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFB8CCE4');
+        // Headers (row 5)
+        $headers = [
+            'A' => 'NO',
+            'B' => 'TANGGAL',
+            'C' => 'INVOICE',
+            'D' => 'KODE PRODUK',
+            'E' => 'NAMA PRODUK',
+            'F' => 'KATEGORI',
+            'G' => 'QTY',
+            'H' => 'HARGA SATUAN',
+            'I' => 'HARGA KOTOR',
+            'J' => 'DISKON ITEM (%)',
+            'K' => 'DISKON ITEM (Rp)',
+            'L' => 'DISKON TRANSAKSI (Rp)',
+            'M' => 'SUBTOTAL NET',
+            'N' => 'MODAL',
+            'O' => 'LABA',
+        ];
 
-        $row = 6;
+        foreach ($headers as $col => $header) {
+            $sheet->setCellValue($col . '5', $header);
+        }
+        $sheet->getStyle('A5:O5')->getFont()->setBold(true);
+        $sheet->getStyle('A5:O5')->getFill()
+            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FFB8CCE4');
+
+        $row   = 6;
         $index = 1;
         $grand_qty = $grand_subtotal = $grand_modal = $grand_laba = 0;
 
-        DetailPenjualan::with(['penjualan', 'produk'])
+        \App\Models\DetailPenjualan::with([
+            'penjualan.detailPenjualans',
+            'penjualan',
+            'produk.kategori',
+        ])
             ->whereHas('penjualan', function ($q) use ($startDate, $endDate, $status) {
                 $q->whereBetween('tanggal_penjualan', [$startDate, $endDate]);
                 if ($status === 'completed') $q->doesntHave('returPenjualans');
@@ -740,8 +871,9 @@ class LaporanController extends Controller
             ->when($kategoriId !== 'all', fn($q) => $q->whereHas('produk', fn($qq) => $qq->where('kategori_id', $kategoriId)))
             ->chunk(500, function ($rows) use (&$sheet, &$row, &$index, &$grand_qty, &$grand_subtotal, &$grand_modal, &$grand_laba) {
                 foreach ($rows as $d) {
-                    $modal = $d->qty * ($d->produk->harga_beli ?? 0);
-                    $laba = $d->subtotal - $modal;
+                    $allocated = $this->getAllocatedDiscount($d);
+                    $modal     = (float) $d->qty * (float) ($d->produk->harga_beli ?? 0);
+                    $laba      = $allocated['subtotal_net'] - $modal;
 
                     $sheet->setCellValue('A' . $row, $index++);
                     $sheet->setCellValue('B' . $row, \Carbon\Carbon::parse($d->penjualan->tanggal_penjualan)->format('d/m/Y'));
@@ -750,30 +882,45 @@ class LaporanController extends Controller
                     $sheet->setCellValue('E' . $row, $d->produk->nama_produk ?? '-');
                     $sheet->setCellValue('F' . $row, $d->produk->kategori->nama_kategori ?? '-');
                     $sheet->setCellValue('G' . $row, $d->qty);
-                    $sheet->setCellValue('H' . $row, $d->harga_satuan);
-                    $sheet->setCellValue('I' . $row, $d->subtotal);
-                    $sheet->setCellValue('J' . $row, $modal);
-                    $sheet->setCellValue('K' . $row, $laba);
+                    $sheet->setCellValue('H' . $row, (float) $d->harga_satuan);
+                    $sheet->setCellValue('I' . $row, $allocated['harga_kotor']);
+                    $sheet->setCellValue('J' . $row, $allocated['diskon_item_percent']);
+                    $sheet->setCellValue('K' . $row, $allocated['diskon_item_nominal']);
+                    $sheet->setCellValue('L' . $row, $allocated['diskon_transaksi_item']);
+                    $sheet->setCellValue('M' . $row, $allocated['subtotal_net']);
+                    $sheet->setCellValue('N' . $row, $modal);
+                    $sheet->setCellValue('O' . $row, $laba);
 
-                    $sheet->getStyle('H' . $row . ':K' . $row)->getNumberFormat()->setFormatCode('#,##0');
+                    // Format number
+                    $sheet->getStyle('H' . $row . ':O' . $row)->getNumberFormat()->setFormatCode('#,##0');
+                    // Kolom J (%) format berbeda
+                    $sheet->getStyle('J' . $row)->getNumberFormat()->setFormatCode('0.0"%"');
 
-                    $grand_qty += $d->qty;
-                    $grand_subtotal += $d->subtotal;
-                    $grand_modal += $modal;
-                    $grand_laba += $laba;
+                    $grand_qty      += $d->qty;
+                    $grand_subtotal += $allocated['subtotal_net'];
+                    $grand_modal    += $modal;
+                    $grand_laba     += $laba;
                     $row++;
                 }
             });
 
+        // Grand Total Row
         $sheet->mergeCells("A$row:F$row");
         $sheet->setCellValue("A$row", "GRAND TOTAL:");
         $sheet->setCellValue("G$row", $grand_qty);
-        $sheet->setCellValue("I$row", $grand_subtotal);
-        $sheet->setCellValue("J$row", $grand_modal);
-        $sheet->setCellValue("K$row", $grand_laba);
-        $sheet->getStyle("A$row:K$row")->getFont()->setBold(true);
+        $sheet->setCellValue("M$row", $grand_subtotal);
+        $sheet->setCellValue("N$row", $grand_modal);
+        $sheet->setCellValue("O$row", $grand_laba);
+        $sheet->getStyle("A$row:O$row")->getFont()->setBold(true);
+        $sheet->getStyle("A$row:O$row")->getFill()
+            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FFEEF3F8');
+        $sheet->getStyle("G$row:O$row")->getNumberFormat()->setFormatCode('#,##0');
 
-        foreach (range('A', 'K') as $col) $sheet->getColumnDimension($col)->setAutoSize(true);
+        // Auto-size kolom
+        foreach (range('A', 'O') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
 
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');

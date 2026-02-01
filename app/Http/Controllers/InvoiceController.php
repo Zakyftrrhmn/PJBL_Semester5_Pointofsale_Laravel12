@@ -52,31 +52,22 @@ class InvoiceController extends Controller
         return $penjualan->total_harga;
     }
 
-    /**
-     * Hitung tinggi kertas DINAMIS berdasarkan jumlah item
-     * Rumus: Header (150pt) + (Item × 20pt) + Footer (180pt) + Buffer (50pt)
-     */
     protected function calculateDynamicPaperHeight($itemCount, $hasDiscount = false)
     {
-        // Komponen tinggi dalam points (1 inch = 72 points)
-        $headerHeight = 150;      // Kop surat + info transaksi
-        $itemRowHeight = 20;      // Tinggi per baris item (termasuk padding)
-        $footerHeight = 180;      // Total, terbilang, ttd, catatan
-        $bufferSpace = 50;        // Ruang buffer agar tidak mepet
+        $headerHeight = 150;
+        $itemRowHeight = 20;
+        $footerHeight = 180;
+        $bufferSpace = 50;
 
-        // Jika ada diskon, tambah tinggi untuk baris diskon transaksi
         if ($hasDiscount) {
             $footerHeight += 20;
         }
 
-        // Hitung total tinggi
         $calculatedHeight = $headerHeight + ($itemCount * $itemRowHeight) + $footerHeight + $bufferSpace;
 
-        // BATAS MINIMUM & MAKSIMUM
-        $minHeight = 500;  // Minimal ~18cm (invoice sangat pendek)
-        $maxHeight = 1400; // Maksimal ~50cm (invoice sangat panjang)
+        $minHeight = 500;
+        $maxHeight = 1400;
 
-        // Pastikan tidak terlalu pendek atau terlalu panjang
         if ($calculatedHeight < $minHeight) {
             return $minHeight;
         } elseif ($calculatedHeight > $maxHeight) {
@@ -86,9 +77,6 @@ class InvoiceController extends Controller
         return $calculatedHeight;
     }
 
-    /**
-     * Cetak invoice TANPA diskon untuk Epson LX-310
-     */
     public function printNoDiscount(Penjualan $penjualan)
     {
         $penjualan->load('pelanggan', 'user', 'detailPenjualans.produk');
@@ -102,9 +90,8 @@ class InvoiceController extends Controller
 
         $data = compact('penjualan', 'isDiscountApplied', 'subTotalAwal', 'totalFinal', 'bayar', 'kembalian', 'item_total_type');
 
-        // HITUNG TINGGI KERTAS DINAMIS
         $itemCount = $penjualan->detailPenjualans->count();
-        $paperWidth = 612;  // 8.5 inch (lebar standar continuous form)
+        $paperWidth = 612;
         $paperHeight = $this->calculateDynamicPaperHeight($itemCount, false);
 
         $pdf = Pdf::loadView('pages.invoice.print-template', $data)
@@ -121,9 +108,6 @@ class InvoiceController extends Controller
         return $pdf->stream('Invoice-' . $penjualan->kode_penjualan . '-TanpaDiskon.pdf');
     }
 
-    /**
-     * Cetak invoice DENGAN diskon untuk Epson LX-310
-     */
     public function printWithDiscount(Penjualan $penjualan)
     {
         $penjualan->load('pelanggan', 'user', 'detailPenjualans.produk');
@@ -137,9 +121,8 @@ class InvoiceController extends Controller
 
         $data = compact('penjualan', 'isDiscountApplied', 'subTotalAwal', 'totalFinal', 'bayar', 'kembalian', 'item_total_type');
 
-        // HITUNG TINGGI KERTAS DINAMIS (dengan tambahan baris diskon)
         $itemCount = $penjualan->detailPenjualans->count();
-        $paperWidth = 612;  // 8.5 inch
+        $paperWidth = 612;
         $hasDiscountRow = $penjualan->diskon_nominal > 0;
         $paperHeight = $this->calculateDynamicPaperHeight($itemCount, $hasDiscountRow);
 
@@ -164,6 +147,8 @@ class InvoiceController extends Controller
                 ->with('error', 'Transaksi yang telah diretur tidak dapat diedit.');
         }
 
+        $penjualan->load('detailPenjualans.produk');
+
         $pelangganUmum = \App\Models\Pelanggan::where('nama_pelanggan', 'Umum')->first();
         $pelanggans = \App\Models\Pelanggan::orderBy('nama_pelanggan')->get(['id', 'nama_pelanggan']);
         $produks = \App\Models\Produk::where('is_active', 'active')->orderBy('nama_produk')->paginate(30);
@@ -179,17 +164,19 @@ class InvoiceController extends Controller
             ];
         })->toArray();
 
+        // ✅ PERBAIKAN: Load diskon item dengan benar
         $initialCart = $penjualan->detailPenjualans->map(function ($detail) {
             return [
                 'id' => $detail->produk_id,
                 'nama_produk' => $detail->produk->nama_produk,
                 'kode_produk' => $detail->produk->kode_produk,
+                'photo_produk' => $detail->produk->photo_produk,
                 'harga_satuan' => (float) $detail->harga_satuan,
                 'stok_produk' => $detail->produk->stok_produk + $detail->qty,
                 'qty' => (int) $detail->qty,
+                'diskon_item_percent' => (float) $detail->diskon_percent,  // ✅ PERBAIKAN: nama field
+                'diskon_item_nominal' => (float) $detail->diskon_nominal,  // ✅ PERBAIKAN: nama field
                 'subtotal' => (float) $detail->subtotal,
-                'diskon_percent' => (float) $detail->diskon_percent,
-                'diskon_nominal' => (float) $detail->diskon_nominal,
             ];
         })->toArray();
 
@@ -197,10 +184,12 @@ class InvoiceController extends Controller
             ->with('isEditMode', true)
             ->with('initialCart', $initialCart)
             ->with('initialPelangganId', $penjualan->pelanggan_id)
-            ->with('initialDiskonPercent', $penjualan->diskon_percent)
-            ->with('initialJumlahBayar', $penjualan->jumlah_bayar);
+            ->with('initialDiskonPercent', $penjualan->diskon_percent);
     }
 
+    /**
+     * ✅ UPDATE — Simpan perubahan DENGAN DISKON PER PRODUK
+     */
     public function update(Request $request, Penjualan $penjualan)
     {
         if ($penjualan->status === 'Returned') {
@@ -213,9 +202,12 @@ class InvoiceController extends Controller
             $request->validate([
                 'cart_data' => 'required|json',
                 'pelanggan_id' => 'required|uuid|exists:pelanggans,id',
-                'jumlah_bayar' => 'required',
+                'tanggal_penjualan' => 'required|date',
             ]);
 
+            $penjualan->load('detailPenjualans');
+
+            // Kembalikan stok lama
             foreach ($penjualan->detailPenjualans as $detail) {
                 $produk = Produk::lockForUpdate()->find($detail->produk_id);
                 if ($produk) {
@@ -224,20 +216,8 @@ class InvoiceController extends Controller
                 }
             }
 
+            // Hapus detail lama
             DetailPenjualan::where('penjualan_id', $penjualan->id)->delete();
-
-            $cleanCurrency = function ($value) {
-                if ($value === null || $value === '') return 0.00;
-                $value = (string)$value;
-                $value = preg_replace('/[^0-9.,-]/', '', $value);
-                if (str_contains($value, ',') && substr($value, -3, 1) == ',') {
-                    $value = str_replace('.', '', $value);
-                    $value = str_replace(',', '.', $value);
-                } else {
-                    $value = str_replace(',', '', $value);
-                }
-                return (float) $value;
-            };
 
             $cart = json_decode($request->cart_data, true);
             if (empty($cart) || !is_array($cart)) {
@@ -248,6 +228,7 @@ class InvoiceController extends Controller
             $subtotalAfterProductDiscounts = 0;
             $cartRecomputed = [];
 
+            // ✅ PERBAIKAN: Hitung dengan DISKON PER PRODUK
             foreach ($cart as $item) {
                 if (!isset($item['id']) || !isset($item['qty'])) {
                     DB::rollBack();
@@ -271,25 +252,32 @@ class InvoiceController extends Controller
                     return redirect()->back()->with('error', 'Stok tidak mencukupi untuk ' . $produk->nama_produk)->withInput();
                 }
 
+                // ✅ AMBIL DISKON DARI CART DATA
+                $diskonItemPercent = (float) ($item['diskon_percent'] ?? 0);
+                if ($diskonItemPercent < 0) $diskonItemPercent = 0;
+                if ($diskonItemPercent > 100) $diskonItemPercent = 100;
+
                 $hargaSatuan = (float) $produk->harga_jual;
-                $diskonPercentItem = isset($item['diskon_percent']) ? (float)$item['diskon_percent'] : 0;
-                if ($diskonPercentItem < 0) $diskonPercentItem = 0;
-                if ($diskonPercentItem > 100) $diskonPercentItem = 100;
 
+                // ✅ HITUNG SUBTOTAL KOTOR (sebelum diskon item)
                 $subtotalGross = $hargaSatuan * $qty;
-                $diskonNominalItem = round(($diskonPercentItem / 100) * $subtotalGross);
-                $subtotalAfterItem = $subtotalGross - $diskonNominalItem;
-                if ($subtotalAfterItem < 0) $subtotalAfterItem = 0;
 
-                $subtotalAfterProductDiscounts += $subtotalAfterItem;
+                // ✅ HITUNG DISKON ITEM NOMINAL
+                $diskonItemNominal = round(($diskonItemPercent / 100) * $subtotalGross);
+
+                // ✅ SUBTOTAL BERSIH (setelah diskon item)
+                $subtotalItem = $subtotalGross - $diskonItemNominal;
+
+                // ✅ AKUMULASI ke subtotal keseluruhan
+                $subtotalAfterProductDiscounts += $subtotalItem;
 
                 $cartRecomputed[] = [
                     'produk_id' => $produk->id,
                     'qty' => $qty,
                     'harga_satuan' => $hargaSatuan,
-                    'diskon_percent' => $diskonPercentItem,
-                    'diskon_nominal' => $diskonNominalItem,
-                    'subtotal' => $subtotalAfterItem,
+                    'diskon_percent' => $diskonItemPercent,  // ✅ SIMPAN diskon item
+                    'diskon_nominal' => $diskonItemNominal,  // ✅ SIMPAN nominal diskon
+                    'subtotal' => $subtotalItem,             // ✅ Subtotal setelah diskon item
                     'produk_model' => $produk,
                 ];
             }
@@ -302,37 +290,27 @@ class InvoiceController extends Controller
             $totalBayarComputed = $subtotalAfterProductDiscounts - $diskonTransNominal;
             if ($totalBayarComputed < 0) $totalBayarComputed = 0;
 
-            $jumlahBayar = $cleanCurrency($request->jumlah_bayar);
-
-            if ($jumlahBayar < $totalBayarComputed) {
-                DB::rollBack();
-                return redirect()->back()
-                    ->with('error', 'Jumlah bayar tidak mencukupi. Total: Rp ' . number_format($totalBayarComputed, 0, ',', '.'))
-                    ->withInput();
-            }
-
-            $kembalian = round($jumlahBayar - $totalBayarComputed, 2);
-
             $penjualan->update([
-                'tanggal_penjualan' => now()->toDateString(),
+                'tanggal_penjualan' => $request->tanggal_penjualan,
                 'total_harga' => $subtotalAfterProductDiscounts,
                 'diskon_percent' => $diskonTransPercent,
                 'diskon_nominal' => $diskonTransNominal,
                 'total_bayar' => $totalBayarComputed,
-                'jumlah_bayar' => $jumlahBayar,
-                'kembalian' => $kembalian,
+                'jumlah_bayar' => $totalBayarComputed,
+                'kembalian' => 0,
                 'pelanggan_id' => $request->pelanggan_id,
                 'user_id' => auth()->user()->id,
             ]);
 
+            // ✅ Simpan detail baru DENGAN DISKON ITEM + kurangi stok
             foreach ($cartRecomputed as $item) {
                 DetailPenjualan::create([
                     'penjualan_id' => $penjualan->id,
                     'produk_id' => $item['produk_id'],
                     'qty' => $item['qty'],
                     'harga_satuan' => $item['harga_satuan'],
-                    'diskon_percent' => $item['diskon_percent'],
-                    'diskon_nominal' => $item['diskon_nominal'],
+                    'diskon_percent' => $item['diskon_percent'],  // ✅ SIMPAN
+                    'diskon_nominal' => $item['diskon_nominal'],  // ✅ SIMPAN
                     'subtotal' => $item['subtotal'],
                 ]);
 

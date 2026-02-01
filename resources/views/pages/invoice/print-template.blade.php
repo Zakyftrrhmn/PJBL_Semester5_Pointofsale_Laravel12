@@ -52,25 +52,36 @@
             font-size: 16pt;
             font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         .alamat-toko {
             font-size: 10pt;
             line-height: 1.3;
-            margin-top: 2px;
+        }
+
+        /* ===== TABEL BARANG ===== */
+        .barang {
+            table-layout: fixed;
+            /* PENTING untuk print */
         }
 
         .barang th,
         .barang td {
             border: 1px solid #000;
-            padding: 3px;
+            padding: 4px;
             font-size: 12pt;
+            word-wrap: break-word;
         }
 
         .barang th {
             text-align: center;
             font-weight: bold;
+        }
+
+        /* Kolom TOTAL dipastikan lega */
+        .barang th:last-child,
+        .barang td:last-child {
+            font-size: 11pt;
         }
 
         .footer {
@@ -120,10 +131,9 @@
                     Telp. {{ $page->telepon }}
                 </div>
             </td>
-
             <td class="kanan">
                 Tanggal Invoice : {{ \Carbon\Carbon::parse($penjualan->tanggal_penjualan)->format('d-m-Y') }}<br>
-                Kepada Yth&nbsp;&nbsp;&nbsp;: {{ $penjualan->pelanggan->nama_pelanggan ?? '-CASH-' }}
+                Kepada Yth : {{ $penjualan->pelanggan->nama_pelanggan ?? '-CASH-' }}
             </td>
         </tr>
     </table>
@@ -133,14 +143,16 @@
     <table class="barang">
         <thead>
             <tr>
-                <th style="width:15%">Kode</th>
-                <th style="width:40%">Nama Produk</th>
+                <th style="width:12%">Kode</th>
+                <th style="width:38%">Nama Produk</th>
                 <th style="width:15%">Harga</th>
-                <th style="width:10%">Qty</th>
+                <th style="width:8%">Qty</th>
+
                 @if ($isDiscountApplied)
-                    <th style="width:10%">Disc %</th>
+                    <th style="width:7%">Disc %</th>
                 @endif
-                <th style="width:{{ $isDiscountApplied ? '10%' : '20%' }}">Total</th>
+
+                <th style="width:20%">Total</th>
             </tr>
         </thead>
 
@@ -193,7 +205,7 @@
             </tr>
 
             <tr>
-                <td colspan="{{ $isDiscountApplied ? 6 : 5 }}" style="font-size:9pt; text-transform: uppercase;">
+                <td colspan="{{ $isDiscountApplied ? 6 : 5 }}" style="font-size:9pt;">
                     Terbilang : {{ ucwords(\App\Helpers\Terbilang::make($totalFinal, ' Rupiah')) }}
                 </td>
             </tr>
@@ -207,7 +219,7 @@
                 ({{ $penjualan->pelanggan->nama_pelanggan ?? 'Umum' }})
             </td>
 
-            <td style="text-align:center; vertical-align:middle;">
+            <td style="text-align:center;">
                 <div class="note-box">
                     Barang yang sudah dibeli tidak dapat dikembalikan/ditukar
                 </div>

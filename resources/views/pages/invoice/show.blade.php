@@ -95,16 +95,7 @@
                             <span class="text-lg font-bold text-blue-600">Rp
                                 {{ number_format($penjualan->total_bayar, 0, ',', '.') }}</span>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-sm text-gray-700">Uang Bayar (Customer):</span>
-                            <span class="text-sm font-semibold text-gray-900">Rp
-                                {{ number_format($penjualan->jumlah_bayar, 0, ',', '.') }}</span>
-                        </div>
-                        <div class="flex justify-between border-t pt-2">
-                            <span class="text-lg font-bold text-gray-900">Kembalian:</span>
-                            <span class="text-lg font-bold text-green-600">Rp
-                                {{ number_format($penjualan->kembalian, 0, ',', '.') }}</span>
-                        </div>
+
                     </div>
                 </div>
 

@@ -32,7 +32,7 @@ class POSController extends Controller
 
         $pelanggans = Pelanggan::orderBy('nama_pelanggan')->get(['id', 'nama_pelanggan']);
 
-        // ✅ AMBIL SEMUA PRODUK AKTIF UNTUK JAVASCRIPT (tanpa pagination)
+        // Ambil semua produk aktif untuk JavaScript
         $produksForJs = Produk::where('is_active', 'active')
             ->orderBy('nama_produk')
             ->get()
@@ -46,9 +46,9 @@ class POSController extends Controller
                     'photo_produk' => $produk->photo_produk,
                 ];
             })
-            ->toArray(); // ⚠️ Penting: convert ke array untuk JSON
+            ->toArray();
 
-        // Data untuk pagination (tampilan di halaman)
+        // Data untuk pagination
         $produks = Produk::where('is_active', 'active')
             ->when($request->search, function ($query, $search) {
                 $query->where('nama_produk', 'like', "%{$search}%")
@@ -68,45 +68,26 @@ class POSController extends Controller
                 ];
             });
 
-
-
         return view('pages.pos.index', compact('produks', 'produksForJs', 'pelanggans', 'pelangganUmum'));
     }
 
-    // ===============================
-    // ========== STORE ==============
-    // ===============================
+    /**
+     * ✅ STORE: Simpan transaksi DENGAN DISKON PER PRODUK
+     */
     public function store(Request $request)
     {
         DB::beginTransaction();
 
         try {
-            // Validasi input utama
-            // Validasi input utama
             $request->validate([
-                'cart_data'     => 'required|json',
-                'pelanggan_id'  => 'required|exists:pelanggans,id',
-                'jumlah_bayar'  => 'required',
-                'tanggal_penjualan'  => 'required|date', // ← TAMBAHKAN INI
+                'cart_data' => 'required|json',
+                'pelanggan_id' => 'required|exists:pelanggans,id',
+                'tanggal_penjualan' => 'required|date',
             ]);
 
             $request->merge([
                 'pelanggan_id' => trim($request->pelanggan_id)
             ]);
-
-            // Fungsi helper untuk membersihkan format uang
-            $cleanCurrency = function ($value) {
-                if ($value === null || $value === '') return 0.00;
-                $value = (string)$value;
-                $value = preg_replace('/[^0-9.,-]/', '', $value);
-                if (str_contains($value, ',') && substr($value, -3, 1) == ',') {
-                    $value = str_replace('.', '', $value);
-                    $value = str_replace(',', '.', $value);
-                } else {
-                    $value = str_replace(',', '', $value);
-                }
-                return (float) $value;
-            };
 
             // Decode data cart
             $cart = json_decode($request->cart_data, true);
@@ -118,8 +99,8 @@ class POSController extends Controller
             $subtotalAfterProductDiscounts = 0;
             $cartRecomputed = [];
 
-            // Hitung ulang semua item
-            foreach ($cart as $i => $item) {
+            // ✅ PERBAIKAN: Hitung dengan DISKON PER PRODUK
+            foreach ($cart as $item) {
                 if (!isset($item['id']) || !isset($item['qty'])) {
                     DB::rollBack();
                     return redirect()->back()->with('error', 'Data produk pada keranjang tidak lengkap.')->withInput();
@@ -142,26 +123,32 @@ class POSController extends Controller
                     return redirect()->back()->with('error', 'Stok tidak mencukupi untuk ' . $produk->nama_produk)->withInput();
                 }
 
+                // ✅ AMBIL DISKON DARI CART DATA
+                $diskonItemPercent = (float) ($item['diskon_percent'] ?? 0);
+                if ($diskonItemPercent < 0) $diskonItemPercent = 0;
+                if ($diskonItemPercent > 100) $diskonItemPercent = 100;
+
                 $hargaSatuan = (float) $produk->harga_jual;
-                $diskonPercentItem = isset($item['diskon_percent']) ? (float)$item['diskon_percent'] : 0;
-                if ($diskonPercentItem < 0) $diskonPercentItem = 0;
-                if ($diskonPercentItem > 100) $diskonPercentItem = 100;
 
+                // ✅ HITUNG SUBTOTAL KOTOR (sebelum diskon item)
                 $subtotalGross = $hargaSatuan * $qty;
-                $diskonNominalItem = round(($diskonPercentItem / 100) * $subtotalGross);
-                $subtotalAfterItem = $subtotalGross - $diskonNominalItem;
 
-                if ($subtotalAfterItem < 0) $subtotalAfterItem = 0;
+                // ✅ HITUNG DISKON ITEM NOMINAL
+                $diskonItemNominal = round(($diskonItemPercent / 100) * $subtotalGross);
 
-                $subtotalAfterProductDiscounts += $subtotalAfterItem;
+                // ✅ SUBTOTAL BERSIH (setelah diskon item)
+                $subtotalItem = $subtotalGross - $diskonItemNominal;
+
+                // ✅ AKUMULASI ke subtotal keseluruhan
+                $subtotalAfterProductDiscounts += $subtotalItem;
 
                 $cartRecomputed[] = [
-                    'produk_id'       => $produk->id,
-                    'qty'             => $qty,
-                    'harga_satuan'    => $hargaSatuan,
-                    'diskon_percent'  => $diskonPercentItem,
-                    'diskon_nominal'  => $diskonNominalItem,
-                    'subtotal'        => $subtotalAfterItem,
+                    'produk_id' => $produk->id,
+                    'qty' => $qty,
+                    'harga_satuan' => $hargaSatuan,
+                    'diskon_percent' => $diskonItemPercent,  // ✅ SIMPAN diskon item
+                    'diskon_nominal' => $diskonItemNominal,  // ✅ SIMPAN nominal diskon
+                    'subtotal' => $subtotalItem,             // ✅ Subtotal setelah diskon item
                 ];
             }
 
@@ -174,43 +161,30 @@ class POSController extends Controller
             $totalBayarComputed = $subtotalAfterProductDiscounts - $diskonTransNominal;
             if ($totalBayarComputed < 0) $totalBayarComputed = 0;
 
-            // Bersihkan nilai bayar
-            $jumlahBayar = $cleanCurrency($request->jumlah_bayar);
-
-            // Toleransi selisih 1 rupiah
-            if ($jumlahBayar < $totalBayarComputed) {
-                DB::rollBack();
-                return redirect()->back()
-                    ->with('error', 'Jumlah bayar tidak mencukupi. Total yang harus dibayar: Rp ' . number_format($totalBayarComputed, 0, ',', '.'))
-                    ->withInput();
-            }
-
-            $kembalian = round($jumlahBayar - $totalBayarComputed, 2);
-
             // Simpan penjualan
             $penjualan = Penjualan::create([
-                'kode_penjualan'    => null,
-                'tanggal_penjualan' => $request->tanggal_penjualan, // ← UBAH INI (yang tadinya now()->toDateString())
-                'total_harga'       => $subtotalAfterProductDiscounts,
-                'diskon_percent'    => $diskonTransPercent,
-                'diskon_nominal'    => $diskonTransNominal,
-                'total_bayar'       => $totalBayarComputed,
-                'jumlah_bayar'      => $jumlahBayar,
-                'kembalian'         => $kembalian,
-                'pelanggan_id'      => $request->pelanggan_id,
-                'user_id'           => auth()->user()->id,
+                'kode_penjualan' => null,
+                'tanggal_penjualan' => $request->tanggal_penjualan,
+                'total_harga' => $subtotalAfterProductDiscounts,
+                'diskon_percent' => $diskonTransPercent,
+                'diskon_nominal' => $diskonTransNominal,
+                'total_bayar' => $totalBayarComputed,
+                'jumlah_bayar' => $totalBayarComputed,
+                'kembalian' => 0,
+                'pelanggan_id' => $request->pelanggan_id,
+                'user_id' => auth()->user()->id,
             ]);
 
-            // Simpan detail penjualan + update stok
+            // ✅ Simpan detail penjualan DENGAN DISKON ITEM + update stok
             foreach ($cartRecomputed as $item) {
                 DetailPenjualan::create([
-                    'penjualan_id'   => $penjualan->id,
-                    'produk_id'      => $item['produk_id'],
-                    'qty'            => $item['qty'],
-                    'harga_satuan'   => $item['harga_satuan'],
-                    'diskon_percent' => $item['diskon_percent'],
-                    'diskon_nominal' => $item['diskon_nominal'],
-                    'subtotal'       => $item['subtotal'],
+                    'penjualan_id' => $penjualan->id,
+                    'produk_id' => $item['produk_id'],
+                    'qty' => $item['qty'],
+                    'harga_satuan' => $item['harga_satuan'],
+                    'diskon_percent' => $item['diskon_percent'],  // ✅ SIMPAN
+                    'diskon_nominal' => $item['diskon_nominal'],  // ✅ SIMPAN
+                    'subtotal' => $item['subtotal'],
                 ]);
 
                 $produk = Produk::find($item['produk_id']);
