@@ -94,10 +94,17 @@
                     </div>
                 </div>
 
-                {{-- TOM SELECT: Pilih Produk --}}
+                {{-- 🔥 BUTTON BUKA MODAL --}}
                 <div class="mb-4">
-                    <label class="block text-xs font-medium text-gray-500 mb-1.5">Produk</label>
-                    <select id="produk-select" class="w-full"></select>
+                    <label class="block text-xs font-medium text-gray-500 mb-1.5">Pilih Produk</label>
+                    <button @click="openModal" type="button"
+                        class="w-full flex items-center justify-between gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-lg px-4 py-3 font-semibold text-sm shadow-sm transition-colors">
+                        <div class="flex items-center gap-2">
+                            <i class='bx bx-search-alt-2 text-lg'></i>
+                            <span>Cari Produk</span>
+                        </div>
+                        <i class='bx bx-chevron-right text-xl'></i>
+                    </button>
                 </div>
 
                 {{-- INFO CARD PRODUK TERPILIH --}}
@@ -187,8 +194,6 @@
             {{-- ===================== PANEL KANAN: KERANJANG BELANJA ===================== --}}
             <div class="lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm p-5">
 
-
-
                 {{-- PINDAHAN DARI KIRI: INFO TRANSAKSI --}}
                 <div
                     class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-gray-50/50 rounded-xl border border-gray-100">
@@ -270,7 +275,7 @@
                                         <div class="flex flex-col items-center gap-2 text-gray-400">
                                             <i class='bx bx-cart-open text-4xl'></i>
                                             <p class="text-sm">Keranjang masih kosong</p>
-                                            <p class="text-xs">Pilih produk di kiri untuk ditambahkan</p>
+                                            <p class="text-xs">Klik tombol "Cari Produk" untuk menambahkan</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -408,88 +413,142 @@
                 </div>
             </div>
         </div>
+
+        {{-- ===================== MODAL PENCARIAN PRODUK ===================== --}}
+        <div x-show="modalOpen" x-cloak @keydown.escape.window="closeModal"
+            class="fixed inset-0 z-99999 overflow-y-auto" style="display: none;">
+
+            {{-- Backdrop --}}
+            <div x-show="modalOpen" x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0" @click="closeModal"
+                class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
+
+            {{-- Modal Container --}}
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div x-show="modalOpen" x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                    x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 scale-100"
+                    x-transition:leave-end="opacity-0 scale-95" @click.away="closeModal"
+                    class="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+
+                    {{-- Modal Header --}}
+                    <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-5 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                                <i class='bx bx-search-alt-2 text-white text-xl'></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-white">Pilih Produk</h3>
+                                <p class="text-xs text-blue-100">Cari produk berdasarkan nama atau kode</p>
+                            </div>
+                        </div>
+                        <button @click="closeModal"
+                            class="w-8 h-8 flex items-center justify-center bg-white/20 hover:bg-white/30 rounded-lg transition-all">
+                            <i class='bx bx-x text-white text-2xl'></i>
+                        </button>
+                    </div>
+
+
+                    {{-- Search Bar --}}
+                    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                        <div class="relative">
+                            <i class='bx bx-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl'></i>
+                            <input type="text" x-model="searchQuery" @input="filterProducts"
+                                placeholder="Ketik nama produk atau kode barcode..."
+                                class="w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all text-sm"
+                                autofocus>
+                            <div x-show="searchQuery" @click="searchQuery = ''; filterProducts()"
+                                class="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer">
+                                <i class='bx bx-x text-gray-400 hover:text-gray-600 text-xl'></i>
+                            </div>
+                        </div>
+
+                        {{-- Counter --}}
+                        <div class="mt-2 flex items-center gap-2 text-xs text-gray-500">
+                            <i class='bx bx-package'></i>
+                            <span>Menampilkan <strong x-text="filteredProducts.length"></strong> dari <strong
+                                    x-text="allProduks.length"></strong> produk</span>
+                        </div>
+                    </div>
+
+                    {{-- Product List --}}
+                    <div class="flex-1 overflow-y-auto p-4" style="max-height: calc(90vh - 250px);">
+
+                        {{-- Empty State --}}
+                        <template x-if="filteredProducts.length === 0">
+                            <div class="flex flex-col items-center justify-center py-16 text-gray-400">
+                                <i class='bx bx-search-alt text-5xl mb-2'></i>
+                                <p class="text-sm font-medium">Produk tidak ditemukan</p>
+                                <p class="text-xs mt-1">Coba gunakan kata kunci lain</p>
+                            </div>
+                        </template>
+
+                        {{-- Product List (Table Style) --}}
+                        <div class="grid grid-cols-2 gap-3">
+                            <template x-for="produk in filteredProducts" :key="produk.id">
+                                <div @click="selectFromModal(produk)"
+                                    class="bg-white border border-gray-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg p-3 cursor-pointer transition-colors">
+
+                                    <div class="flex items-center gap-3">
+                                        {{-- Product Image --}}
+                                        <div class="w-16 h-16 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
+                                            <img :src="produk.photo_produk ? '{{ asset('storage') }}/' + produk.photo_produk :
+                                                '{{ asset('assets/images/produk/default-produk.png') }}'"
+                                                :alt="produk.nama_produk" class="w-full h-full object-cover">
+                                        </div>
+
+                                        {{-- Product Info --}}
+                                        <div class="flex-1 min-w-0">
+                                            <h4 class="font-semibold text-gray-800 text-sm truncate"
+                                                x-text="produk.nama_produk"></h4>
+                                            <p class="text-xs text-gray-400 font-mono mt-0.5" x-text="produk.kode_produk">
+                                            </p>
+                                            <div class="flex items-center gap-2 mt-1">
+                                                <span class="text-sm font-bold text-blue-600"
+                                                    x-text="formatRupiah(produk.harga_jual)"></span>
+                                                <span class="text-xs text-gray-400">•</span>
+                                                <span
+                                                    :class="{
+                                                        'text-green-600': produk.stok_produk > 10,
+                                                        'text-amber-600': produk.stok_produk > 0 && produk
+                                                            .stok_produk <= 10,
+                                                        'text-red-600': produk.stok_produk <= 0
+                                                    }"
+                                                    class="text-xs font-medium flex items-center gap-1">
+                                                    <i class='bx bx-box text-xs'></i>
+                                                    <span x-text="'Stok: ' + produk.stok_produk"></span>
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {{-- Arrow Icon --}}
+                                        <div class="flex-shrink-0">
+                                            <i class='bx bx-chevron-right text-gray-400 text-xl'></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    {{-- Modal Footer --}}
+                    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+                        <div class="text-xs text-gray-500">
+                            <kbd
+                                class="px-2 py-1 bg-white border border-gray-300 rounded text-gray-600 font-mono">ESC</kbd>
+                            untuk menutup
+                        </div>
+                        <button @click="closeModal"
+                            class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm font-semibold transition-colors">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
-    {{-- ===================== TOM SELECT LIBRARY ===================== --}}
-    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
-
-    {{-- ===================== TOM SELECT INITIALIZATION ===================== --}}
-    <script>
-        const __produksData = @js($produksForJs);
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const selectEl = document.getElementById('produk-select');
-            if (!selectEl) return;
-
-            // Helper format rupiah
-            function fmtRp(num) {
-                return 'Rp ' + Number(num).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-            }
-
-            // Inisialisasi Tom Select
-            window._tomSelectProduk = new TomSelect(selectEl, {
-                placeholder: 'Ketik nama atau kode produk...',
-                maxItems: 1,
-                searchField: ['nama', 'kode'],
-                render: {
-                    // Custom render untuk dropdown option
-                    option: function(data, escape) {
-                        const stok = parseInt(data.stok) || 0;
-                        let stokCls = 'bg-green-100 text-green-700';
-                        if (stok <= 0) stokCls = 'bg-red-100 text-red-700';
-                        else if (stok <= 10) stokCls = 'bg-amber-100 text-amber-700';
-
-                        return '<div class="flex items-center justify-between py-2 px-3">' +
-                            '<div>' +
-                            '<div class="text-sm font-medium text-gray-800">' + escape(data.nama) +
-                            '</div>' +
-                            '<div class="text-xs text-gray-400 font-mono">' + escape(data.kode) +
-                            '</div>' +
-                            '</div>' +
-                            '<div class="flex items-center gap-2 flex-shrink-0">' +
-                            '<span class="text-xs font-semibold text-blue-600">' + escape(data
-                                .harga_display) + '</span>' +
-                            '<span class="text-xs px-1.5 py-0.5 rounded font-medium ' + stokCls + '">' +
-                            escape('Stok: ' + stok) + '</span>' +
-                            '</div>' +
-                            '</div>';
-                    },
-                    // Custom render untuk selected item
-                    item: function(data, escape) {
-                        return '<div class="text-sm text-gray-800">' +
-                            escape(data.nama) +
-                            ' <span class="text-gray-400 font-mono text-xs">(' + escape(data.kode) +
-                            ')</span>' +
-                            '</div>';
-                    }
-                },
-                // Event saat produk dipilih
-                onChange: function(value) {
-                    if (!value) return;
-                    // Kirim event ke Alpine.js
-                    document.dispatchEvent(new CustomEvent('produk-selected', {
-                        detail: {
-                            id: value
-                        }
-                    }));
-                    // Reset select agar bisa pilih produk yang sama lagi
-                    this.clear();
-                }
-            });
-
-            // Populate options dari data produk
-            __produksData.forEach(function(p) {
-                window._tomSelectProduk.addOption({
-                    value: p.id,
-                    nama: p.nama_produk,
-                    kode: p.kode_produk,
-                    harga: p.harga_jual,
-                    harga_display: fmtRp(p.harga_jual),
-                    stok: p.stok_produk
-                });
-            });
-        });
-    </script>
 
     {{-- ===================== ALPINE.JS LOGIC ===================== --}}
     <script>
@@ -504,6 +563,11 @@
                 pelangganUmumId: data.pelangganUmumId,
                 isEditMode: data.isEditMode,
                 penjualanId: data.penjualanId,
+
+                // Modal state
+                modalOpen: false,
+                searchQuery: '',
+                filteredProducts: [],
 
                 // Temporary product selection
                 tempProduk: null,
@@ -524,6 +588,49 @@
                 lastScanTime: 0,
                 scanTimeout: null,
                 lastScannedCode: '',
+
+                /* ========================================
+                   MODAL METHODS
+                ======================================== */
+                openModal() {
+                    this.modalOpen = true;
+                    this.searchQuery = '';
+                    this.filteredProducts = this.allProduks;
+                    document.body.style.overflow = 'hidden';
+
+                    // Auto focus pada search input
+                    this.$nextTick(() => {
+                        const input = document.querySelector('[x-model="searchQuery"]');
+                        if (input) input.focus();
+                    });
+                },
+
+                closeModal() {
+                    this.modalOpen = false;
+                    this.searchQuery = '';
+                    document.body.style.overflow = '';
+                },
+
+                filterProducts() {
+                    const query = this.searchQuery.toLowerCase().trim();
+
+                    if (!query) {
+                        this.filteredProducts = this.allProduks;
+                        return;
+                    }
+
+                    this.filteredProducts = this.allProduks.filter(p => {
+                        const matchName = p.nama_produk.toLowerCase().includes(query);
+                        const matchCode = p.kode_produk.toLowerCase().includes(query);
+                        return matchName || matchCode;
+                    });
+                },
+
+                selectFromModal(produk) {
+                    this.selectProduk(produk);
+                    this.closeModal();
+                    this.showNotification('success', 'Produk dipilih!', produk.nama_produk);
+                },
 
                 /* ========================================
                    COMPUTED PROPERTIES
@@ -565,11 +672,6 @@
                     this.tempHarga = this.formatRupiah(produk.harga_jual);
                     this.tempQty = 1;
                     this.updateTempTotal();
-                },
-
-                handleProdukSelected(id) {
-                    const produk = this.allProduks.find(p => String(p.id) === String(id));
-                    if (produk) this.selectProduk(produk);
                 },
 
                 updateTempTotal() {
@@ -666,12 +768,7 @@
                     if (!this.scannerActive) return;
 
                     const el = document.activeElement;
-                    if (el) {
-                        const isNativeInput = (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName ===
-                            'SELECT');
-                        const isTomSelect = el.closest && el.closest('.ts-control');
-                        if (isNativeInput || isTomSelect) return;
-                    }
+                    if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT')) return;
 
                     const now = Date.now();
                     if (now - this.lastScanTime > 100) this.barcodeBuffer = '';
@@ -729,14 +826,16 @@
                     const c = cfg[type];
                     const el = document.createElement('div');
                     el.className = 'fixed top-20 right-4 ' + c.bg +
-                        ' text-white px-5 py-3 rounded-xl shadow-lg z-50 flex items-center gap-3';
-                    el.style.animation = 'slideInRight 0.3s ease-out';
+                        ' text-white px-4 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2 transition-opacity';
                     el.innerHTML =
-                        '<i class="bx bx-' + c.icon + ' text-xl"></i>' +
+                        '<i class="bx ' + c.icon + ' text-lg"></i>' +
                         '<div><p class="font-semibold text-sm">' + title + '</p>' +
                         '<p class="text-xs opacity-90">' + subtitle + '</p></div>';
                     document.body.appendChild(el);
-                    setTimeout(() => el.remove(), 2500);
+                    setTimeout(() => {
+                        el.style.opacity = '0';
+                        setTimeout(() => el.remove(), 300);
+                    }, 2500);
                 },
 
                 /* ========================================
@@ -768,15 +867,14 @@
                    INITIALIZATION
                 ======================================== */
                 init() {
+                    // Set filtered products
+                    this.filteredProducts = this.allProduks;
+
                     // Set data for edit mode
                     if (this.isEditMode) {
                         this.tanggal_penjualan = '{{ $penjualan->tanggal_penjualan ?? '' }}' || new Date().toISOString()
                             .split('T')[0];
-
-                        // ✅ PERBAIKAN: Set pelanggan_id dengan benar
                         this.pelanggan_id = '{{ $initialPelangganId }}';
-
-                        // ✅ PERBAIKAN: Pastikan cart memiliki struktur diskon yang lengkap
                         this.cart = this.cart.map(item => ({
                             ...item,
                             diskon_item_percent: Number(item.diskon_item_percent || 0),
@@ -785,41 +883,24 @@
                     }
 
                     this.calculateTotals();
-
-                    // Listen untuk event produk selected dari Tom Select
-                    document.addEventListener('produk-selected', (e) => {
-                        this.handleProdukSelected(e.detail.id);
-                    });
                 },
 
                 /* ========================================
-                   CART CALCULATION METHODS - LOGIKA UTAMA
+                   CART CALCULATION METHODS
                 ======================================== */
                 calculateTotals() {
-                    // Validasi diskon transaksi (0-100%)
                     this.diskon_percent = Math.min(100, Math.max(0, Number(this.diskon_percent || 0)));
 
-                    // Hitung ulang setiap item di keranjang
                     this.cart.forEach(item => {
                         const qty = Number(item.qty) || 0;
                         const harga = Number(item.harga_satuan) || 0;
-
-                        // ✅ LOGIKA PERBAIKAN DISKON ITEM
-                        // Validasi diskon item (0-100%)
                         item.diskon_item_percent = Math.min(100, Math.max(0, Number(item.diskon_item_percent ||
                             0)));
-
-                        // Subtotal KOTOR (sebelum diskon item)
                         const subtotalGross = qty * harga;
-
-                        // Nominal diskon item berdasarkan persentase
                         item.diskon_item_nominal = Math.round((item.diskon_item_percent / 100) * subtotalGross);
-
-                        // Subtotal BERSIH (setelah dikurangi diskon item)
                         item.subtotal = subtotalGross - item.diskon_item_nominal;
                     });
 
-                    // Hitung diskon transaksi dari subtotal setelah diskon produk
                     this.diskon_trans_nominal = Math.round((this.diskon_percent / 100) * this
                         .subtotalAfterProductDiscounts);
                 },
@@ -878,114 +959,27 @@
 
     {{-- ===================== CUSTOM STYLES ===================== --}}
     <style>
-        /* =====================
-           ANIMATION
-        ===================== */
-        @keyframes slideInRight {
-            0% {
-                opacity: 0;
-                transform: translateX(100px);
-            }
-
-            100% {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
         /* Alpine.js cloak */
         [x-cloak] {
             display: none !important;
         }
 
-        /* =====================
-           TOM SELECT - INPUT
-        ===================== */
-        .ts-control {
-            border-color: #e5e7eb !important;
-            border-radius: 0.75rem !important;
-            padding: 0.65rem 1rem !important;
-            font-size: 0.95rem !important;
-            min-height: 3rem !important;
-            /* ✅ tinggi input (48px) */
-            background-color: #fff !important;
-            box-shadow: none !important;
-            display: flex !important;
-            align-items: center !important;
-            /* ✅ teks tengah */
+        /* Custom scrollbar */
+        .overflow-y-auto::-webkit-scrollbar {
+            width: 6px;
         }
 
-        .ts-control input {
-            font-size: 0.95rem !important;
-            line-height: 1.25rem !important;
+        .overflow-y-auto::-webkit-scrollbar-track {
+            background: #f8fafc;
         }
 
-        .ts-dropdown-active .ts-control {
-            border-color: #3b82f6 !important;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+        .overflow-y-auto::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
         }
 
-        /* =====================
-           TOM SELECT - DROPDOWN
-        ===================== */
-        .ts-dropdown {
-            margin-top: 0.35rem !important;
-            border-radius: 0.75rem !important;
-            border-color: #e5e7eb !important;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12) !important;
-            font-size: 0.875rem !important;
-            overflow: hidden !important;
-        }
-
-        /* 🔥 INI KUNCI: BIKIN DROPDOWN PANJANG */
-        .ts-dropdown .ts-dropdown-content {
-            max-height: 480px !important;
-            /* ⬅️ PANJANG KE BAWAH */
-            overflow-y: auto !important;
-            scrollbar-width: thin;
-        }
-
-        /* =====================
-           TOM SELECT - OPTION
-        ===================== */
-        .ts-dropdown .ts-option {
-            padding: 0 !important;
-        }
-
-        .ts-dropdown .ts-option>div {
-            padding: 0.6rem 0.9rem !important;
-            /* ✅ item lebih lega */
-        }
-
-        .ts-dropdown .ts-option:hover,
-        .ts-dropdown .ts-option.active {
-            background-color: #eff6ff !important;
-        }
-
-        /* =====================
-           SELECTED ITEM
-        ===================== */
-        .ts-item {
-            background: transparent !important;
-            color: #374151 !important;
-            padding: 0 !important;
-            border: none !important;
-            font-size: 0.9rem !important;
-        }
-
-        .ts-item .ts-delete {
-            display: none;
-        }
-
-        /* =====================
-           CLEAR BUTTON
-        ===================== */
-        .ts-control .ts-clear-btn {
-            opacity: 0.4;
-        }
-
-        .ts-control .ts-clear-btn:hover {
-            opacity: 0.8;
+        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
     </style>
 

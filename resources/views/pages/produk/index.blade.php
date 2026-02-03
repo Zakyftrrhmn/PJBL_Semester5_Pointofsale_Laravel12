@@ -154,7 +154,7 @@
                                             <div class="font-semibold">{{ $produk->stok_produk }}</div>
                                         </td>
                                         <td class="px-3 py-3 text-right text-gray-600 whitespace-nowrap">
-                                            Rp {{ number_format($produk->harga_modal, 0, ',', '.') }}
+                                            Rp {{ number_format($produk->harga_beli, 0, ',', '.') }}
                                         </td>
                                         <td class="px-3 py-3 text-right font-semibold text-green-600 whitespace-nowrap">
                                             Rp {{ number_format($produk->harga_jual, 0, ',', '.') }}
