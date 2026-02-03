@@ -67,7 +67,10 @@
 
     @include('components.modal')
 
+
     @include('components.script')
+
+    @stack('scripts') <!-- Tambahkan ini sebelum </body> -->
 
 </body>
 

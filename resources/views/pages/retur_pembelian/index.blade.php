@@ -1,6 +1,6 @@
 @extends('layouts.layout')
-@section('title', 'Retur Pembelian')
-@section('subtitle', 'Daftar semua retur pembelian')
+@section('title', 'Retur Barang Masuk')
+@section('subtitle', 'Daftar semua retur barang masuk')
 @section('content')
 
     <div class="space-y-6">
@@ -19,26 +19,29 @@
             <div class="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
 
                 <div class="flex flex-col gap-2">
-                    <form action="{{ route('retur-pembelian.index') }}" method="GET" class="flex items-center gap-2">
+                    <div class="flex items-center gap-2">
                         <div class="relative w-64 sm:w-72">
-                            <input type="text" name="search" value="{{ request('search') }}"
+                            <input type="text" id="searchInput" value="{{ request('search') }}"
                                 placeholder="Cari kode/pemasok..."
-                                class="h-10 w-full rounded-lg border border-gray-200 pl-10 pr-3 text-sm text-gray-700 placeholder-gray-400 shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
+                                class="h-10 w-full rounded-lg border border-gray-200 pl-10 pr-10 text-sm text-gray-700 placeholder-gray-400 shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
                             <span class="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400">
                                 <i class="bx bx-search text-lg"></i>
                             </span>
+                            <span id="loadingIcon" class="absolute top-1/2 right-3 -translate-y-1/2 text-blue-500 hidden">
+                                <i class="bx bx-loader-alt bx-spin text-lg"></i>
+                            </span>
                         </div>
                         <div class="relative group">
-                            <a href="{{ route('retur-pembelian.index') }}"
+                            <button onclick="resetFilter()"
                                 class="flex items-center justify-center h-10 w-10 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shadow-sm">
                                 <i class="bx bx-refresh text-xl"></i>
-                            </a>
+                            </button>
                             <span
                                 class="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 text-sm text-white bg-black rounded opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all duration-300">
                                 Reset
                             </span>
                         </div>
-                    </form>
+                    </div>
                 </div>
 
                 <div class="flex items-center gap-2">
@@ -78,7 +81,7 @@
                         </tr>
                     </thead>
 
-                    <tbody class="divide-y divide-gray-200">
+                    <tbody id="tableBody" class="divide-y divide-gray-200">
                         @forelse ($returs as $retur)
                             <tr>
                                 <td class="whitespace-nowrap px-4 py-3 text-gray-700">
@@ -115,10 +118,78 @@
                     </tbody>
                 </table>
             </div>
-        </div>
 
-        <div class="mt-4">
-            {{ $returs->links('vendor.pagination.tailwind') }}
+            <div class="mt-4 px-5 pb-5" id="paginationContainer">
+                {{ $returs->links('vendor.pagination.tailwind') }}
+            </div>
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        let searchTimeout;
+
+        // Live search
+        document.getElementById('searchInput').addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            document.getElementById('loadingIcon').classList.remove('hidden');
+
+            searchTimeout = setTimeout(() => {
+                loadData();
+            }, 300);
+        });
+
+        // Reset filter
+        function resetFilter() {
+            document.getElementById('searchInput').value = '';
+            loadData();
+        }
+
+        // Load data dengan AJAX
+        function loadData(page = 1) {
+            const search = document.getElementById('searchInput').value;
+
+            let url = '{{ route('retur-pembelian.index') }}?page=' + page;
+            if (search) url += '&search=' + search;
+
+            fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+
+                    document.getElementById('tableBody').innerHTML = doc.getElementById('tableBody').innerHTML;
+                    document.getElementById('paginationContainer').innerHTML = doc.getElementById('paginationContainer')
+                        .innerHTML;
+                    document.getElementById('loadingIcon').classList.add('hidden');
+
+                    // Attach pagination events
+                    document.querySelectorAll('#paginationContainer a').forEach(link => {
+                        link.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const url = new URL(this.href);
+                            const page = url.searchParams.get('page');
+                            loadData(page);
+                        });
+                    });
+                });
+        }
+
+        // Initial pagination events
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('#paginationContainer a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const url = new URL(this.href);
+                    const page = url.searchParams.get('page');
+                    loadData(page);
+                });
+            });
+        });
+    </script>
+@endpush

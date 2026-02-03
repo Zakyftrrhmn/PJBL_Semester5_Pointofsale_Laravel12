@@ -21,11 +21,6 @@
             padding-bottom: 5px;
         }
 
-        .kop-surat-logo {
-            width: 90px;
-            float: left;
-        }
-
         .kop-surat-info {
             float: right;
             text-align: right;
@@ -274,17 +269,17 @@
 <body>
 
     {{-- KOP SURAT --}}
-    <div class="kop-surat clearfix">
-        <img src="{{ $page && $page->logo_sidebar ? public_path('storage/' . $page->logo_sidebar) : public_path('assets/images/logo/logo-sidebar.png') }}"
-            class="kop-surat-logo">
-        <div class="kop-surat-info">
-            <h3 style="margin:0; font-size: 10pt;">{{ $page->nama_toko ?? 'NAMA TOKO' }}</h3>
-            <p style="margin:0; font-size: 7pt; color:#555;">
-                {{ $page->jalan ?? '' }}<br>
-                Telp: {{ $page->telepon ?? '-' }} | Email: {{ $page->email ?? '-' }}
-            </p>
-        </div>
+    <div class="kop-surat" style="text-align:center;">
+        <h3 style="margin:0; font-size: 11pt; font-weight:bold;">
+            {{ $page->nama_toko ?? 'NAMA TOKO' }}
+        </h3>
+
+        <p style="margin:2px 0 0; font-size:7.5pt; color:#555; line-height:1.4;">
+            {{ $page->jalan ?? '' }}<br>
+            Telp: {{ $page->telepon ?? '-' }} | Email: {{ $page->email ?? '-' }}
+        </p>
     </div>
+
 
     {{-- JUDUL LAPORAN --}}
     <div class="report-title">LAPORAN PENJUALAN PER PRODUK</div>

@@ -3,7 +3,7 @@
 @section('subtitle', 'Kelola pelanggan Anda')
 @section('content')
 
-    <div class="space-y-6" x-data="{ search: '' }">
+    <div class="space-y-6">
 
         @if (session('success'))
             <div id="alert-1"
@@ -36,35 +36,28 @@
 
                 <!-- Pencarian & Refresh -->
                 <div class="flex items-center gap-2">
-                    <form action="{{ route('pelanggan.index') }}" method="GET" class="flex items-center">
-                        <div class="relative w-64 sm:w-72">
-                            <span class="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400">
-                                <i class="bx bx-search text-lg"></i>
-                            </span>
-                            <input type="text" name="search" value="{{ request('search') }}"
-                                placeholder="Cari pelanggan..."
-                                class="h-10 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-3 text-sm text-gray-700 placeholder-gray-400 shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
-                        </div>
-                    </form>
-
-                    <div class="relative group">
-                        <!-- Tombol Refresh -->
-                        <a href="{{ route('pelanggan.index') }}"
-                            class="flex items-center justify-center h-10 w-10 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shadow-sm">
-                            <i class="bx bx-refresh text-xl"></i>
-                        </a>
-                        <!-- Tooltip -->
-                        <span
-                            class="absolute -top-10 left-1/2 -translate-x-1/2 
-                     px-2 py-1 text-sm text-white bg-black rounded 
-                     opacity-0 group-hover:opacity-100 
-                     scale-95 group-hover:scale-100 
-                     transition-all duration-300">
-                            Reset
+                    <div class="relative w-64 sm:w-72">
+                        <span class="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400">
+                            <i class="bx bx-search text-lg"></i>
+                        </span>
+                        <input type="text" id="searchInput" value="{{ request('search') }}"
+                            placeholder="Cari pelanggan..."
+                            class="h-10 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-10 text-sm text-gray-700 placeholder-gray-400 shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
+                        <span id="loadingIcon" class="absolute top-1/2 right-3 -translate-y-1/2 text-blue-500 hidden">
+                            <i class="bx bx-loader-alt bx-spin text-lg"></i>
                         </span>
                     </div>
 
-
+                    <div class="relative group">
+                        <button onclick="resetFilter()"
+                            class="flex items-center justify-center h-10 w-10 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shadow-sm">
+                            <i class="bx bx-refresh text-xl"></i>
+                        </button>
+                        <span
+                            class="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 text-sm text-white bg-black rounded opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all duration-300">
+                            Reset
+                        </span>
+                    </div>
                 </div>
 
                 <!-- Action Buttons -->
@@ -75,35 +68,23 @@
                                 class="flex items-center justify-center w-8 h-8 rounded-sm border border-gray-200 bg-gray-50 shadow hover:bg-gray-100">
                                 <i class='bx bxs-file-pdf text-2xl text-red-600'></i>
                             </a>
-                            <!-- Tooltip -->
                             <span
-                                class="absolute -top-10 left-1/2 -translate-x-1/2 
-                     px-2 py-1 text-sm text-white bg-black rounded 
-                     opacity-0 group-hover:opacity-100 
-                     scale-95 group-hover:scale-100 
-                     transition-all duration-300">
+                                class="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 text-sm text-white bg-black rounded opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all duration-300">
                                 PDF
                             </span>
                         </div>
 
-                        <!-- Excel -->
                         <div class="relative group">
                             <a href="{{ route('pelanggan.export.excel') }}"
                                 class="flex items-center justify-center w-8 h-8 rounded-sm border border-gray-200 bg-gray-50 shadow hover:bg-gray-100">
                                 <i class='bx bxs-file-export text-2xl text-green-600'></i>
                             </a>
-                            <!-- Tooltip -->
                             <span
-                                class="absolute -top-10 left-1/2 -translate-x-1/2 
-                     px-2 py-1 text-sm text-white bg-black rounded 
-                     opacity-0 group-hover:opacity-100 
-                     scale-95 group-hover:scale-100 
-                     transition-all duration-300">
+                                class="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 text-sm text-white bg-black rounded opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all duration-300">
                                 Excel
                             </span>
                         </div>
                     @endcan
-                    <!-- Add Button -->
                     @can('pelanggan.create')
                         <a href="{{ route('pelanggan.create') }}"
                             class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-200">
@@ -129,7 +110,7 @@
                                     @endcanany
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-100">
+                            <tbody id="tableBody" class="divide-y divide-gray-100">
                                 @forelse ($pelanggans as $pelanggan)
                                     <tr class="hover:bg-gray-50 transition">
                                         <td class="px-5 py-4 text-gray-700">
@@ -137,7 +118,6 @@
                                         </td>
                                         <td class="px-5 py-4 text-gray-700">
                                             <div class="flex items-center gap-3">
-                                                <!-- Foto -->
                                                 <div class="w-10 h-10 rounded-md overflow-hidden bg-gray-100">
                                                     @if ($pelanggan->photo_pelanggan)
                                                         <img src="{{ asset('storage/' . $pelanggan->photo_pelanggan) }}"
@@ -147,7 +127,6 @@
                                                             alt="Foto" class="w-full h-full object-cover">
                                                     @endif
                                                 </div>
-                                                <!-- Nama -->
                                                 <span
                                                     class="font-medium text-gray-700 whitespace-nowrap">{{ $pelanggan->nama_pelanggan }}</span>
                                             </div>
@@ -191,14 +170,12 @@
 
                                         <td class="px-5 py-4 flex justify-center gap-2">
                                             @can('pelanggan.edit')
-                                                <!-- Edit -->
                                                 <a href="{{ route('pelanggan.edit', $pelanggan->id) }}"
                                                     class="inline-flex items-center justify-center rounded-lg p-2 border text-xs shadow-sm text-gray-700 border-gray-200">
                                                     <i class="bx bx-edit text-base"></i>
                                                 </a>
                                             @endcan
                                             @can('pelanggan.destroy')
-                                                <!-- Hapus -->
                                                 <button
                                                     @click="showModal = true; deleteUrl = '{{ route('pelanggan.destroy', $pelanggan->id) }}'"
                                                     class="inline-flex items-center justify-center rounded-lg p-2 border text-xs shadow-sm text-gray-700 border-gray-200">
@@ -209,7 +186,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="px-5 py-6 text-center text-gray-400 text-sm">
+                                        <td colspan="5" class="px-5 py-6 text-center text-gray-400 text-sm">
                                             Tidak ada data pelanggan.
                                         </td>
                                     </tr>
@@ -220,7 +197,7 @@
                 </div>
 
                 <!-- Pagination -->
-                <div class="mt-4">
+                <div class="mt-4" id="paginationContainer">
                     {{ $pelanggans->links('vendor.pagination.tailwind') }}
                 </div>
             </div>
@@ -228,3 +205,71 @@
     </div>
 
 @endsection
+
+@push('scripts')
+    <script>
+        let searchTimeout;
+
+        // Live search
+        document.getElementById('searchInput').addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            document.getElementById('loadingIcon').classList.remove('hidden');
+
+            searchTimeout = setTimeout(() => {
+                loadData();
+            }, 300);
+        });
+
+        // Reset filter
+        function resetFilter() {
+            document.getElementById('searchInput').value = '';
+            loadData();
+        }
+
+        // Load data dengan AJAX
+        function loadData(page = 1) {
+            const search = document.getElementById('searchInput').value;
+
+            let url = '{{ route('pelanggan.index') }}?page=' + page;
+            if (search) url += '&search=' + search;
+
+            fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+
+                    document.getElementById('tableBody').innerHTML = doc.getElementById('tableBody').innerHTML;
+                    document.getElementById('paginationContainer').innerHTML = doc.getElementById('paginationContainer')
+                        .innerHTML;
+                    document.getElementById('loadingIcon').classList.add('hidden');
+
+                    // Attach pagination events
+                    document.querySelectorAll('#paginationContainer a').forEach(link => {
+                        link.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const url = new URL(this.href);
+                            const page = url.searchParams.get('page');
+                            loadData(page);
+                        });
+                    });
+                });
+        }
+
+        // Initial pagination events
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('#paginationContainer a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const url = new URL(this.href);
+                    const page = url.searchParams.get('page');
+                    loadData(page);
+                });
+            });
+        });
+    </script>
+@endpush

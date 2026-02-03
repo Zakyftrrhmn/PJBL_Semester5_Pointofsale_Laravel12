@@ -21,29 +21,30 @@
             <div class="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
 
                 <div class="flex flex-col gap-2">
-                    <form action="{{ route('user.index') }}" method="GET" class="flex flex-col gap-2">
-                        <div class="flex items-center gap-2">
-                            <div class="relative w-64 sm:w-72">
-                                <input type="text" name="search" value="{{ request('search') }}"
-                                    placeholder="Cari berdasarkan nama atau email..."
-                                    class="h-10 w-full rounded-lg border border-gray-200 pl-10 pr-3 text-sm text-gray-700 placeholder-gray-400 shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
-                                <span class="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400">
-                                    <i class="bx bx-search text-lg"></i>
-                                </span>
-                            </div>
-
-                            <div class="relative group">
-                                <a href="{{ route('user.index') }}"
-                                    class="flex items-center justify-center h-10 w-10 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shadow-sm">
-                                    <i class="bx bx-refresh text-xl"></i>
-                                </a>
-                                <span
-                                    class="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 text-sm text-white bg-black rounded opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all duration-300">
-                                    Reset
-                                </span>
-                            </div>
+                    <div class="flex items-center gap-2">
+                        <div class="relative w-64 sm:w-72">
+                            <input type="text" id="searchInput" value="{{ request('search') }}"
+                                placeholder="Cari berdasarkan nama atau email..."
+                                class="h-10 w-full rounded-lg border border-gray-200 pl-10 pr-10 text-sm text-gray-700 placeholder-gray-400 shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
+                            <span class="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400">
+                                <i class="bx bx-search text-lg"></i>
+                            </span>
+                            <span id="loadingIcon" class="absolute top-1/2 right-3 -translate-y-1/2 text-blue-500 hidden">
+                                <i class="bx bx-loader-alt bx-spin text-lg"></i>
+                            </span>
                         </div>
-                    </form>
+
+                        <div class="relative group">
+                            <button onclick="resetFilter()"
+                                class="flex items-center justify-center h-10 w-10 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shadow-sm">
+                                <i class="bx bx-refresh text-xl"></i>
+                            </button>
+                            <span
+                                class="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 text-sm text-white bg-black rounded opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all duration-300">
+                                Reset
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
                 @can('user.create')
@@ -74,7 +75,7 @@
                                     @endcanany
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-100">
+                            <tbody id="tableBody" class="divide-y divide-gray-100">
                                 @forelse ($users as $no => $user)
                                     <tr class="hover:bg-gray-50 transition">
                                         <td class="px-5 py-4 whitespace-nowrap">{{ $users->firstItem() + $no }}</td>
@@ -149,7 +150,7 @@
                     </div>
                 </div>
 
-                <div class="mt-4">
+                <div class="mt-4" id="paginationContainer">
                     {{ $users->links('vendor.pagination.tailwind') }}
                 </div>
             </div>
@@ -159,3 +160,71 @@
     </div>
 
 @endsection
+
+@push('scripts')
+    <script>
+        let searchTimeout;
+
+        // Live search
+        document.getElementById('searchInput').addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            document.getElementById('loadingIcon').classList.remove('hidden');
+
+            searchTimeout = setTimeout(() => {
+                loadData();
+            }, 300);
+        });
+
+        // Reset filter
+        function resetFilter() {
+            document.getElementById('searchInput').value = '';
+            loadData();
+        }
+
+        // Load data dengan AJAX
+        function loadData(page = 1) {
+            const search = document.getElementById('searchInput').value;
+
+            let url = '{{ route('user.index') }}?page=' + page;
+            if (search) url += '&search=' + search;
+
+            fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+
+                    document.getElementById('tableBody').innerHTML = doc.getElementById('tableBody').innerHTML;
+                    document.getElementById('paginationContainer').innerHTML = doc.getElementById('paginationContainer')
+                        .innerHTML;
+                    document.getElementById('loadingIcon').classList.add('hidden');
+
+                    // Attach pagination events
+                    document.querySelectorAll('#paginationContainer a').forEach(link => {
+                        link.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const url = new URL(this.href);
+                            const page = url.searchParams.get('page');
+                            loadData(page);
+                        });
+                    });
+                });
+        }
+
+        // Initial pagination events
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('#paginationContainer a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const url = new URL(this.href);
+                    const page = url.searchParams.get('page');
+                    loadData(page);
+                });
+            });
+        });
+    </script>
+@endpush
