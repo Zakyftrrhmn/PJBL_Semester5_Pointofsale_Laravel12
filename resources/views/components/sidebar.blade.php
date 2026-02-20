@@ -4,16 +4,21 @@
     <div :class="sidebarToggle ? 'justify-center' : 'justify-center'"
         class="sidebar-header flex items-center gap-2 pb-3 pt-3">
 
-        <a href="index.html">
-            <span class="logo" :class="sidebarToggle ? 'hidden' : ''">
-                <img class="h-18 w-auto object-contain"
+        <a href="{{ route('dashboard.index') }}" class="w-full flex justify-center hover:transform-none">
+
+            <!-- Logo besar -->
+            <span class="w-full flex justify-center" :class="sidebarToggle ? 'hidden' : ''">
+                <img class="h-20 w-full object-contain transition-none transform-none"
                     src="{{ $page && $page->logo_sidebar ? asset('storage/' . $page->logo_sidebar) : asset('assets/images/logo/logo-sidebar.png') }}"
                     alt="Logo" />
             </span>
 
-            <img class="logo-icon h-18 w-auto object-contain" :class="sidebarToggle ? 'lg:block' : 'hidden'"
+            <!-- Logo kecil -->
+            <img class="logo-icon h-12 w-full object-contain transition-none transform-none"
+                :class="sidebarToggle ? 'lg:block' : 'hidden'"
                 src="{{ $page && $page->logo_sidebar2 ? asset('storage/' . $page->logo_sidebar2) : asset('assets/images/logo/logo-sidebar2.png') }}"
-                alt="Logo" />
+                alt="Logo kecil" />
+
         </a>
     </div>
 

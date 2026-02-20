@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AiController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\BarcodeController;
@@ -24,7 +25,7 @@ use Illuminate\Support\Facades\Auth;
 
 Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('auth.login.post');
-
+Route::post('/ai/ask', [AiController::class, 'ask']);
 Route::prefix('admin')->middleware(['auth', 'no.cache'])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');

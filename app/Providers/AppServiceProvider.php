@@ -30,11 +30,14 @@ class AppServiceProvider extends ServiceProvider
         // View Composers - untuk optimasi data yang sering dipakai
         View::composer('components.header', HeaderComposer::class);
 
-        // Cache Pages (optimasi query database)
-        $page = Cache::remember('app_pages', 3600, function () {
-            return Pages::first();
+        View::composer('*', function ($view) {
+            $page = Cache::remember('app_pages', 3600, function () {
+                return \App\Models\Pages::first();
+            });
+
+            $view->with('page', $page);
         });
-        View::share('page', $page);
+
 
         // Optimasi Permission Checking untuk Super Admin
         Gate::before(function ($user, $ability) {

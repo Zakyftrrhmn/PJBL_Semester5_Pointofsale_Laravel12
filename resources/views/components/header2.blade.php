@@ -4,17 +4,19 @@
     <!-- Kiri: Logo -->
     <div class="flex items-center gap-3 px-3 sm:px-5 py-2 sm:py-3">
         <a href="{{ route('pos.index') }}" class="flex items-center gap-2">
-            <!-- Logo besar untuk layar >= sm -->
-            <span class="hidden sm:block">
-                <img class="h-16 w-auto object-contain" src="{{ asset('assets/images/logo/logo-sidebar.png') }}"
-                    alt="Logo" />
-            </span>
-            <!-- Logo kecil untuk layar < sm -->
-            <span class="block sm:hidden">
-                <img class="h-10 w-auto object-contain" src="{{ asset('assets/images/logo/logo-sidebar2.png') }}"
-                    alt="Logo" />
-            </span>
+
+            <!-- Logo besar -->
+            <img class="h-14 w-auto object-contain hidden sm:block" :class="sidebarToggle ? 'hidden' : 'block'"
+                src="{{ $page && $page->logo_sidebar ? asset('storage/' . $page->logo_sidebar) : asset('assets/images/logo/logo-sidebar.png') }}"
+                alt="Logo" />
+
+            <!-- Logo kecil -->
+            <img class="h-10 w-auto object-contain block sm:hidden" :class="sidebarToggle ? 'lg:block' : ''"
+                src="{{ $page && $page->logo_sidebar2 ? asset('storage/' . $page->logo_sidebar2) : asset('assets/images/logo/logo-sidebar2.png') }}"
+                alt="Logo kecil" />
+
         </a>
+
     </div>
 
 

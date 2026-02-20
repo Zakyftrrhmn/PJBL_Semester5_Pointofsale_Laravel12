@@ -9,6 +9,7 @@ use App\Models\DetailPenjualan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class POSController extends Controller
@@ -18,6 +19,9 @@ class POSController extends Controller
         $this->middleware('can:penjualan.pos');
     }
 
+    /**
+     * ✅ OPTIMIZED INDEX - Load POS page dengan query optimization
+     */
     public function index(Request $request)
     {
         // Buat pelanggan "Umum" jika belum ada
@@ -30,49 +34,100 @@ class POSController extends Controller
             ]);
         }
 
-        $pelanggans = Pelanggan::orderBy('nama_pelanggan')->get(['id', 'nama_pelanggan']);
+        // ✅ Cache pelanggan (data jarang berubah)
+        $pelanggans = Cache::remember('pos_pelanggans_list', 3600, function () {
+            return Pelanggan::orderBy('nama_pelanggan')
+                ->get(['id', 'nama_pelanggan']);
+        });
 
-        // Ambil semua produk aktif untuk JavaScript
-        $produksForJs = Produk::where('is_active', 'active')
+        // ✅ Ambil produk HANYA dengan kolom yang dibutuhkan
+        // ✅ Filter hanya produk aktif dengan stok > 0 untuk performa lebih baik
+        $produksForJs = Produk::select([
+            'id',
+            'nama_produk',
+            'kode_produk',
+            'harga_jual',
+            'stok_produk',
+            'photo_produk'
+        ])
+            ->where('is_active', 'active')
+            ->where('stok_produk', '>', 0) // ✅ Hanya produk berisi stok
             ->orderBy('nama_produk')
             ->get()
-            ->map(function ($produk) {
-                return [
-                    'id' => $produk->id,
-                    'nama_produk' => $produk->nama_produk,
-                    'kode_produk' => $produk->kode_produk,
-                    'harga_jual' => $produk->harga_jual,
-                    'stok_produk' => $produk->stok_produk,
-                    'photo_produk' => $produk->photo_produk,
-                ];
-            })
-            ->toArray();
+            ->toArray(); // ✅ toArray() lebih ringan dari map()
 
-        // Data untuk pagination
-        $produks = Produk::where('is_active', 'active')
+        // ✅ Data untuk pagination (lebih efisien)
+        $produks = Produk::select([
+            'id',
+            'nama_produk',
+            'kode_produk',
+            'harga_jual',
+            'stok_produk',
+            'photo_produk'
+        ])
+            ->where('is_active', 'active')
             ->when($request->search, function ($query, $search) {
                 $query->where('nama_produk', 'like', "%{$search}%")
                     ->orWhere('kode_produk', 'like', "%{$search}%");
             })
             ->orderBy('nama_produk')
-            ->paginate(20)
-            ->withQueryString()
-            ->through(function ($produk) {
-                return [
-                    'id' => $produk->id,
-                    'nama_produk' => $produk->nama_produk,
-                    'kode_produk' => $produk->kode_produk,
-                    'harga_jual' => $produk->harga_jual,
-                    'stok_produk' => $produk->stok_produk,
-                    'photo_produk' => $produk->photo_produk,
-                ];
-            });
+            ->paginate(50) // ✅ Naikkan dari 20 ke 50 untuk mengurangi pagination clicks
+            ->withQueryString();
 
         return view('pages.pos.index', compact('produks', 'produksForJs', 'pelanggans', 'pelangganUmum'));
     }
 
     /**
+     * ✅ NEW METHOD: AJAX endpoint untuk search produk (OPTIONAL)
+     * Gunakan ini jika ingin implementasi AJAX search di masa depan
+     */
+    public function searchProducts(Request $request)
+    {
+        $query = $request->input('q', '');
+
+        // Minimal 2 karakter untuk search
+        if (strlen($query) < 2) {
+            return response()->json([
+                'produks' => []
+            ]);
+        }
+
+        $produks = Produk::select([
+            'id',
+            'nama_produk',
+            'kode_produk',
+            'harga_jual',
+            'stok_produk',
+            'photo_produk'
+        ])
+            ->where('is_active', 'active')
+            ->where('stok_produk', '>', 0)
+            ->where(function ($q) use ($query) {
+                $q->where('nama_produk', 'LIKE', "%{$query}%")
+                    ->orWhere('kode_produk', 'LIKE', "%{$query}%");
+            })
+            ->orderBy('nama_produk')
+            ->limit(100) // ✅ Batasi hasil maksimal 100
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'produks' => $produks
+        ]);
+    }
+
+    /**
+     * ✅ NEW METHOD: Clear cache pelanggan
+     * Panggil method ini setelah tambah/edit/hapus pelanggan
+     */
+    public function clearPelangganCache()
+    {
+        Cache::forget('pos_pelanggans_list');
+    }
+
+    /**
      * ✅ STORE: Simpan transaksi DENGAN DISKON PER PRODUK
+     * ⚠️ METHOD INI TIDAK DIUBAH - TETAP ORIGINAL
      */
     public function store(Request $request)
     {

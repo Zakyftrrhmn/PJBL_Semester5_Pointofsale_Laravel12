@@ -53,10 +53,11 @@
                 <div class="flex items-center justify-between mb-5 pb-4 border-b border-gray-100">
                     <h3 class="text-base font-bold text-gray-800 flex items-center gap-2">
                         <span class="w-8 h-8 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-center">
-                            <i class='bx bx-plus text-blue-600'></i>
+                            <i class='bx bx-package text-blue-600'></i>
                         </span>
-                        Tambah Produk
+                        Pilih Produk
                     </h3>
+
                     <span x-show="isEditMode" x-cloak
                         class="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 border border-amber-200 text-amber-700 rounded-full text-xs font-semibold">
                         <i class='bx bx-pencil text-sm'></i> Edit Mode
@@ -251,8 +252,8 @@
                 </div>
 
                 {{-- TABEL KERANJANG --}}
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
+                <div class="overflow-x-auto w-full">
+                    <table class="w-full min-w-[720px] text-sm">
                         <thead>
                             <tr class="border-b border-gray-200">
                                 <th class="pb-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
@@ -260,7 +261,7 @@
                                 <th class="pb-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">
                                     Harga</th>
                                 <th
-                                    class="pb-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wide w-36">
+                                    class="pb-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wide min-w-[130px]">
                                     Jumlah</th>
                                 <th class="pb-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">
                                     Subtotal</th>
@@ -285,16 +286,18 @@
                             <template x-for="(item, index) in cart" :key="item.id">
                                 <tr class="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors">
                                     {{-- KOLOM PRODUK --}}
-                                    <td class="py-3">
+                                    <td class="py-3 align-top">
                                         <div class="flex items-center gap-3">
                                             <div
                                                 class="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg border border-gray-100 bg-gray-50">
-                                                <img :src="item.photo_produk ? '{{ asset('storage') }}/' + item.photo_produk :
-                                                    '{{ asset('assets/images/produk/default-produk.png') }}'"
+                                                <img loading="lazy"
+                                                    :src="item.photo_produk ? '{{ asset('storage') }}/' + item.photo_produk :
+                                                        '{{ asset('assets/images/produk/default-produk.png') }}'"
                                                     :alt="item.nama_produk" class="h-full w-full object-cover">
                                             </div>
                                             <div class="flex-1">
-                                                <p class="text-sm font-semibold text-gray-800" x-text="item.nama_produk">
+                                                <p class="text-sm font-semibold text-gray-800 leading-tight break-words"
+                                                    x-text="item.nama_produk">
                                                 </p>
                                                 <div class="flex items-center gap-2 mt-0.5">
                                                     <span class="text-xs text-gray-400 font-mono"
@@ -316,7 +319,7 @@
                                                         %</span>
                                                     <input type="number" step="0.1" min="0" max="100"
                                                         :value="item.diskon_item_percent"
-                                                        @input="updateItemDiscount(index, $event.target.value)"
+                                                        @input.debounce.300ms="updateItemDiscount(index, $event.target.value)"
                                                         class="w-14 px-1.5 py-0.5 text-xs font-semibold border border-blue-100 rounded bg-blue-50 text-blue-600 focus:ring-1 focus:ring-blue-400 focus:outline-none" />
                                                 </div>
                                             </div>
@@ -341,7 +344,8 @@
                                                 <i class="bx bx-minus text-xs text-gray-600"></i>
                                             </button>
                                             <input type="number" min="1" :max="item.stok_produk"
-                                                x-model.number="item.qty" @input="updateQty(index, $event.target.value)"
+                                                x-model.number="item.qty"
+                                                @input.debounce.300ms="updateQty(index, $event.target.value)"
                                                 class="w-12 text-center text-sm border border-gray-200 rounded py-0.5" />
                                             <button @click="incrementQty(index)" :disabled="item.qty >= item.stok_produk"
                                                 class="w-6 h-6 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded transition-colors disabled:opacity-40">
@@ -368,11 +372,12 @@
 
                                     {{-- KOLOM AKSI --}}
                                     <td class="py-3 text-center">
-                                        <button @click="removeFromCart(index)" title="Hapus"
-                                            class="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                                            <i class="bx bx-trash text-sm"></i>
+                                        <button @click="removeFromCart(index)"
+                                            class="text-xs font-semibold uppercase tracking-wide text-red-600 transition">
+                                            Hapus
                                         </button>
                                     </td>
+
                                 </tr>
                             </template>
                         </tbody>
@@ -393,8 +398,8 @@
                         <div class="flex items-center gap-2">
                             <span class="text-sm text-gray-500">Diskon Transaksi</span>
                             <div class="flex items-center">
-                                <input type="number" x-model.number="diskon_percent" @input="calculateTotals"
-                                    min="0" max="100" step="0.01"
+                                <input type="number" x-model.number="diskon_percent"
+                                    @input.debounce.300ms="calculateTotals" min="0" max="100" step="0.01"
                                     class="w-16 px-2 py-0.5 border border-gray-200 rounded-l-lg text-sm text-center focus:ring-1 focus:ring-blue-500" />
                                 <span
                                     class="px-2 py-0.5 bg-gray-100 border border-l-0 border-gray-200 rounded-r-lg text-sm text-gray-500">%</span>
@@ -415,8 +420,8 @@
         </div>
 
         {{-- ===================== MODAL PENCARIAN PRODUK ===================== --}}
-        <div x-show="modalOpen" x-cloak @keydown.escape.window="closeModal"
-            class="fixed inset-0 z-99999 overflow-y-auto" style="display: none;">
+        <div x-show="modalOpen" x-cloak @keydown.escape.window="closeModal" class="fixed inset-0 z-99999 overflow-y-auto"
+            style="display: none;">
 
             {{-- Backdrop --}}
             <div x-show="modalOpen" x-transition:enter="transition ease-out duration-300"
@@ -426,7 +431,7 @@
                 class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
 
             {{-- Modal Container --}}
-            <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="flex items-center justify-center min-h-screen p-2 sm:p-4">
                 <div x-show="modalOpen" x-transition:enter="transition ease-out duration-300"
                     x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
                     x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 scale-100"
@@ -434,14 +439,15 @@
                     class="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
 
                     {{-- Modal Header --}}
-                    <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-5 flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                                <i class='bx bx-search-alt-2 text-white text-xl'></i>
+                    <div
+                        class="bg-gradient-to-r from-blue-500 to-indigo-600 px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between">
+                        <div class="flex items-center gap-2 sm:gap-3">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                                <i class='bx bx-search-alt-2 text-white text-lg sm:text-xl'></i>
                             </div>
                             <div>
-                                <h3 class="text-lg font-bold text-white">Pilih Produk</h3>
-                                <p class="text-xs text-blue-100">Cari produk berdasarkan nama atau kode</p>
+                                <h3 class="text-base sm:text-lg font-bold text-white">Pilih Produk</h3>
+                                <p class="text-xs text-blue-100 hidden sm:block">Cari produk berdasarkan nama atau kode</p>
                             </div>
                         </div>
                         <button @click="closeModal"
@@ -452,15 +458,16 @@
 
 
                     {{-- Search Bar --}}
-                    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                    <div class="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border-b border-gray-200">
                         <div class="relative">
-                            <i class='bx bx-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl'></i>
-                            <input type="text" x-model="searchQuery" @input="filterProducts"
+                            <i
+                                class='bx bx-search absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg sm:text-xl'></i>
+                            <input type="text" x-model="searchQuery" @input.debounce.300ms="filterProducts"
                                 placeholder="Ketik nama produk atau kode barcode..."
-                                class="w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all text-sm"
+                                class="w-full pl-10 sm:pl-12 pr-10 sm:pr-4 py-3 sm:py-3.5 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all text-sm"
                                 autofocus>
                             <div x-show="searchQuery" @click="searchQuery = ''; filterProducts()"
-                                class="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer">
+                                class="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 cursor-pointer">
                                 <i class='bx bx-x text-gray-400 hover:text-gray-600 text-xl'></i>
                             </div>
                         </div>
@@ -468,34 +475,44 @@
                         {{-- Counter --}}
                         <div class="mt-2 flex items-center gap-2 text-xs text-gray-500">
                             <i class='bx bx-package'></i>
-                            <span>Menampilkan <strong x-text="filteredProducts.length"></strong> dari <strong
-                                    x-text="allProduks.length"></strong> produk</span>
+                            <span>Menampilkan <strong x-text="filteredProducts.length"></strong> produk</span>
                         </div>
                     </div>
 
                     {{-- Product List --}}
-                    <div class="flex-1 overflow-y-auto p-4" style="max-height: calc(90vh - 250px);">
+                    <div class="flex-1 overflow-y-auto p-3 sm:p-4" style="max-height: calc(90vh - 250px);">
+
+                        {{-- Loading State --}}
+                        <template x-if="isLoadingProducts">
+                            <div class="flex flex-col items-center justify-center py-12 sm:py-16 text-gray-400">
+                                <i class='bx bx-loader-alt bx-spin text-4xl sm:text-5xl mb-2'></i>
+                                <p class="text-sm font-medium">Memuat produk...</p>
+                            </div>
+                        </template>
 
                         {{-- Empty State --}}
-                        <template x-if="filteredProducts.length === 0">
-                            <div class="flex flex-col items-center justify-center py-16 text-gray-400">
-                                <i class='bx bx-search-alt text-5xl mb-2'></i>
+                        <template x-if="!isLoadingProducts && filteredProducts.length === 0">
+                            <div class="flex flex-col items-center justify-center py-12 sm:py-16 text-gray-400">
+                                <i class='bx bx-search-alt text-4xl sm:text-5xl mb-2'></i>
                                 <p class="text-sm font-medium">Produk tidak ditemukan</p>
                                 <p class="text-xs mt-1">Coba gunakan kata kunci lain</p>
                             </div>
                         </template>
 
                         {{-- Product List (Table Style) --}}
-                        <div class="grid grid-cols-2 gap-3">
+                        <div x-show="!isLoadingProducts && filteredProducts.length > 0"
+                            class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                             <template x-for="produk in filteredProducts" :key="produk.id">
                                 <div @click="selectFromModal(produk)"
                                     class="bg-white border border-gray-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg p-3 cursor-pointer transition-colors">
 
-                                    <div class="flex items-center gap-3">
+                                    <div class="flex items-center gap-2 sm:gap-3">
                                         {{-- Product Image --}}
-                                        <div class="w-16 h-16 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
-                                            <img :src="produk.photo_produk ? '{{ asset('storage') }}/' + produk.photo_produk :
-                                                '{{ asset('assets/images/produk/default-produk.png') }}'"
+                                        <div
+                                            class="w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
+                                            <img loading="lazy"
+                                                :src="produk.photo_produk ? '{{ asset('storage') }}/' + produk.photo_produk :
+                                                    '{{ asset('assets/images/produk/default-produk.png') }}'"
                                                 :alt="produk.nama_produk" class="w-full h-full object-cover">
                                         </div>
 
@@ -503,12 +520,13 @@
                                         <div class="flex-1 min-w-0">
                                             <h4 class="font-semibold text-gray-800 text-sm truncate"
                                                 x-text="produk.nama_produk"></h4>
-                                            <p class="text-xs text-gray-400 font-mono mt-0.5" x-text="produk.kode_produk">
+                                            <p class="text-xs text-gray-400 font-mono mt-0.5 truncate"
+                                                x-text="produk.kode_produk">
                                             </p>
-                                            <div class="flex items-center gap-2 mt-1">
-                                                <span class="text-sm font-bold text-blue-600"
+                                            <div class="flex items-center gap-1.5 sm:gap-2 mt-1 flex-wrap">
+                                                <span class="text-xs sm:text-sm font-bold text-blue-600"
                                                     x-text="formatRupiah(produk.harga_jual)"></span>
-                                                <span class="text-xs text-gray-400">•</span>
+                                                <span class="text-xs text-gray-400 hidden sm:inline">•</span>
                                                 <span
                                                     :class="{
                                                         'text-green-600': produk.stok_produk > 10,
@@ -524,7 +542,7 @@
                                         </div>
 
                                         {{-- Arrow Icon --}}
-                                        <div class="flex-shrink-0">
+                                        <div class="flex-shrink-0 hidden sm:block">
                                             <i class='bx bx-chevron-right text-gray-400 text-xl'></i>
                                         </div>
                                     </div>
@@ -534,14 +552,15 @@
                     </div>
 
                     {{-- Modal Footer --}}
-                    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
-                        <div class="text-xs text-gray-500">
+                    <div
+                        class="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+                        <div class="text-xs text-gray-500 hidden sm:block">
                             <kbd
                                 class="px-2 py-1 bg-white border border-gray-300 rounded text-gray-600 font-mono">ESC</kbd>
                             untuk menutup
                         </div>
                         <button @click="closeModal"
-                            class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm font-semibold transition-colors">
+                            class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm font-semibold transition-colors ml-auto sm:ml-0">
                             Tutup
                         </button>
                     </div>
@@ -550,7 +569,7 @@
         </div>
     </div>
 
-    {{-- ===================== ALPINE.JS LOGIC ===================== --}}
+    {{-- ===================== ALPINE.JS LOGIC (OPTIMIZED) ===================== --}}
     <script>
         function posData(data) {
             return {
@@ -558,8 +577,8 @@
                 /* ========================================
                    DATA PROPERTIES
                 ======================================== */
-                allProduks: data.initialProduks,
-                initialPelanggans: data.initialPelanggans,
+                allProduks: data.initialProduks || [],
+                initialPelanggans: data.initialPelanggans || [],
                 pelangganUmumId: data.pelangganUmumId,
                 isEditMode: data.isEditMode,
                 penjualanId: data.penjualanId,
@@ -568,6 +587,7 @@
                 modalOpen: false,
                 searchQuery: '',
                 filteredProducts: [],
+                isLoadingProducts: false,
 
                 // Temporary product selection
                 tempProduk: null,
@@ -589,13 +609,21 @@
                 scanTimeout: null,
                 lastScannedCode: '',
 
+                // Performance optimization
+                formatRupiahCache: {},
+                searchTimeout: null,
+                calculateTimeout: null,
+
                 /* ========================================
                    MODAL METHODS
                 ======================================== */
                 openModal() {
                     this.modalOpen = true;
                     this.searchQuery = '';
-                    this.filteredProducts = this.allProduks;
+
+                    // ✅ Load initial products (limited to 50 for performance)
+                    this.filteredProducts = this.allProduks.slice(0, 50);
+
                     document.body.style.overflow = 'hidden';
 
                     // Auto focus pada search input
@@ -608,22 +636,39 @@
                 closeModal() {
                     this.modalOpen = false;
                     this.searchQuery = '';
+                    this.filteredProducts = [];
                     document.body.style.overflow = '';
                 },
 
                 filterProducts() {
+                    // ✅ Clear previous timeout
+                    if (this.searchTimeout) {
+                        clearTimeout(this.searchTimeout);
+                    }
+
                     const query = this.searchQuery.toLowerCase().trim();
 
-                    if (!query) {
-                        this.filteredProducts = this.allProduks;
+                    // If empty query, show limited results
+                    if (!query || query.length < 2) {
+                        this.filteredProducts = this.allProduks.slice(0, 50);
                         return;
                     }
 
-                    this.filteredProducts = this.allProduks.filter(p => {
-                        const matchName = p.nama_produk.toLowerCase().includes(query);
-                        const matchCode = p.kode_produk.toLowerCase().includes(query);
-                        return matchName || matchCode;
-                    });
+                    // ✅ Show loading state
+                    this.isLoadingProducts = true;
+
+                    // ✅ Debounce search (already handled by @input.debounce.300ms)
+                    this.searchTimeout = setTimeout(() => {
+                        this.filteredProducts = this.allProduks
+                            .filter(p => {
+                                const matchName = p.nama_produk.toLowerCase().includes(query);
+                                const matchCode = p.kode_produk.toLowerCase().includes(query);
+                                return matchName || matchCode;
+                            })
+                            .slice(0, 100); // ✅ Limit to 100 results for performance
+
+                        this.isLoadingProducts = false;
+                    }, 100);
                 },
 
                 selectFromModal(produk) {
@@ -657,11 +702,27 @@
                 },
 
                 /* ========================================
-                   FORMATTING METHODS
+                   FORMATTING METHODS (WITH CACHE)
                 ======================================== */
                 formatRupiah(number) {
-                    if (number === null || isNaN(number)) return 'Rp 0';
-                    return 'Rp ' + Math.abs(number).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                    // ✅ Use cache for better performance
+                    const key = String(number);
+
+                    if (this.formatRupiahCache[key]) {
+                        return this.formatRupiahCache[key];
+                    }
+
+                    if (number === null || isNaN(number)) {
+                        this.formatRupiahCache[key] = 'Rp 0';
+                        return 'Rp 0';
+                    }
+
+                    const formatted = 'Rp ' + Math.abs(number).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+                    // ✅ Store in cache
+                    this.formatRupiahCache[key] = formatted;
+
+                    return formatted;
                 },
 
                 /* ========================================
@@ -684,7 +745,7 @@
                     if (!this.tempProduk) return;
 
                     if (this.tempProduk.stok_produk <= 0) {
-                        alert('Stok ' + this.tempProduk.nama_produk + ' habis!');
+                        this.showNotification('error', 'Stok habis!', this.tempProduk.nama_produk);
                         return;
                     }
 
@@ -696,8 +757,7 @@
                         if (newQty <= item.stok_produk) {
                             item.qty = newQty;
                         } else {
-                            alert('Maksimal stok untuk ' + this.tempProduk.nama_produk + ' adalah ' + item.stok_produk +
-                                '!');
+                            this.showNotification('error', 'Stok maksimal tercapai', this.tempProduk.nama_produk);
                             return;
                         }
                     } else {
@@ -723,10 +783,54 @@
                     this.tempHarga = '';
                     this.tempQty = 1;
                     this.tempTotal = '';
+
+                    this.showNotification('success', 'Ditambahkan!', 'Produk berhasil ditambahkan ke keranjang');
                 },
 
+                addProductToCartDirect(produk) {
+                    if (!produk) return;
+
+                    if (produk.stok_produk <= 0) {
+                        this.showNotification('error', 'Stok habis!', produk.nama_produk);
+                        return;
+                    }
+
+                    const existingIndex = this.cart.findIndex(item => item.id === produk.id);
+
+                    if (existingIndex > -1) {
+                        const item = this.cart[existingIndex];
+                        if (item.qty < item.stok_produk) {
+                            item.qty += 1;
+                        } else {
+                            this.showNotification('error', 'Stok maksimal tercapai', produk.nama_produk);
+                            return;
+                        }
+                    } else {
+                        const harga = Number(produk.harga_jual) || 0;
+                        this.cart.push({
+                            id: produk.id,
+                            nama_produk: produk.nama_produk,
+                            kode_produk: produk.kode_produk,
+                            photo_produk: produk.photo_produk,
+                            harga_satuan: harga,
+                            stok_produk: produk.stok_produk,
+                            qty: 1,
+                            diskon_item_percent: 0,
+                            diskon_item_nominal: 0,
+                            subtotal: harga,
+                        });
+                    }
+
+                    this.calculateTotals();
+                    this.tempProduk = null;
+                    this.tempHarga = '';
+                    this.tempQty = 1;
+                    this.tempTotal = '';
+                },
+
+
                 /* ========================================
-                   BARCODE SCANNER METHODS
+                   BARCODE SCANNER METHODS (OPTIMIZED)
                 ======================================== */
                 toggleScanner() {
                     this.scannerActive = !this.scannerActive;
@@ -749,7 +853,11 @@
                     this.lastScanTime = 0;
                     this.boundBarcodeInput = this.handleBarcodeInput.bind(this);
                     this.boundBarcodeKeyDown = this.handleBarcodeKeyDown.bind(this);
-                    document.addEventListener('keypress', this.boundBarcodeInput);
+
+                    // ✅ Use passive listeners for better scroll performance
+                    document.addEventListener('keypress', this.boundBarcodeInput, {
+                        passive: true
+                    });
                     document.addEventListener('keydown', this.boundBarcodeKeyDown);
                 },
 
@@ -805,8 +913,8 @@
                     );
 
                     if (produk) {
-                        this.selectProduk(produk);
-                        this.showNotification('success', 'Produk ditemukan!', produk.nama_produk);
+                        this.addProductToCartDirect(produk);
+                        this.showNotification('success', 'Ditambahkan ke keranjang', produk.nama_produk);
                     } else {
                         this.showNotification('error', 'Produk tidak ditemukan', 'Barcode: ' + barcode);
                     }
@@ -844,7 +952,7 @@
                 handleSubmit(event) {
                     if (!this.isReadyToPay) {
                         event.preventDefault();
-                        alert('Tambahkan produk terlebih dahulu!');
+                        this.showNotification('error', 'Keranjang kosong!', 'Tambahkan produk terlebih dahulu');
                         return false;
                     }
                     return true;
@@ -860,6 +968,11 @@
                         this.tempHarga = '';
                         this.tempQty = 1;
                         this.tempTotal = '';
+
+                        // ✅ Clear cache
+                        this.formatRupiahCache = {};
+
+                        this.showNotification('success', 'Berhasil!', 'Form telah direset');
                     }
                 },
 
@@ -867,8 +980,8 @@
                    INITIALIZATION
                 ======================================== */
                 init() {
-                    // Set filtered products
-                    this.filteredProducts = this.allProduks;
+                    // ✅ Lazy load products
+                    this.filteredProducts = [];
 
                     // Set data for edit mode
                     if (this.isEditMode) {
@@ -886,23 +999,35 @@
                 },
 
                 /* ========================================
-                   CART CALCULATION METHODS
+                   CART CALCULATION METHODS (OPTIMIZED WITH THROTTLE)
                 ======================================== */
                 calculateTotals() {
-                    this.diskon_percent = Math.min(100, Math.max(0, Number(this.diskon_percent || 0)));
+                    // ✅ Clear previous timeout
+                    if (this.calculateTimeout) {
+                        clearTimeout(this.calculateTimeout);
+                    }
 
-                    this.cart.forEach(item => {
-                        const qty = Number(item.qty) || 0;
-                        const harga = Number(item.harga_satuan) || 0;
-                        item.diskon_item_percent = Math.min(100, Math.max(0, Number(item.diskon_item_percent ||
-                            0)));
-                        const subtotalGross = qty * harga;
-                        item.diskon_item_nominal = Math.round((item.diskon_item_percent / 100) * subtotalGross);
-                        item.subtotal = subtotalGross - item.diskon_item_nominal;
-                    });
+                    // ✅ Throttle calculation
+                    this.calculateTimeout = setTimeout(() => {
+                        this.diskon_percent = Math.min(100, Math.max(0, Number(this.diskon_percent || 0)));
 
-                    this.diskon_trans_nominal = Math.round((this.diskon_percent / 100) * this
-                        .subtotalAfterProductDiscounts);
+                        this.cart.forEach(item => {
+                            const qty = Number(item.qty) || 0;
+                            const harga = Number(item.harga_satuan) || 0;
+                            item.diskon_item_percent = Math.min(100, Math.max(0, Number(item
+                                .diskon_item_percent ||
+                                0)));
+                            const subtotalGross = qty * harga;
+                            item.diskon_item_nominal = Math.round((item.diskon_item_percent / 100) *
+                                subtotalGross);
+                            item.subtotal = subtotalGross - item.diskon_item_nominal;
+                        });
+
+                        this.diskon_trans_nominal = Math.round((this.diskon_percent / 100) * this
+                            .subtotalAfterProductDiscounts);
+
+                        this.calculateTimeout = null;
+                    }, 100);
                 },
 
                 /* ========================================
@@ -915,7 +1040,7 @@
                     if (qty < 1) qty = 1;
                     if (qty > item.stok_produk) {
                         qty = item.stok_produk;
-                        alert('Maksimal stok untuk ' + item.nama_produk + ' adalah ' + item.stok_produk + '!');
+                        this.showNotification('error', 'Stok maksimal tercapai', item.nama_produk);
                     }
 
                     this.cart[index].qty = qty;
@@ -936,6 +1061,8 @@
                     if (item.qty < item.stok_produk) {
                         item.qty++;
                         this.calculateTotals();
+                    } else {
+                        this.showNotification('error', 'Stok maksimal tercapai', item.nama_produk);
                     }
                 },
 
@@ -951,6 +1078,7 @@
                     if (confirm('Hapus produk ini dari keranjang?')) {
                         this.cart.splice(index, 1);
                         this.calculateTotals();
+                        this.showNotification('success', 'Berhasil!', 'Produk dihapus dari keranjang');
                     }
                 },
             };
@@ -980,6 +1108,17 @@
 
         .overflow-y-auto::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
+        }
+
+        /* ✅ Optimize animations */
+        * {
+            will-change: auto;
+        }
+
+        .transition-colors,
+        .transition-all,
+        .transition-opacity {
+            will-change: auto;
         }
     </style>
 

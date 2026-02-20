@@ -70,7 +70,7 @@
 
             {{-- KARTU 2: Total Pembelian --}}
             @include('components.dashboard-card', [
-                'title' => 'Total Pembelian',
+                'title' => 'Total Harga Barang Masuk',
                 'value' => 'Rp ' . number_format($totalPembelian, 0, ',', '.'),
                 'icon' => 'bx-package',
                 'color' => 'bg-blue-100 text-blue-700',
@@ -181,7 +181,8 @@
                                         </p>
                                     </div>
                                 </div>
-                                <span class="text-sm font-bold text-green-600 bg-green-50 px-2.5 py-0.5 rounded-full">
+                                <span
+                                    class="text-sm font-bold whitespace-nowrap text-green-600 bg-green-50 px-2.5 py-0.5 rounded-full">
                                     {{ $produk->total_terjual }} Sales
                                 </span>
                             </li>
